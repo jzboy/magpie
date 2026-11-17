@@ -73,7 +73,6 @@
   <nav class="seg" id="nav" aria-label="Main navigation" data-ta style="--wails-draggable:no-drag">
     <span class="nav-gl" data-t>Work</span>
     <button data-view="agents" class="on" aria-current="page"><svg class="nav-ic" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4-4 4M10 14h6"/></g></svg><span data-t>Agents</span></button>
-    <button data-view="library" data-feature="library"><svg class="nav-ic" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h9v13H5a1.5 1.5 0 0 1 0-3h9"/></g></svg><span data-t>Library</span></button>
     <span class="nav-gl" data-t>Models</span>
     <button data-view="providers"><svg class="nav-ic" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="10" r="3"/><path d="M10 10h7M14 10v3M16.5 10v2"/></g></svg><span data-t>Providers</span></button>
     <button data-view="routing" data-feature="routing"><svg class="nav-ic" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h5l4-5h5M8 10l4 5h5M14.5 3l2.5 2-2.5 2M14.5 13l2.5 2-2.5 2"/></g></svg><span data-t>Routing</span></button>
@@ -172,11 +171,11 @@
   <div class="row-head set-head"><div class="warm-tabs set-tabs" id="setTabs" role="tablist" aria-label="Settings">
     <button type="button" role="tab" id="setTab-general" data-set="general" aria-controls="setPage-general" data-t>General</button>
     <button type="button" role="tab" id="setTab-usage" data-set="usage" aria-controls="setPage-usage" data-t>Allowances</button>
-    <button type="button" role="tab" id="setTab-network" data-set="network" aria-controls="setPage-network" data-t>Network and sharing</button>
-    <button type="button" role="tab" id="setTab-models" data-set="models" aria-controls="setPage-models" data-t>Models</button>
-    <button type="button" role="tab" id="setTab-privacy" data-set="privacy" aria-controls="setPage-privacy" data-t>Privacy</button>
-    <button type="button" role="tab" id="setTab-otel" data-set="otel" aria-controls="setPage-otel" data-feature="otel" data-t>Observability</button>
-    <button type="button" role="tab" id="setTab-sync" data-set="sync" aria-controls="setPage-sync" data-t>Sync and backup</button>
+    <button type="button" role="tab" id="setTab-network" hidden data-set="network" aria-controls="setPage-network" data-t>Network and sharing</button>
+    <button type="button" role="tab" id="setTab-models" hidden data-set="models" aria-controls="setPage-models" data-t>Models</button>
+    <button type="button" role="tab" id="setTab-privacy" hidden data-set="privacy" aria-controls="setPage-privacy" data-t>Privacy</button>
+    <button type="button" role="tab" id="setTab-otel" hidden data-set="otel" aria-controls="setPage-otel" data-feature="otel" data-t>Observability</button>
+    <button type="button" role="tab" id="setTab-sync" hidden data-set="sync" aria-controls="setPage-sync" data-t>Sync and backup</button>
     <button type="button" role="tab" id="setTab-plugins" data-set="plugins" aria-controls="setPage-plugins" data-t hidden>Plugins</button>
     <button type="button" role="tab" id="setTab-about" data-set="about" aria-controls="setPage-about" data-t>About</button>
   </div><input class="sess-filter set-q" id="setQ" type="search" spellcheck="false" autocomplete="off" placeholder="Find a setting" aria-label="Find a setting" data-tp></div>
@@ -391,7 +390,7 @@
       </div>
     </div>
   </section>
-  <section class="set-page" id="setPage-network" role="tabpanel" aria-labelledby="setTab-network">
+  <section class="set-page" id="setPage-network" hidden role="tabpanel" aria-labelledby="setTab-network">
     <div class="list prefs">
       <div class="row pref">
         <div class="who"><div class="name" data-t>Proxy</div><div class="sub" id="proxySub"></div></div>
@@ -434,7 +433,7 @@
       <div class="list prefs" id="netMoreList"></div>
     </details>
   </section>
-  <section class="set-page" id="setPage-models" role="tabpanel" aria-labelledby="setTab-models">
+  <section class="set-page" id="setPage-models" hidden role="tabpanel" aria-labelledby="setTab-models">
     <div class="row-head"><span class="label" data-t>Images</span></div>
     <div class="list prefs" id="imagesList"></div>
     <div class="row-head"><span class="label" data-t>Web search</span></div>
@@ -461,7 +460,7 @@
     <div class="row-head"><span class="label" data-t>Disabled models</span></div>
     <div class="list prefs" id="disabledModelsList"></div>
   </section>
-  <section class="set-page" id="setPage-privacy" role="tabpanel" aria-labelledby="setTab-privacy">
+  <section class="set-page" id="setPage-privacy" hidden role="tabpanel" aria-labelledby="setTab-privacy">
     <div class="row-head"><span class="label" data-t>How it's found</span></div>
     <div class="list prefs" id="findList"></div>
     <div class="row-head"><span class="label" data-t>What to mask</span></div>
@@ -479,10 +478,10 @@
     <div class="row-head"><span class="label" data-t>Agents' session history</span></div>
     <div class="list prefs" id="sessionReadsList"></div>
   </section>
-  <section class="set-page" id="setPage-otel" role="tabpanel" aria-labelledby="setTab-otel" data-feature="otel">
+  <section class="set-page" id="setPage-otel" hidden role="tabpanel" aria-labelledby="setTab-otel" data-feature="otel">
     <div id="otelList"></div>
   </section>
-  <section class="set-page" id="setPage-sync" role="tabpanel" aria-labelledby="setTab-sync">
+  <section class="set-page" id="setPage-sync" hidden role="tabpanel" aria-labelledby="setTab-sync">
     <div class="list prefs" id="syncList"></div>
   </section>
   <section class="set-page" id="setPage-plugins" role="tabpanel" aria-labelledby="setTab-plugins">

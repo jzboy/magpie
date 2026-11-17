@@ -19809,7 +19809,7 @@ function tabKeys(tabs, sel) {
 // Settings: a tab per part (#471), kept in the address (?tab=privacy) and
 // remembered; a part with no row here has none. A click leaves the page
 // where it is; picked in the sidebar, a part opens at its top (navSubs).
-const SET_TABS = ["general", "usage", "network", "models", "privacy", "otel", "sync", "plugins", "about"];
+const SET_TABS = ["general", "usage", "plugins", "about"];
 let setTab = "general";
 try { const k = localStorage.getItem("magpie.settingsTab"); if (SET_TABS.includes(k)) setTab = k; } catch {}
 let setShown = setTab; // the part shown: the one picked, or the first there
@@ -20183,121 +20183,12 @@ function renderSettings() {
     about.append(r);
     return r;
   };
-  renderUpdate(row(t("Version"), "", s.version));
-  // what changed in this version, and in one waiting; a build from source
-  // has no notes
-  if (/^v?\d+\.\d+\.\d+$/.test(s.version || "")) {
-    const notes = el("button", "text", t("Open"));
-    notes.onclick = () => openWhatsNew(notes);
-    row(t("What's new"), t("The release notes since the last update"), "", notes).classList.add("whatsnew-row");
-  }
-  // the header's Update pill, kept away for good or for one version; the
-  // version row above still says what is out and offers it
-  const pill = row(t("Update button"), t("Shows in the header when a newer magpie is out"),
-    "", segs([["off", t("Off")], ["on", t("On")]], s.noUpdatePill ? "off" : "on", (v) => savePrefs({ ...keep, noUpdatePill: v === "off" }).then(renderUpdateBadge)));
-  pill.classList.add("update-pill-row");
-  // hidden by its × for 3 days, across the releases out meanwhile (u.quiet)
-  if (!s.noUpdatePill) {
-    api(updatePath("update")).then((u) => {
-      if (!pill.isConnected || !u?.quiet) return;
-      pill.querySelector(".sub").textContent = t("Hidden for 3 days");
-      const back = el("button", "text", t("Show again"));
-      back.onclick = () => skipUpdate("");
-      pill.querySelector(".val").prepend(back);
-    }, () => {});
-  }
-  // whether magpie asks for a newer version by itself, and how often;
-  // off, only the version row's Check asks (#472)
-  row(t("Automatic updates"), t("Checks for a newer magpie by itself"),
-    "", segsOO(!s.noAutoUpdate, (v) => savePrefs({ ...keep, noAutoUpdate: !v }))).classList.add("update-auto-row");
-  // kept in place while off, dimmed, its height the same (a row or a line
-  // taken away would shorten the page under the click), for when they are
-  // turned on again
-  row(t("Update check interval"), s.noAutoUpdate ? t("While automatic updates are on") : t("How often magpie looks for a newer version"), "",
-    segs(UPDATE_EVERY.map((m) => [m, m < 60 ? t("{n} min", { n: m }) : t("{n} h", { n: m / 60 })]), s.updateEvery || 360,
-      (updateEvery) => savePrefs({ ...keep, updateEvery }))).classList.add("update-every-row", ...(s.noAutoUpdate ? ["off"] : []));
-  // which versions an update offers (ssharpcc on X): every one as it comes
-  // out; Daily, one a day that passed its tests (fishmagic80 on X); or
-  // Stable, one a week; urgent ones at once on both, chosen by the update
-  // feed. It holds for the version row's Check too, so it stays lit with
-  // automatic updates off.
-  const uc = ["stable", "daily"].includes(s.updateChannel) ? s.updateChannel : "every";
-  row(t("Update channel"), t(uc === "stable" ? "One version a week, out for three days first, and urgent fixes at once. What's new lists every change since yours"
-    : uc === "daily" ? "One version a day, the newest that passed its tests, and urgent fixes at once. What's new lists every change since yours" : "Every version as soon as it is out"), "",
-    segs([["every", t("Every version")], ["daily", t("Daily")], ["stable", t("Stable")]], uc,
-      (v) => savePrefs({ ...keep, updateChannel: v === "every" ? "" : v }))).classList.add("update-channel-row");
-  // whether a newer version found is downloaded at once, or only said to
-  // be out and downloaded on a click (#2296): a metered network or a
-  // proxy billed by traffic. It holds for the version row's Check too.
-  row(t("Download updates automatically"), s.noAutoDownload
-    ? t("Off: a newer version is only shown, with its size; it downloads when you click Download update. For metered networks and proxies billed by traffic")
-    : t("Downloads a newer version as soon as it is found. Turn off on a metered network or a proxy billed by traffic"), "",
-    segsOO(!s.noAutoDownload, (v) => savePrefs({ ...keep, noAutoDownload: !v }))).classList.add("update-download-row");
-  row(t("Restart automatically"), s.noAutoUpdate ? t("While automatic updates are on") : t("Once an update is downloaded, restarts into it without cutting off an agent's request"), "",
-    segsOO(s.autoRestart, (v) => savePrefs({ ...keep, autoRestart: v }))).classList.add("update-restart-row", ...(s.noAutoUpdate ? ["off"] : []));
-  renderUpdateMirror(row(t("Download source"), "", ""), s);
-  // beside Download source, both where an update comes from (WeltAn_X on X)
-  const src = el("button", "sess-pick pref-pick");
-  Object.assign(src, { type: "button", id: "updateSourcePick" });
-  src.setAttribute("aria-haspopup", "menu");
-  src.setAttribute("aria-expanded", "false");
-  row(t("Update source"), "", "", src).id = "updateSourceRow";
-  import("./updatesource.js").then(() => src.isConnected && updateSourcePick(s, keep), statusErr);
-  const open = el("button", "text", t("Open"));
-  open.onclick = () => api("settings/reveal", {}).catch(statusErr);
-  // portable (a data folder beside magpie, #508): everything is in there
-  row(t("Config folder"), s.portable ? t("Portable: everything magpie keeps, in the data folder beside it") : t("providers, profiles and these settings"), s.dir, copyBtn(s.dir, t("Path")), open);
-  // app.log (applog); magpie web writes none
-  if (s.log) {
-    const o = el("button", "text", t("Open"));
-    o.onclick = () => api("settings/log/reveal", {}).catch(statusErr);
-    row(t("Log"), t("What magpie has logged, to send with a bug report"), s.log, copyBtn(s.log, t("Path")), o).id = "logRow";
-  }
-  renderCLI(row(t("Command line"), t("Checking your shells…"), ""));
-  // served to other machines (magpie web), the one they reach (noahhrreion)
+  row(t("Version"), "", s.version);
+  // served to other machines (magpie web), the one they reach
   const gw = web && s.publicURL || s.gateway;
   row(t("Gateway URL"), t("the address every agent is pointed at"), gw, copyBtn(gw, t("Gateway URL")));
-  // Claude Code elsewhere (Docker): the host runs this curl
-  if (web) {
-    const cmd = "curl -fsS -m 1 -H 'Authorization: Bearer <gateway key>' --data-binary @- " + gw + "/v1/magpie/statusline || true";
-    row(t("Status line on another computer"), t("statusLine's command in Claude Code's settings.json there; a read-only gateway key is enough"), cmd, copyBtn(cmd, t("Command"))).id = "statuslineRemoteRow";
-  }
-  // MAGPIE_PUBLIC_URL (#1551), named as the Gateway page names it
-  if (s.publicURL && gw !== s.publicURL) {
-    const who = self.pubWho?.(s) || t("Public address");
-    row(who, t("MAGPIE_PUBLIC_URL: where other computers reach the gateway, with a gateway key"), s.publicURL, copyBtn(s.publicURL, who)).id = "publicURLRow";
-  }
-  const site = el("button", "text", t("Open"));
-  site.onclick = () => api("open", { url: "https://github.com/yetone/magpie" }).catch(() => {});
-  row(t("Based on"), "基于 yetone 的 magpie 二次开发（MIT）", "github.com/yetone/magpie", site);
-  const lic = el("button", "text", t("View"));
-  lic.onclick = showNotices;
-  row(t("Open-source licenses"), t("the notices of the code and data magpie is built with"), "", lic);
-  const join = el("button", "discord");
-  join.innerHTML = DISCORD_SVG;
-  join.append(el("span", "", t("Join Discord")));
-  join.title = "discord.gg/vGSnD3ZKQF";
-  join.onclick = () => api("open", { url: "https://discord.gg/vGSnD3ZKQF" }).catch(() => {});
-  // issues and the code are on GitHub, for those who'd rather not use Discord
-  const repo = el("button", "github");
-  repo.innerHTML = GITHUB_SVG;
-  repo.append(el("span", "", "GitHub"));
-  repo.title = "github.com/yetone/magpie";
-  repo.onclick = () => api("open", { url: "https://github.com/yetone/magpie" }).catch(() => {});
-  row(t("Community"), t("questions, ideas and feedback, on Discord or GitHub"), "", join, repo);
-  // the facts that help a fix, copied (never put in the link), then the
-  // feedback post on X, to reply to there (River_WLan on X)
-  const report = el("button", "text", t("Open"));
-  report.onclick = async () => {
-    const f = await fetch("/api/feedback?surface=" + (web ? "browser" : "app")).then((r) => r.ok ? r.json() : null).catch(() => null);
-    if (!f) return status(t("Couldn't read the details to copy"), "err");
-    await copy(f.text, "", report, t("Details copied. Paste them in your reply"));
-    api("open", { url: f.url }).catch(statusErr);
-  };
-  row(t("Report a problem"), "", "", report);
-  // magpie uninstall, from the app (Jevik_AI on X deleted magpie's folders
-  // by hand and Codex kept pointing at a gateway that was gone). Never in a
-  // browser: magpie web would be taken off the computer serving the page.
+  // magpie uninstall, from the app. Never in a browser: magpie web would be
+  // taken off the computer serving the page.
   if (!web) {
     const go = el("button", "text danger", t("Uninstall…"));
     go.onclick = () => uninstallMagpie(go);

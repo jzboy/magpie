@@ -55,8 +55,12 @@ jobs:
           name: haoge-ai-windows-amd64.exe
           path: dist/haoge-ai-windows-amd64.exe
 
+  # The Windows exe is published on its own: a repository whose account can't
+  # use GitHub's macOS runners (the dmg job is cancelled with "macos-14-arm64-us-
+  # default is not supported") still gets a Release, and the dmg is attached
+  # when a macOS runner built one.
   release:
-    needs: [dmg, exe]
+    needs: [exe]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -68,11 +72,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          files=(dist/haoge-ai-windows-amd64.exe)
+          [ -f dist/haoge-ai-darwin-arm64.dmg ] && files+=(dist/haoge-ai-darwin-arm64.dmg)
           gh release create "${{ github.ref_name }}" \
             --repo "${{ github.repository }}" \
             --title "浩哥AI ${{ github.ref_name }}" \
-            --notes "浩哥AI — macOS arm64 (.dmg) 与 Windows amd64 (.exe)。基于 yetone/magpie 二次开发（MIT）。" \
-            dist/haoge-ai-darwin-arm64.dmg dist/haoge-ai-windows-amd64.exe
+            --notes "浩哥AI — Windows amd64 (.exe)，macOS arm64 (.dmg) 由可用的 macOS 运行器构建时附带。基于 yetone/magpie 二次开发（MIT）。" \
+            "${files[@]}"
 
   # Puts the CI-built dmg on the haoge-ai branch beside the Windows exe, so
   # both artifacts live on the branch (the dmg cannot be built on Windows).

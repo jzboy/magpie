@@ -1,11 +1,15 @@
 name: 浩哥AI Release
 
-# Builds 浩哥AI's two artifacts and attaches them to a GitHub release:
+# Builds 浩哥AI's two artifacts:
 #   - macOS arm64 .dmg  (macos-14 runner is arm64; the GUI needs cgo + WebKit,
 #     so it is built natively there)
 #   - Windows amd64 .exe (WebView2 needs no cgo, so it cross-compiles on Linux)
-# No signing or notarisation: the macOS app is unsigned, so first open is a
-# right-click → Open. Trigger by pushing a haoge-v* tag, or run by hand.
+# On a haoge-v* tag the dmg is also committed into release/ on the haoge-ai
+# branch (the Windows exe is already there, built on Windows), and both are
+# attached to a GitHub release. No signing or notarisation: the macOS app is
+# unsigned, so first open is a right-click → Open. Trigger by pushing a
+# haoge-v* tag (works before this file is on the default branch); the Run
+# workflow button appears once it is on main.
 
 on:
   push:
@@ -69,3 +73,30 @@ jobs:
             --title "浩哥AI ${{ github.ref_name }}" \
             --notes "浩哥AI — macOS arm64 (.dmg) 与 Windows amd64 (.exe)。基于 yetone/magpie 二次开发（MIT）。" \
             dist/haoge-ai-darwin-arm64.dmg dist/haoge-ai-windows-amd64.exe
+
+  # Puts the CI-built dmg on the haoge-ai branch beside the Windows exe, so
+  # both artifacts live on the branch (the dmg cannot be built on Windows).
+  publish-branch:
+    needs: [dmg]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: haoge-ai
+          token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: haoge-ai-darwin-arm64.dmg
+          path: release
+      - name: Commit the dmg to haoge-ai
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add release/haoge-ai-darwin-arm64.dmg
+          if git diff --cached --quiet; then
+            echo "dmg unchanged"
+          else
+            git commit -m "release: macOS arm64 dmg built by CI (${{ github.ref_name }})"
+            git push origin HEAD:haoge-ai
+          fi

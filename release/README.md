@@ -15,12 +15,16 @@ macOS GUI 版链接 cgo + WebKit，只能在 macOS（arm64）上构建，本机�
 
 1. **CI（推荐）**：推送 `haoge-v*` 标签，GitHub Actions
    [`.github/workflows/haoge-release.yml`](../.github/workflows/haoge-release.yml) 会在 `macos-14`（arm64）
-   跑 `make icons && make release-dmg`，并把 dmg 与 exe 一起附到 GitHub Release：
+   跑 `make icons && make release-dmg`，然后把 **dmg 提交回 haoge-ai 分支的 `release/` 目录**，
+   并把 dmg 与 exe 一起附到 GitHub Release：
 
    ```bash
    git tag haoge-v1.0
    git push jzboy haoge-v1.0
    ```
+
+   跑完后本目录会出现 `haoge-ai-darwin-arm64.dmg`（CI 机器人提交），这就是两份产物都在
+   haoge-ai 分支上的状态。
 
 2. **在 Mac 上本地构建**：
 

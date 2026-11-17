@@ -1,8 +1,6 @@
 <div align="center">
 
 
-# magpie
-
 ### Every agent's model. One place.
 
 **Claude Code on Kimi. Codex on DeepSeek. Gemini CLI on GLM. OpenCode on your ChatGPT plan.**<br>

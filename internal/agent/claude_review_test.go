@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"encoding/json"
 	"path/filepath"
 	"testing"
 
@@ -171,57 +170,6 @@ func TestClaudeAutoModeReview(t *testing.T) {
 	}
 	if v, _ := edit.GetJSON(path, "theme"); v != "dark" {
 		t.Fatal("theme lost")
-	}
-}
-
-// TestT3CodeAutoModeReview: T3 Code's magpie instance runs Claude Code on
-// the gateway through its own environment, so it is told the same: the
-// review off while a model it lists isn't reviewed with its results
-// coming back, and on (not set) once each is.
-func TestT3CodeAutoModeReview(t *testing.T) {
-	home := syncHome(t)
-	t.Setenv("T3CODE_HOME", "")
-	path := filepath.Join(home, ".t3", "userdata", "settings.json")
-	writeFile(t, path, `{}`)
-	a := t3code(home)
-	if err := a.Field("provider").Set(magpieID); err != nil {
-		t.Fatal(err)
-	}
-	review := func() (string, bool) {
-		t.Helper()
-		var file map[string]map[string]json.RawMessage
-		if err := json.Unmarshal([]byte(readFile(path)), &file); err != nil {
-			t.Fatal(err)
-		}
-		for _, v := range t3Format(t, file["providerInstances"][magpieID]).Environment {
-			if v.Name == claudeReviewEnv {
-				return v.Value, true
-			}
-		}
-		return "", false
-	}
-	sync := func() {
-		t.Helper()
-		if err := a.Sync(); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if v, ok := review(); v != "0" || !ok {
-		t.Fatalf("relay/glm-4.6 alone: %q %v, want 0", v, ok)
-	}
-	if err := provider.Save(provider.Provider{ID: "a", Name: "A", Anthropic: anthropicAPI, Key: "k", Models: []string{"claude-sonnet-5"}}); err != nil {
-		t.Fatal(err)
-	}
-	sync()
-	if v, ok := review(); v != "0" || !ok {
-		t.Fatalf("a/claude-sonnet-5 beside relay/glm-4.6: %q %v, want 0", v, ok)
-	}
-	if err := provider.SetHiddenModels("t3code", []string{"relay/glm-4.6"}); err != nil {
-		t.Fatal(err)
-	}
-	sync()
-	if v, ok := review(); ok {
-		t.Fatalf("a/claude-sonnet-5 listed alone: %q, want none", v)
 	}
 }
 

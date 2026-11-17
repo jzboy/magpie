@@ -24,18 +24,12 @@ func TestBiliChainIsStillMagpie(t *testing.T) {
 	managed := claudeManaged
 	claudeManaged = func() string { return filepath.Join(home, "managed-settings.json") }
 	t.Cleanup(func() { claudeManaged = managed })
-	os.MkdirAll(filepath.Join(home, ".hanako", "agents", "hana"), 0o755)
-	os.WriteFile(filepath.Join(home, ".hanako", "agents", "hana", "config.yaml"), []byte("agent:\n  name: Hana\n"), 0o644)
-	craftFixture(t, home)
-	t.Setenv("ASTRBOT_ROOT", "")
-	writeFile(t, filepath.Join(home, ".astrbot", "data", "cmd_config.json"), astrbotConfig)
-	qwenpawFixture(t, home)
 	setPort(t, 3592)
 	const gw = "http://127.0.0.1:3592"
 	const lane = "http://127.0.0.1:18787/bili/"
 	var agents []*Agent
 	for _, a := range All() {
-		if a.Check == nil || a.Launch != nil || a.WSL != "" || a.Native != nil || a.ID == "alma" || a.ID == "shelley" || a.ID == "cursorlocal" {
+		if a.Check == nil || a.Launch != nil || a.WSL != "" || a.Native != nil {
 			continue
 		}
 		var key, want string
@@ -55,7 +49,7 @@ func TestBiliChainIsStillMagpie(t *testing.T) {
 		agents = append(agents, a)
 	}
 	moved := filesWith(home, "127.0.0.1:3592")
-	if len(moved) < 20 {
+	if len(moved) < 6 {
 		t.Fatalf("only %d files have the gateway's address: %v", len(moved), moved)
 	}
 	for _, p := range moved {

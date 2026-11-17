@@ -12,19 +12,9 @@ import (
 // subagentAgents puts every agent that takes subagents in the sandbox.
 func subagentAgents(t *testing.T, h string) map[string]string {
 	t.Helper()
-	write(t, filepath.Join(h, ".qwen/settings.json"), "{}\n")
-	write(t, filepath.Join(h, ".factory/settings.json"), "")
-	write(t, filepath.Join(h, ".grok/config.toml"), "")
 	return map[string]string{
-		"claude":   filepath.Join(h, ".claude/agents/reviewer.md"),
-		"codex":    filepath.Join(h, ".codex/agents/reviewer.toml"),
-		"opencode": filepath.Join(h, ".config/opencode/agents/reviewer.md"),
-		"gemini":   filepath.Join(h, ".gemini/agents/reviewer.md"),
-		"qwen":     filepath.Join(h, ".qwen/agents/reviewer.md"),
-		"droid":    filepath.Join(h, ".factory/droids/reviewer.md"),
-		"grok":     filepath.Join(h, ".grok/agents/reviewer.md"),
-		"cursor":   filepath.Join(h, ".cursor/agents/reviewer.md"),
-		"copilot":  filepath.Join(h, ".copilot/agents/reviewer.agent.md"),
+		"claude": filepath.Join(h, ".claude/agents/reviewer.md"),
+		"codex":  filepath.Join(h, ".codex/agents/reviewer.toml"),
 	}
 }
 
@@ -42,7 +32,7 @@ var reviewer = Subagent{
 func TestSubagentsEachAgentsFile(t *testing.T) {
 	h := sandbox(t)
 	files := subagentAgents(t, h)
-	ok(t)(SaveServer("", Server{Name: "github", Transport: "stdio", Command: "npx", Agents: []string{"claude", "droid"}}))
+	ok(t)(SaveServer("", Server{Name: "github", Transport: "stdio", Command: "npx", Agents: []string{"claude"}}))
 	ok(t)(change(func(l *Library) error {
 		l.Skills = append(l.Skills, &Skill{Name: "tdd", Agents: []string{}})
 		return nil
@@ -56,12 +46,7 @@ func TestSubagentsEachAgentsFile(t *testing.T) {
 	desc := `"Reviews a diff: \"bugs\" only. Use after edits."`
 	body := "---\n\nYou review code.\n\nReport bugs only.\n"
 	want := map[string]string{
-		"claude":   "---\nname: \"reviewer\"\ndescription: " + desc + "\nskills: [\"tdd\"]\nmcpServers: [\"github\"]\n" + body,
-		"opencode": "---\ndescription: " + desc + "\nmode: subagent\n" + body,
-		"droid":    "---\nname: \"reviewer\"\ndescription: " + desc + "\nmcpServers: [\"github\"]\n" + body,
-	}
-	for _, id := range []string{"gemini", "qwen", "grok", "cursor", "copilot"} {
-		want[id] = "---\nname: \"reviewer\"\ndescription: " + desc + "\n" + body
+		"claude": "---\nname: \"reviewer\"\ndescription: " + desc + "\nskills: [\"tdd\"]\nmcpServers: [\"github\"]\n" + body,
 	}
 	for id, f := range files {
 		got := read(t, f)
@@ -88,7 +73,7 @@ func TestSubagentsEachAgentsFile(t *testing.T) {
 		t.Errorf("view: %+v", v.Subagents)
 	}
 	for _, av := range v.SubagentAgents {
-		if (av.Skills != (av.ID == "claude")) || (av.MCP != (av.ID == "claude" || av.ID == "droid")) || av.No != "" {
+		if (av.Skills != (av.ID == "claude")) || (av.MCP != (av.ID == "claude")) || av.No != "" {
 			t.Errorf("agent view %+v", av)
 		}
 	}
@@ -132,7 +117,7 @@ func TestSubagentsLeaveTheUsersFiles(t *testing.T) {
 	own := filepath.Join(h, ".claude/agents/reviewer.md")
 	write(t, own, "---\nname: reviewer\ndescription: mine\n---\nMy own reviewer.\n")
 	s := reviewer
-	s.Agents = []string{"claude", "codex", "opencode"}
+	s.Agents = []string{"claude", "codex"}
 	res, err := SaveSubagent("", s)
 	if err != nil {
 		t.Fatal(err)
@@ -147,7 +132,6 @@ func TestSubagentsLeaveTheUsersFiles(t *testing.T) {
 	// the user edits magpie's Codex file, then the library's subagent
 	// changes: the edit stays, and the page is told why
 	codex := filepath.Join(h, ".codex/agents/reviewer.toml")
-	oc := filepath.Join(h, ".config/opencode/agents/reviewer.md")
 	edited := read(t, codex) + "model = \"gpt-5.5\"\n"
 	write(t, codex, edited)
 	s.Prompt = "You review code, twice."
@@ -157,9 +141,6 @@ func TestSubagentsLeaveTheUsersFiles(t *testing.T) {
 	}
 	if read(t, codex) != edited {
 		t.Errorf("the user's edit was written over:\n%s", read(t, codex))
-	}
-	if !strings.Contains(read(t, oc), "You review code, twice.") {
-		t.Errorf("magpie's untouched OpenCode file wasn't updated:\n%s", read(t, oc))
 	}
 	var codexSaid bool
 	for _, p := range res.Problems {
@@ -172,9 +153,6 @@ func TestSubagentsLeaveTheUsersFiles(t *testing.T) {
 	// removed from the library: magpie's own file goes, the user's stay
 	if _, err := RemoveSubagents([]string{"reviewer"}); err != nil {
 		t.Fatal(err)
-	}
-	if _, err := os.Stat(oc); !os.IsNotExist(err) {
-		t.Errorf("magpie's OpenCode file stayed: %v", err)
 	}
 	if read(t, codex) != edited || !strings.Contains(read(t, own), "My own reviewer.") {
 		t.Error("removing took the user's files")
@@ -196,7 +174,7 @@ func TestSubagentCheck(t *testing.T) {
 		{Name: "default", Description: "d", Prompt: "p"},
 		{Name: "rev", Description: " ", Prompt: "p"},
 		{Name: "rev", Description: "d", Prompt: " \n"},
-		{Name: "rev", Description: "d", Prompt: "p", Agents: []string{"crush"}},
+		{Name: "rev", Description: "d", Prompt: "p", Agents: []string{"nope"}},
 	} {
 		if _, err := SaveSubagent("", s); err == nil {
 			t.Errorf("%+v saved", s)

@@ -22,11 +22,6 @@ func TestModelNameAndLevelsReachAgentFiles(t *testing.T) {
 	if err := provider.Save(provider.Provider{ID: "relay", Name: "Relay", Catalog: "zai", Key: "k", Chat: "http://127.0.0.1:1/v1", Models: []string{"glm-4.6"}}); err != nil {
 		t.Fatal(err)
 	}
-	piModels := filepath.Join(home, ".pi", "agent", "models.json")
-	writeFile(t, piModels, `{"providers":{"magpie":{"name":"magpie","models":[]}}}`)
-	// Pi runs a model of magpie's: connected, so its list follows
-	writeFile(t, filepath.Join(home, ".pi", "agent", "settings.json"), `{"defaultProvider":"magpie","defaultModel":"relay/glm-4.6"}`)
-	setUpInMagpie("pi")
 	codexDir := filepath.Join(home, ".codex")
 	codexCat := filepath.Join(codexDir, "magpie-models.json")
 	writeFile(t, filepath.Join(codexDir, "config.toml"), "model = \"relay/glm-4.6\"\nmodel_provider = \"magpie\"\nmodel_catalog_json = '"+codexCat+"'\n")
@@ -39,21 +34,6 @@ func TestModelNameAndLevelsReachAgentFiles(t *testing.T) {
 	}
 	if err := provider.SetModelEfforts("relay/glm-4.6", []string{"low", "high"}); err != nil {
 		t.Fatal(err)
-	}
-	var pi struct {
-		Providers map[string]struct {
-			Models []map[string]any `json:"models"`
-		} `json:"providers"`
-	}
-	if err := json.Unmarshal([]byte(readFile(piModels)), &pi); err != nil {
-		t.Fatal(err)
-	}
-	ms := pi.Providers["magpie"].Models
-	// a custom name still carries its provider, the same as GLM-4.6's own
-	// name would, so a picker full of renamed models can still be told
-	// apart by vendor
-	if len(ms) != 1 || ms[0]["id"] != "relay/glm-4.6" || ms[0]["name"] != "GLM · Relay" {
-		t.Fatalf("pi models.json: %v", ms)
 	}
 	var cx struct {
 		Models []struct {
@@ -95,8 +75,5 @@ func TestModelNameAndLevelsReachAgentFiles(t *testing.T) {
 	}
 	if got := readFile(codexCat); !strings.Contains(got, `"GLM-4.6 · Relay"`) || !strings.Contains(got, `"medium"`) {
 		t.Fatalf("codex catalog after reset:\n%s", got)
-	}
-	if got := readFile(piModels); !strings.Contains(got, `"GLM-4.6 · Relay"`) {
-		t.Fatalf("pi models.json after reset:\n%s", got)
 	}
 }

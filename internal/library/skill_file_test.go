@@ -23,10 +23,9 @@ func TestSavedSkillFileReachesEveryAgent(t *testing.T) {
 	ok(t)(ImportSkill("writer"))
 	ok(t)(HandOverSkills([]string{"writer"}))
 	ok(t)(SetSkillHow("codex", HowCopy))
-	ok(t)(SetSkillHow("gemini", HowLink))
-	cx, gm := filepath.Join(h, ".codex/skills/writer"), filepath.Join(h, ".gemini/skills/writer")
-	if !ours(cx, "writer") || isLink(t, cx) || !isLink(t, gm) {
-		t.Fatal("codex hasn't a copy, or gemini a link")
+	cx := filepath.Join(h, ".codex/skills/writer")
+	if !ours(cx, "writer") || isLink(t, cx) {
+		t.Fatal("codex hasn't a copy")
 	}
 
 	f, err := ReadSkillFile("writer", "")
@@ -44,7 +43,7 @@ func TestSavedSkillFileReachesEveryAgent(t *testing.T) {
 	edited := strings.Replace(f.Text, "Write well", "Write well, briefly", 1)
 	ok(t)(SaveSkillFile("writer", "SKILL.md", edited, f.Text))
 	for range 2 { // the save's sync, and the one of the next start
-		for _, p := range []string{skillDir("writer"), cx, gm} {
+		for _, p := range []string{skillDir("writer"), cx} {
 			if s := read(t, filepath.Join(p, "SKILL.md")); s != edited {
 				t.Fatalf("%s:\n%s", p, s)
 			}

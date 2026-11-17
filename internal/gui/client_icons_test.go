@@ -7,14 +7,13 @@ import (
 	"testing"
 
 	"github.com/yetone/magpie/internal/agent"
-	"github.com/yetone/magpie/internal/gateway"
 	"github.com/yetone/magpie/internal/memdistill"
 )
 
 // genericIcon are the clients magpie has no logo for yet, drawn with the
 // generic cube on purpose (#4487). Each leaves this list when its real
 // logo, from the app or its vendor, is added.
-var genericIcon = map[string]bool{"ante": true, "pencil": true, "paseo": true, "openpencil": true, "newmax": true, "kirocrew": true, "raft": true}
+var genericIcon = map[string]bool{"raft": true}
 
 // Every client a request can be recorded as is drawn by its own name and
 // icon in the Routing page's request list, Usage and Sessions, which all
@@ -78,7 +77,7 @@ func TestEveryClientHasNameAndIcon(t *testing.T) {
 	}
 	// the ids the gateway gives a request by more than its User-Agent
 	// (gateway.agentOf), and those it names by one: each is a client
-	for _, id := range []string{"claude-desktop", gateway.ScienceID, "cursor-local", "codex", "magpie", "kimi", "kimi-code-desktop", memdistill.Agent} {
+	for _, id := range []string{"claude-desktop", "codex", "magpie", memdistill.Agent} {
 		if !clients[id] {
 			t.Errorf("the gateway records requests as %s, which isn't among the clients", id)
 		}

@@ -32,7 +32,7 @@ func TestReadDuringSyncWaitsForOnePart(t *testing.T) {
 			dirs = append(dirs, tg.Skills)
 		}
 	}
-	if len(dirs) < 4 {
+	if len(dirs) < 3 {
 		t.Fatalf("skill folders %v, want several agents'", dirs)
 	}
 	ok(t)(InstallSkills(src, names, ids))
@@ -47,7 +47,7 @@ func TestReadDuringSyncWaitsForOnePart(t *testing.T) {
 		return n
 	}
 	had := given()
-	if had < 4 {
+	if had < 3 {
 		t.Fatalf("the install gave %d agents' folders the skills, want several", had)
 	}
 	for _, d := range dirs {

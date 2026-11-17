@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"strings"
 	"testing"
 	"time"
 
@@ -189,98 +188,3 @@ func TestCodexOwnModelsListedOnlyThroughGroups(t *testing.T) {
 // takes nothing from the lists then). Every agent is checked, its
 // Agents-page list, what it is written and /v1/models gives it, and its
 // model pickers, so a fix for one agent can't pass for all.
-func TestGroupAloneKeepsSubscriptionModelsOutOfEveryAgentsList(t *testing.T) {
-	ids := codexSignedInSandbox(t)
-	var refs []string
-	for _, id := range ids {
-		refs = append(refs, "codex/"+id)
-	}
-	listed := func(a *agent.Agent) map[string]bool {
-		out := map[string]bool{}
-		for _, m := range agentModelList(a) {
-			out[m.ID] = true
-		}
-		return out
-	}
-	picks := func(a *agent.Agent) []string {
-		var out []string
-		for _, f := range agentFields(a, a.Values()) {
-			if f.Key != "model" {
-				continue
-			}
-			for _, o := range f.Options {
-				out = append(out, o.Value)
-			}
-		}
-		return out
-	}
-	// a picker's value is the ref, or the ref after a prefix of the agent's
-	member := func(v string) bool {
-		return slices.ContainsFunc(refs, func(r string) bool { return v == r || strings.HasSuffix(v, "/"+r) })
-	}
-	// the group names every one of them
-	g := provider.Group{ID: "mygpt", Name: "MyGPT", Members: refs, Unlists: true}
-	if err := provider.SaveGroup(g); err != nil {
-		t.Fatal(err)
-	}
-	checked := 0
-	for _, a := range agent.All() {
-		got := listed(a)
-		if !got["group/mygpt"] {
-			continue // an agent shown no models of magpie's (or no groups)
-		}
-		if strings.EqualFold(a.ListsFor(), "codex") {
-			continue // its own sign-in's models stay (catalogOf)
-		}
-		checked++
-		for _, ref := range refs {
-			if got[ref] {
-				t.Errorf("the group alone: %s in %s's list", ref, a.ID)
-			}
-		}
-		if shown, _ := provider.CatalogFor(a.ListsFor()); slices.ContainsFunc(shown, func(e provider.Entry) bool { return slices.Contains(refs, e.ID) }) {
-			t.Errorf("the group alone: a member in what %s is written and /v1/models gives it", a.ID)
-		}
-		if p := picks(a); slices.ContainsFunc(p, member) {
-			t.Errorf("the group alone: %s's picker offers a member: %v", a.ID, p)
-		}
-	}
-	for _, id := range []string{"hermes", "workbuddy", "claude"} {
-		a, err := agent.Find(id)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !listed(a)["group/mygpt"] {
-			t.Errorf("%s's list wasn't checked: it has no group/mygpt", id)
-		}
-	}
-	if checked < 10 {
-		t.Errorf("only %d agents' lists checked", checked)
-	}
-	for _, e := range provider.Catalog() {
-		if slices.Contains(refs, e.ID) {
-			t.Errorf("the gateway's /v1/models for a client lists %s, kept for the group", e.ID)
-		}
-	}
-	// the picker's "kept for routing groups" note names them
-	for _, ref := range refs {
-		if !slices.ContainsFunc(unlistedModels(), func(m unlistedJSON) bool { return m.ID == ref }) {
-			t.Errorf("%s not said kept for routing groups", ref)
-		}
-	}
-
-	// its models too: every agent lists them beside the group
-	g.Unlists = false
-	if err := provider.SaveGroup(g); err != nil {
-		t.Fatal(err)
-	}
-	for _, id := range []string{"hermes", "workbuddy", "claude", "codex"} {
-		a, _ := agent.Find(id)
-		got := listed(a)
-		for _, ref := range refs {
-			if !got[ref] || !got["group/mygpt"] {
-				t.Errorf("its models too: %s's list %v lacks %s or the group", id, got, ref)
-			}
-		}
-	}
-}

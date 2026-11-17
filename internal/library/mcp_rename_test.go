@@ -40,7 +40,7 @@ func TestSaveServerRenameKeepsOAuth(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			sandbox(t)
 			alphaFake, betaFake := mcpauthtest.New(t), mcpauthtest.New(t)
-			agents := []string{"claude", "codex", "cursor"}
+			agents := []string{"claude", "codex"}
 			alpha := Server{Name: "alpha", Transport: "http", URL: alphaFake.URL, Agents: agents}
 			beta := Server{Name: "beta", Transport: "http", URL: betaFake.URL, Agents: agents}
 			if tc.saveAlpha {

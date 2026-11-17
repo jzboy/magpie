@@ -4079,8 +4079,9 @@ const I18N = {
     "Graphite": "石墨",
     "A background image is 16 MB at most": "背景图片最大 16 MB",
     "Reduce motion": "减弱动态效果",
-    "Loading bird": "加载时的喜鹊",
-    "magpie's bird hops on what is still loading; Off keeps it away, and magpie stops looking for it": "magpie 的喜鹊会在还在加载的内容上跳来跳去；关闭后它不再出现，magpie 也不再为它盯着页面",
+    "Loading bird": "加载时的星芒",
+    "Based on": "基于",
+    "magpie's bird hops on what is still loading; Off keeps it away, and magpie stops looking for it": "浩哥AI 的星芒会在还在加载的内容上跳来跳去；关闭后它不再出现，浩哥AI 也不再为它盯着页面",
     "Animations stand still, as with the system's Reduce Motion, so magpie keeps the computer less busy": "动画静止不动，如同系统的「减弱动态效果」，让 magpie 少占用电脑",
     "Colorblind-safe chart colors, and each allowance window's line in a dash of its own": "图表改用色盲友好配色，每个额度窗口的走势线使用各自的线型",
     "Follows the Omarchy theme, as picked in Omarchy's menu": "跟随 Omarchy 主题，在 Omarchy 菜单里切换",
@@ -9420,8 +9421,9 @@ const I18N = {
     "Graphite": "石墨",
     "A background image is 16 MB at most": "背景圖片最大 16 MB",
     "Reduce motion": "減少動態效果",
-    "Loading bird": "載入時的喜鵲",
-    "magpie's bird hops on what is still loading; Off keeps it away, and magpie stops looking for it": "magpie 的喜鵲會在還在載入的內容上跳來跳去；關閉後它不再出現，magpie 也不再為它盯著頁面",
+    "Loading bird": "載入時的星芒",
+    "Based on": "基於",
+    "magpie's bird hops on what is still loading; Off keeps it away, and magpie stops looking for it": "浩哥AI 的星芒會在還在載入的內容上跳來跳去；關閉後它不再出現，浩哥AI 也不再為它盯著頁面",
     "Animations stand still, as with the system's Reduce Motion, so magpie keeps the computer less busy": "動畫靜止不動，如同系統的「減少動態效果」，讓 magpie 少佔用電腦",
     "Colorblind-safe chart colors, and each allowance window's line in a dash of its own": "圖表改用色盲友善配色，每個額度時段的走勢線使用各自的線型",
     "Follows the Omarchy theme, as picked in Omarchy's menu": "跟隨 Omarchy 主題，在 Omarchy 選單裡切換",
@@ -14776,8 +14778,9 @@ const I18N = {
     "Graphite": "グラファイト",
     "A background image is 16 MB at most": "背景画像は 16 MB までです",
     "Reduce motion": "視差効果を減らす",
-    "Loading bird": "読み込み中のカササギ",
-    "magpie's bird hops on what is still loading; Off keeps it away, and magpie stops looking for it": "読み込み中の部分の上で magpie のカササギが跳ねます。オフにすると現れず、magpie もそのための監視をやめます",
+    "Loading bird": "読み込み中のスパーク",
+    "Based on": "ベース",
+    "magpie's bird hops on what is still loading; Off keeps it away, and magpie stops looking for it": "読み込み中の部分の上で 浩哥AI のスパークが跳ねます。オフにすると現れず、浩哥AI もそのための監視をやめます",
     "Animations stand still, as with the system's Reduce Motion, so magpie keeps the computer less busy": "システムの「視差効果を減らす」と同じくアニメーションを止め、コンピュータの負荷を減らします",
     "Colorblind-safe chart colors, and each allowance window's line in a dash of its own": "グラフを色覚に配慮した配色にし、利用枠のウィンドウごとに推移線の線種を変えます",
     "Follows the Omarchy theme, as picked in Omarchy's menu": "Omarchy のメニューで選んだ Omarchy テーマに従います",
@@ -20141,8 +20144,9 @@ const I18N = {
     "Graphite": "Graphit",
     "A background image is 16 MB at most": "Ein Hintergrundbild ist höchstens 16 MB groß",
     "Reduce motion": "Bewegung reduzieren",
-    "Loading bird": "Elster beim Laden",
-    "magpie's bird hops on what is still loading; Off keeps it away, and magpie stops looking for it": "magpies Elster hüpft über das, was noch lädt; Aus hält sie fern, und magpie hört auf, danach Ausschau zu halten",
+    "Loading bird": "Lade-Funke",
+    "Based on": "Basiert auf",
+    "magpie's bird hops on what is still loading; Off keeps it away, and magpie stops looking for it": "Der Funke von 浩哥AI hüpft über das, was noch lädt; Aus hält ihn fern, und 浩哥AI hört auf, danach Ausschau zu halten",
     "Animations stand still, as with the system's Reduce Motion, so magpie keeps the computer less busy": "Animationen stehen still wie bei „Bewegung reduzieren“ des Systems, damit magpie den Computer weniger beansprucht",
     "Colorblind-safe chart colors, and each allowance window's line in a dash of its own": "Farbenblind-taugliche Diagrammfarben, und jedes Zeitfenster eines Kontingents mit eigenem Strichmuster",
     "Follows the Omarchy theme, as picked in Omarchy's menu": "Folgt dem im Omarchy-Menü gewählten Omarchy-Theme",
@@ -21641,10 +21645,28 @@ function dateFmt(opts) {
   return f;
 }
 
+// brand names the app in prose: 浩哥AI. Identifiers keep their spelling —
+// the magpie command and its subcommands, magpie-<agent> keys, magpie/
+// model ids, magpie:// links, usemagpie.ai, file names — as do the
+// MAGPIE_* variables (uppercase, never matched).
+const BRAND_CMDS = /^(provider|providers|claude|codex|dsh|workbuddy|group|groups|quota|settings|tui|web|serve|app|tray|panel|update|uninstall|log|data|tool|tools|model|models|accounts|account|plugin|plugins|presets|save|use|version|help|doctor|statusline|daemon|autostart|mask|masking|library|sessions|usage|routing|gateway|keys|key|profile|profiles|tune|search|image|snow|add|set|get|list|run|env|check|import|export|reset|compact|window|context-cap|quota|signin|sign-in|login|logout|refresh|move|back|preset|essentials|all|on|off|install|remove|update|mirror|generate_image|describe|transcribe|speak)\b/;
+function brand(s) {
+  if (typeof s !== "string" || !/magpie/i.test(s)) return s;
+  return s.replace(/magpie/gi, (m, off) => {
+    const before = s[off - 1], after = s[off + 6];
+    if (before === "{" && after === "}") return m; // a literal {magpie} provider-id token
+    if ((before && /[\w./:@-]/.test(before)) || (after && /[\w./:@-]/.test(after))) return m;
+    const rest = s.slice(off + 6).replace(/^\s+/, "");
+    if (/^(cmd|com|exe|app|json|icon|icns)\b/.test(rest)) return m;
+    if (BRAND_CMDS.test(rest)) return m;
+    return "浩哥AI";
+  });
+}
+
 function t(s, vars) {
   let out = I18N[locale]?.[s] ?? s;
   if (vars) for (const k in vars) out = out.split("{" + k + "}").join(vars[k]);
-  return out;
+  return brand(out);
 }
 
 // tNotice is an agent's advice after a change (state.notice) in the

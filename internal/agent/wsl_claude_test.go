@@ -2,20 +2,15 @@ package agent
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
 	"slices"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/yetone/magpie/internal/catalog"
 	"github.com/yetone/magpie/internal/edit"
 	"github.com/yetone/magpie/internal/gateway"
-	"github.com/yetone/magpie/internal/provider"
-	"github.com/yetone/magpie/internal/testenv"
 )
 
 // claudeDistroHome is a distro's / in a temp dir with a user whose
@@ -44,11 +39,11 @@ func noOwnClaude(t *testing.T) {
 	}
 }
 
-// The probe asks after Claude Code as after Codex and Pi, and reads what
+// The probe asks after Claude Code as after Codex and dsh, and reads what
 // it says.
 func TestWSLProbeFindsClaude(t *testing.T) {
 	for _, want := range []string{`[ -d "$HOME/.claude" ] && echo dir:.claude`, `p=$(wslcmd claude) && echo "bin:claude $p"`,
-		`[ -d "$HOME/.pi" ] && echo dir:.pi`, `[ -d "$HOME/.codex" ] && echo dir:.codex`} {
+		`[ -d "$HOME/.codex" ] && echo dir:.codex`, `[ -d "$HOME/.dsh" ] && echo dir:.dsh`} {
 		if !strings.Contains(wslProbeScript(), want) {
 			t.Errorf("probe lacks %q:\n%s", want, wslProbeScript())
 		}
@@ -61,22 +56,20 @@ func TestWSLProbeFindsClaude(t *testing.T) {
 
 // A running distro with Claude Code — its ~/.claude, or claude on its PATH
 // alone — is listed as Claude Code · WSL <distro>, with the model and
-// effort it starts on; one with Codex, Pi and Claude Code has all three,
-// each read as before and kept apart in wsl.json.
+// effort it starts on; one with Codex and Claude Code has both, each read
+// as before and kept apart in wsl.json.
 func TestWSLClaudeDiscovered(t *testing.T) {
 	root, home := claudeDistroHome(t, `{"model": "claude-opus-5-5", "modelSettings": {"claude-opus-5-5": {"effortLevel": "high"}}}`)
 	allRoot := t.TempDir()
 	os.MkdirAll(filepath.Join(allRoot, "root", ".codex"), 0o755)
-	os.MkdirAll(filepath.Join(allRoot, "root", ".pi", "agent"), 0o755)
 	os.MkdirAll(filepath.Join(allRoot, "root", ".claude"), 0o755)
 	os.WriteFile(filepath.Join(allRoot, "root", ".codex", "config.toml"), []byte("model = \"gpt-5.5\"\n"), 0o644)
-	os.WriteFile(filepath.Join(allRoot, "root", ".pi", "agent", "settings.json"), []byte(`{"defaultProvider": "xai", "defaultModel": "grok-4.6"}`), 0o644)
 	os.WriteFile(filepath.Join(allRoot, "root", ".claude", "settings.json"), []byte(`{"model": "claude-sonnet-5"}`), 0o644)
 	binRoot := t.TempDir()
 	asked, opened := fakeWSL(t, "Debian\r\nArch\r\nAll\r\nNone\r\n", "Debian\r\nArch\r\nAll\r\nNone\r\n", map[string]string{
 		"Debian": "home:/home/me\ndir:.claude\nroute:default via 172.20.0.1 dev eth0\n",
 		"Arch":   "home:/home/a\nbin:claude\n",
-		"All":    "home:/root\ndir:.codex\ndir:.pi\ndir:.claude\nbin:claude\n",
+		"All":    "home:/root\ndir:.codex\ndir:.claude\nbin:claude\n",
 		"None":   "home:/home/n\n",
 	}, map[string]string{"Debian": root, "Arch": binRoot, "All": allRoot})
 
@@ -90,7 +83,7 @@ func TestWSLClaudeDiscovered(t *testing.T) {
 		ids = append(ids, a.ID)
 		byID[a.ID] = a
 	}
-	if got := strings.Join(ids, ","); got != "claude@wsl:Debian,claude@wsl:Arch,codex@wsl:All,pi@wsl:All,claude@wsl:All" {
+	if got := strings.Join(ids, ","); got != "claude@wsl:Debian,claude@wsl:Arch,codex@wsl:All,claude@wsl:All" {
 		t.Fatalf("agents %s", got)
 	}
 	a := byID["claude@wsl:Debian"]
@@ -104,9 +97,6 @@ func TestWSLClaudeDiscovered(t *testing.T) {
 	if v := byID["codex@wsl:All"].Values(); v["model"] != "gpt-5.5" {
 		t.Fatalf("codex %v", v)
 	}
-	if v := byID["pi@wsl:All"].Values(); v["model"] != "xai/grok-4.6" {
-		t.Fatalf("pi %v", v)
-	}
 	if v := byID["claude@wsl:All"].Values(); v["model"] != "claude-sonnet-5" {
 		t.Fatalf("claude %v", v)
 	}
@@ -114,7 +104,7 @@ func TestWSLClaudeDiscovered(t *testing.T) {
 	var kept map[string]*distro
 	json.Unmarshal([]byte(readFile(wslStatePath())), &kept)
 	if kept["Debian"].Values["claude.model"] != "claude-opus-5-5" || kept["Debian"].Values["claude.effort"] != "high" ||
-		kept["All"].Values["model"] != "gpt-5.5" || kept["All"].Values["pi.model"] != "xai/grok-4.6" ||
+		kept["All"].Values["model"] != "gpt-5.5" ||
 		kept["All"].Values["claude.model"] != "claude-sonnet-5" || kept["None"] != nil {
 		t.Fatalf("kept %s", readFile(wslStatePath()))
 	}
@@ -330,49 +320,6 @@ func TestWSLClaudeStandIn(t *testing.T) {
 		t.Fatalf("not routed: %q", got)
 	}
 	noOwnClaude(t)
-}
-
-// The models magpie serves on the Claude account this machine's Claude
-// Code is signed in to fold into one row of its picker (#496), the same
-// models a second time. A distro's Claude Code has a sign-in of its own,
-// which magpie doesn't read, so its picker leaves them as they are: it
-// folded them all the same while the distro ran, only a stopped one's
-// options leaving them out.
-func TestWSLClaudeNotFolded(t *testing.T) {
-	root, _ := claudeDistroHome(t, `{"model": "claude-opus-5-5"}`)
-	home, _ := os.UserHomeDir()
-	t.Setenv("CLAUDE_CONFIG_DIR", "")
-	writeFile(t, catalog.CachePath(), `{"anthropic":{"models":{"claude-opus-5-5":{"id":"claude-opus-5-5","name":"Claude Opus 5.5","limit":{"context":1000000}}}}}`)
-	catalog.Reset()
-	// this machine's Claude Code signed in, as its files say, with an inert
-	// claude first on PATH: the machine's own is never asked
-	bin := t.TempDir()
-	testenv.Program(t, filepath.Join(bin, "claude"), "#!/bin/sh\nexit 1\n")
-	writeFile(t, filepath.Join(bin, "claude.cmd"), "@exit /b 1\r\n")
-	t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
-	writeFile(t, filepath.Join(home, ".claude", ".credentials.json"), fmt.Sprintf(
-		`{"claudeAiOauth":{"accessToken":"tok","refreshToken":"r","expiresAt":%d,"subscriptionType":"max"}}`, time.Now().Add(time.Hour).UnixMilli()))
-	writeFile(t, filepath.Join(home, ".claude.json"), `{"oauthAccount":{"emailAddress":"me@example.com"}}`)
-	provider.ForgetAccounts()
-	t.Cleanup(provider.ForgetAccounts)
-
-	folded := func(a *Agent) (n int) {
-		for _, o := range a.Field("model").Options(a.Values()) {
-			if o.Same {
-				n++
-			}
-		}
-		return n
-	}
-	if n := folded(claude(home)); n != 1 {
-		t.Fatalf("this machine's Claude Code: %d folded, want claude/claude-opus-5-5[1m]", n)
-	}
-	for _, running := range []bool{true, false} {
-		d := distro{Name: "Debian", Root: root, Home: "/home/me", Has: map[string]bool{"dir:.claude": true}, Mirrored: true, Running: running}
-		if n := folded(wslAgent(wslKindOf("claude"), d)); n != 0 {
-			t.Errorf("Claude Code in WSL Debian, running %v: %d folded", running, n)
-		}
-	}
 }
 
 // A WSL agent is found by its id however it is spelt — the distro's own

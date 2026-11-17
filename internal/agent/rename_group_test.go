@@ -23,13 +23,6 @@ func TestRenameGroupMovesTheAgentsOnIt(t *testing.T) {
 	codexCat := filepath.Join(home, ".codex", "magpie-models.json")
 	writeFile(t, codexCfg, "model = \"group/smart\"\nmodel_provider = \"magpie\"\nmodel_catalog_json = '"+codexCat+"'\n")
 	writeFile(t, codexCat, `{"models":[]}`)
-	piModels := filepath.Join(home, ".pi", "agent", "models.json")
-	piSettings := filepath.Join(home, ".pi", "agent", "settings.json")
-	writeFile(t, piModels, `{"providers":{"magpie":{"name":"magpie","models":[]}}}`)
-	writeFile(t, piSettings, `{"defaultProvider":"magpie","defaultModel":"group/smart"}`)
-	oc := filepath.Join(home, ".config", "opencode", "opencode.json")
-	writeFile(t, oc, `{"model":"magpie/group/smart"}`)
-	setUpInMagpie("pi", "opencode")
 	claudeCfg := filepath.Join(home, ".claude", "settings.json")
 	writeFile(t, claudeCfg, `{}`)
 	cc, err := Find("claude")
@@ -45,7 +38,7 @@ func TestRenameGroupMovesTheAgentsOnIt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"Codex", "Claude Code", "OpenCode", "Pi"} {
+	for _, name := range []string{"Codex", "Claude Code"} {
 		if !slices.Contains(moved, name) {
 			t.Errorf("%s not said moved: %v", name, moved)
 		}
@@ -53,17 +46,11 @@ func TestRenameGroupMovesTheAgentsOnIt(t *testing.T) {
 	if v, _ := edit.GetTOMLTop(codexCfg, "model"); v != "group/clever" {
 		t.Errorf("codex model = %q", v)
 	}
-	if v, _ := edit.GetJSON(piSettings, "defaultModel"); v != "group/clever" {
-		t.Errorf("pi defaultModel = %v", v)
-	}
-	if v, _ := edit.GetJSON(oc, "model"); v != "magpie/group/clever" {
-		t.Errorf("opencode model = %v", v)
-	}
 	claude := readFile(claudeCfg)
 	if strings.Contains(claude, "group/smart") || !strings.Contains(claude, `"model": "group/clever"`) && !strings.Contains(claude, `"model":"group/clever"`) {
 		t.Errorf("claude settings still on the old id:\n%s", claude)
 	}
-	for _, f := range []string{codexCat, piModels, oc} {
+	for _, f := range []string{codexCat} {
 		if s := readFile(f); strings.Contains(s, "group/smart") || !strings.Contains(s, "group/clever") {
 			t.Errorf("%s lists the old id:\n%s", f, s)
 		}

@@ -85,66 +85,6 @@ func loginRoutingUsers(p *Provider) []string {
 	return out
 }
 
-func TestAccountOrderSideLoginsAllRoutingModes(t *testing.T) {
-	t.Cleanup(AntigravityBuiltinForTest()) // the retired built-in route
-	googleSandbox(t, &fakeGoogle{})
-	users := []string{"a@example.test", "b@example.test", "c@example.test", "off@example.test"}
-	for _, user := range users {
-		auth := googleAuth{AccessToken: "fixture", RefreshToken: "fixture-" + user, Expiry: time.Now().Add(time.Hour).UnixMilli()}
-		if err := addGoogleLogin("antigravity", user, "Pro", auth); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := SetLoginOn("antigravity", users[3], false); err != nil {
-		t.Fatal(err)
-	}
-	auths := map[string]string{}
-	for _, l := range readLogins() {
-		auths[l.User] = string(l.Auth)
-	}
-	order := []string{users[2], users[1], users[0], users[3]}
-	for _, mode := range []string{"", Ordered, Rotate, LeastUsed} {
-		if err := SetRouting("antigravity", mode); err != nil {
-			t.Fatal(err)
-		}
-		if err := SetAccountOrder("antigravity", order); err != nil {
-			t.Fatal(err)
-		}
-		p, err := Find("antigravity")
-		if err != nil {
-			t.Fatal(err)
-		}
-		shown, first := loginUsers(Logins("antigravity"))
-		if !reflect.DeepEqual(shown, order) || first != order[0] || p.Routing != mode || !reflect.DeepEqual(loginRoutingUsers(p), order[:3]) {
-			t.Fatalf("display=%v first=%s routing=%v mode=%s", shown, first, loginRoutingUsers(p), mode)
-		}
-		for _, l := range readLogins() {
-			if string(l.Auth) != auths[l.User] {
-				t.Fatal("changed credentials")
-			}
-			if l.User == users[3] && l.On {
-				t.Fatal("enabled an off account")
-			}
-		}
-		before, _ := os.ReadFile(loginsPath())
-		if err := SetAccountOrder("antigravity", []string{users[3], users[2], users[1], users[0]}); err == nil {
-			t.Fatal("silently enabled an off account")
-		}
-		after, _ := os.ReadFile(loginsPath())
-		if !bytes.Equal(before, after) {
-			t.Fatal("rejected drag changed logins")
-		}
-		if err := SwitchLogin("antigravity", users[1]); err != nil {
-			t.Fatal(err)
-		}
-		p, _ = Find("antigravity")
-		shown, first = loginUsers(Logins("antigravity"))
-		if shown[0] != users[1] || first != users[1] || !reflect.DeepEqual(loginRoutingUsers(p), []string{users[1], users[2], users[0]}) {
-			t.Fatal("Make first did not update both orders")
-		}
-	}
-}
-
 func TestAccountOrderCodexSurvivesRememberAndSwitch(t *testing.T) {
 	home := signIn(t)
 	rememberLogins(true)

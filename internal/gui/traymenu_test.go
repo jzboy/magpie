@@ -47,7 +47,7 @@ func TestTrayMenuLabels(t *testing.T) {
 		}
 	}
 	de := trayMenuLabels("de", "0.1.500", "0.1.501", false)
-	if de != (trayLabels{"magpie öffnen", "Zugangspunkt pausieren", "Version 0.1.500", "Zum Aktualisieren auf 0.1.501 neu starten", "magpie beenden"}) {
+	if de != (trayLabels{"浩哥AI öffnen", "Zugangspunkt pausieren", "Version 0.1.500", "Zum Aktualisieren auf 0.1.501 neu starten", "浩哥AI beenden"}) {
 		t.Errorf("de: %+v", de)
 	}
 	for lang, want := range map[string]string{"de": "en", "en": "en", "zh": "zh", "zh-TW": "zh"} {
@@ -56,20 +56,20 @@ func TestTrayMenuLabels(t *testing.T) {
 		}
 	}
 	zh := trayMenuLabels("zh", "0.1.500", "", false)
-	if zh != (trayLabels{"打开 magpie", "暂停网关", "版本 0.1.500", "重启以更新", "退出 magpie"}) {
+	if zh != (trayLabels{"打开 浩哥AI", "暂停网关", "版本 0.1.500", "重启以更新", "退出 浩哥AI"}) {
 		t.Errorf("zh: %+v", zh)
 	}
-	if tw := trayMenuLabels("zh-TW", "0.1.500", "0.1.501", false); tw != (trayLabels{"開啟 magpie", "暫停閘道", "版本 0.1.500", "重新啟動以更新到 0.1.501", "結束 magpie"}) {
+	if tw := trayMenuLabels("zh-TW", "0.1.500", "0.1.501", false); tw != (trayLabels{"開啟 浩哥AI", "暫停閘道", "版本 0.1.500", "重新啟動以更新到 0.1.501", "結束 浩哥AI"}) {
 		t.Errorf("zh-TW: %+v", tw)
 	}
-	if ja := trayMenuLabels("ja", "0.1.500", "", false); ja != (trayLabels{"magpie を開く", "ゲートウェイを一時停止", "バージョン 0.1.500", "再起動してアップデート", "magpie を終了"}) {
+	if ja := trayMenuLabels("ja", "0.1.500", "", false); ja != (trayLabels{"浩哥AI を開く", "ゲートウェイを一時停止", "バージョン 0.1.500", "再起動してアップデート", "浩哥AI を終了"}) {
 		t.Errorf("ja: %+v", ja)
 	}
 	if l := trayMenuLabels("zh", "0.1.500", "0.1.501", false); l.restart != "重启以更新到 0.1.501" {
 		t.Errorf("zh restart: %q", l.restart)
 	}
 	en := trayMenuLabels("en", "0.1.500", "0.1.501", false)
-	if en != (trayLabels{"Open magpie", "Pause Gateway", "Version 0.1.500", "Restart to Update to 0.1.501", "Quit magpie"}) {
+	if en != (trayLabels{"Open 浩哥AI", "Pause Gateway", "Version 0.1.500", "Restart to Update to 0.1.501", "Quit 浩哥AI"}) {
 		t.Errorf("en: %+v", en)
 	}
 	// paused, the menu's line resumes the gateway (me2seeks on X)
@@ -109,7 +109,7 @@ func TestSettingsLangRelabelsTray(t *testing.T) {
 	if calls != 1 {
 		t.Fatalf("relabelled %d times after en → zh, want 1", calls)
 	}
-	if l := trayMenuLabels(trayLang(settings.Load().Lang, systemLang), "1", "", false); l.quit != "退出 magpie" {
+	if l := trayMenuLabels(trayLang(settings.Load().Lang, systemLang), "1", "", false); l.quit != "退出 浩哥AI" {
 		t.Fatalf("after the change the menu reads %+v", l)
 	}
 }

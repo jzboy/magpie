@@ -1,0 +1,71 @@
+name: 浩哥AI Release
+
+# Builds 浩哥AI's two artifacts and attaches them to a GitHub release:
+#   - macOS arm64 .dmg  (macos-14 runner is arm64; the GUI needs cgo + WebKit,
+#     so it is built natively there)
+#   - Windows amd64 .exe (WebView2 needs no cgo, so it cross-compiles on Linux)
+# No signing or notarisation: the macOS app is unsigned, so first open is a
+# right-click → Open. Trigger by pushing a haoge-v* tag, or run by hand.
+
+on:
+  push:
+    tags:
+      - 'haoge-v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  dmg:
+    runs-on: macos-14
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build icons and the arm64 disk image
+        run: |
+          make icons
+          make release-dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: haoge-ai-darwin-arm64.dmg
+          path: dist/haoge-ai-darwin-arm64.dmg
+
+  exe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build the Windows amd64 executable
+        run: make release-windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: haoge-ai-windows-amd64.exe
+          path: dist/haoge-ai-windows-amd64.exe
+
+  release:
+    needs: [dmg, exe]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}" \
+            --title "浩哥AI ${{ github.ref_name }}" \
+            --notes "浩哥AI — macOS arm64 (.dmg) 与 Windows amd64 (.exe)。基于 yetone/magpie 二次开发（MIT）。" \
+            dist/haoge-ai-darwin-arm64.dmg dist/haoge-ai-windows-amd64.exe

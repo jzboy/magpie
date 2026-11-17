@@ -956,27 +956,15 @@ func Accounts() []Provider {
 	}
 	rememberLogins(false)
 	home, _ := os.UserHomeDir()
-	cfg := appdir.Getenv("XDG_CONFIG_HOME")
-	if cfg == "" {
-		cfg = filepath.Join(home, ".config")
-	}
 	var out []Provider
-	if p, ok := claudeAccount(); ok {
-		out = append(out, p)
-	}
+	// 浩哥AI integrates the ChatGPT plan (codex) and ChatGPT API (siwc)
+	// alone; Claude, Copilot and Google sign-ins are not read. WorkBuddy
+	// and Qoder CN come through their plugins below.
 	if p, ok := codexAccount(home); ok {
-		out = append(out, p)
-	}
-	if p, ok := copilotAccount(cfg); ok {
 		out = append(out, p)
 	}
 	if p, ok := siwcAccount(); ok {
 		out = append(out, p)
-	}
-	for _, agent := range []string{"gemini", "antigravity"} {
-		if p, ok := googleAccountOf(agent); ok {
-			out = append(out, p)
-		}
 	}
 	// a built-in moved onto its plugin is the plugin's now (migrate.go)
 	out = slices.DeleteFunc(out, func(p Provider) bool { return PluginServes(p.ID) })

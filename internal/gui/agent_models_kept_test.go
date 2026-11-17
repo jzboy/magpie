@@ -116,37 +116,3 @@ func TestAgentModelsKeptByVisibility(t *testing.T) {
 }
 
 // Shown only its picks, a kept one ticked is a pick of the agent's.
-func TestAgentModelsKeptPicked(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("USERPROFILE", home)
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	t.Setenv("XDG_CACHE_HOME", filepath.Join(home, ".cache"))
-	for _, p := range []provider.Provider{
-		{ID: "relay", Name: "Relay", Key: "k", Chat: "http://127.0.0.1:1/v1", Models: []string{"a1"}},
-		{ID: "late", Name: "Late", Key: "k", Chat: "http://127.0.0.1:1/v1", Models: []string{"b1", "b2"}},
-	} {
-		if err := provider.Save(p); err != nil {
-			t.Fatal(err)
-		}
-	}
-	s := settings.Load()
-	s.Visible = map[string][]string{"pi": {"relay"}}
-	s.PickedModels = map[string][]string{"pi": {"relay/a1"}}
-	if err := settings.Save(s); err != nil {
-		t.Fatal(err)
-	}
-	mux := http.NewServeMux()
-	agentModelsAPI(mux)
-	w := httptest.NewRecorder()
-	mux.ServeHTTP(w, httptest.NewRequest("POST", "/api/agent-models/pi", strings.NewReader(`{"shown":["relay/a1","late/b2"],"widen":["late/b2"]}`)))
-	if w.Code != 200 {
-		t.Fatalf("%d %s", w.Code, w.Body)
-	}
-	if p := settings.Load().PickedModels["pi"]; !slices.Equal(p, []string{"late/b2", "relay/a1"}) {
-		t.Fatalf("picks: %v", p)
-	}
-	if _, ok := settings.Load().Visible["pi"]; ok {
-		t.Fatal("still narrowed with nothing kept")
-	}
-}

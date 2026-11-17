@@ -133,18 +133,18 @@ var (
 	black = rgb{0, 0, 0}
 	// the themes' backgrounds (app.css --bg and --card), what the accent
 	// is read against as text
-	lightBg   = rgb{0xf4, 0xf4, 0xf6}
-	darkBg    = rgb{0x1a, 0x1a, 0x1e}
-	darkCard  = rgb{0x23, 0x23, 0x27}
+	lightBg   = rgb{0xf6, 0xf5, 0xf1}
+	darkBg    = rgb{0x14, 0x18, 0x1d}
+	darkCard  = rgb{0x1d, 0x23, 0x2b}
 	accentInk = 4.5 // WCAG AA for text: the accent is a link's colour too
 	// the surfaces a chosen option's text sits on (--mark): the light
 	// theme's darkest, a tab's --pill-hover, and the dark theme's lightest,
 	// the header switch's thumb (--seg-thumb over --seg-track)
-	lightPick = rgb{0xe9, 0xe9, 0xee}
-	darkPick  = rgb{0x4c, 0x4c, 0x52}
+	lightPick = rgb{0xe6, 0xe2, 0xd9}
+	darkPick  = rgb{0x4a, 0x55, 0x63}
 	// the dark theme's chosen thumb before it is tinted (--mark-fill): the
 	// header switch's thumb as it reads over the page
-	darkFill = rgb{0x3a, 0x3a, 0x3f}
+	darkFill = rgb{0x33, 0x3d, 0x49}
 	// how much of the theme's background lies over the picture
 	wallVeil = "color-mix(in srgb,var(--bg) 84%,transparent)"
 )
@@ -215,12 +215,12 @@ type surface struct {
 // The themes' grounds (app.css :root and its dark blocks, and body.panel's
 // own in each theme). The light theme's cards stay white, as on a Mac.
 var (
-	lightSurfaces = []surface{{"--bg", lightBg}, {"--card-2", rgb{0xf9, 0xf9, 0xfb}}, {"--pill", rgb{0xf1, 0xf1, 0xf4}}, {"--pill-hover", lightPick}, {"--seg-track", rgb{0xe6, 0xe6, 0xeb}}, {"--line", rgb{0xe3, 0xe3, 0xe8}}, {"--line-2", rgb{0xec, 0xec, 0xf0}}}
-	darkSurfaces  = []surface{{"--bg", darkBg}, {"--card", darkCard}, {"--card-2", rgb{0x1f, 0x1f, 0x23}}, {"--pill", rgb{0x2d, 0x2d, 0x33}}, {"--pill-hover", rgb{0x36, 0x36, 0x3d}}, {"--line", rgb{0x33, 0x33, 0x39}}, {"--line-2", rgb{0x2c, 0x2c, 0x32}}}
-	// --pop-bg, a menu's ground, is translucent: rgba(38, 38, 43, .96)
-	darkPop            = rgb{38, 38, 43}
-	lightPanelSurfaces = []surface{{"--bg", rgb{0xf2, 0xf2, 0xf5}}, {"--card-2", rgb{0xf8, 0xf8, 0xfa}}, {"--pill-hover", rgb{0xf4, 0xf4, 0xf7}}, {"--skel", rgb{0xee, 0xee, 0xf2}}, {"--skel-hi", rgb{0xe2, 0xe2, 0xe8}}}
-	darkPanelSurfaces  = []surface{{"--bg", rgb{0x1b, 0x1c, 0x20}}, {"--card", rgb{0x25, 0x26, 0x2c}}, {"--card-2", rgb{0x21, 0x22, 0x27}}, {"--pill", rgb{0x2e, 0x2f, 0x36}}, {"--pill-hover", rgb{0x38, 0x39, 0x42}}}
+	lightSurfaces = []surface{{"--bg", lightBg}, {"--card-2", rgb{0xfb, 0xfa, 0xf7}}, {"--pill", rgb{0xef, 0xec, 0xe6}}, {"--pill-hover", lightPick}, {"--seg-track", rgb{0xe8, 0xe4, 0xdb}}, {"--line", rgb{0xe2, 0xdd, 0xd2}}, {"--line-2", rgb{0xec, 0xe8, 0xdf}}}
+	darkSurfaces  = []surface{{"--bg", darkBg}, {"--card", darkCard}, {"--card-2", rgb{0x19, 0x20, 0x28}}, {"--pill", rgb{0x26, 0x2e, 0x38}}, {"--pill-hover", rgb{0x30, 0x3a, 0x46}}, {"--line", rgb{0x2c, 0x35, 0x40}}, {"--line-2", rgb{0x23, 0x2b, 0x34}}}
+	// --pop-bg, a menu's ground, is translucent: rgba(35, 43, 52, .96)
+	darkPop            = rgb{35, 43, 52}
+	lightPanelSurfaces = []surface{{"--bg", rgb{0xf3, 0xf1, 0xec}}, {"--card-2", rgb{0xfa, 0xf8, 0xf4}}, {"--pill-hover", rgb{0xf1, 0xee, 0xe7}}, {"--skel", rgb{0xec, 0xe8, 0xdf}}, {"--skel-hi", rgb{0xe0, 0xdb, 0xcf}}}
+	darkPanelSurfaces  = []surface{{"--bg", rgb{0x17, 0x1c, 0x22}}, {"--card", rgb{0x1f, 0x26, 0x30}}, {"--card-2", rgb{0x1b, 0x22, 0x2b}}, {"--pill", rgb{0x28, 0x31, 0x3c}}, {"--pill-hover", rgb{0x32, 0x3d, 0x4a}}}
 	// how much of the colour's hue the grounds take: enough that the dark
 	// theme reads as the colour's, not grey (CHENGJIAHEGOXIS on X, 「目前我
 	// 个人感觉深色比较灰」), and only a breath of it on the light theme

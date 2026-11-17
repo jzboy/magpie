@@ -61,28 +61,3 @@ func TestSetAccountWeight(t *testing.T) {
 }
 
 // A Copilot account renamed on GitHub keeps its weight under its new name.
-func TestAccountWeightMovesWithRename(t *testing.T) {
-	signIn(t)
-	if err := Save(Provider{ID: "copilot", Name: "Copilot", Account: &Account{}, AccountWeights: map[string]int{"old": 3}}); err != nil {
-		t.Fatal(err)
-	}
-	if err := moveAccountSettings("copilot", map[string]string{"Old": "New"}); err != nil {
-		t.Fatal(err)
-	}
-	f, err := read()
-	if err != nil {
-		t.Fatal(err)
-	}
-	found := false
-	for _, p := range f.Providers {
-		if p.ID == "copilot" {
-			found = true
-			if p.AccountWeights["new"] != 3 || p.AccountWeights["old"] != 0 {
-				t.Fatalf("weights after the rename %v", p.AccountWeights)
-			}
-		}
-	}
-	if !found {
-		t.Fatal("copilot not saved")
-	}
-}

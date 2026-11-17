@@ -20,7 +20,7 @@ func TestSignInRefusedByAnAllowListLeavesItToTheAgents(t *testing.T) {
 	sandbox(t)
 	f := mcpauthtest.New(t)
 	f.RefuseRegistration = true
-	agents := []string{"claude", "codex", "cursor"}
+	agents := []string{"claude", "codex"}
 	figma := Server{Name: "figma", Transport: "http", URL: f.URL, Agents: agents}
 	ok(t)(SaveServer("", figma))
 

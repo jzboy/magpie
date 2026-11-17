@@ -5,7 +5,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"testing"
 )
 
@@ -22,117 +21,6 @@ func symlink(t *testing.T, to, at string) {
 // #227: the user-wide ~/.agents/skills is found, links to it (symlinks,
 // junctions on Windows) are the same skill, and bringing one in leaves the
 // shared folder as it is.
-func TestSharedAgentsSkills(t *testing.T) {
-	h := sandbox(t)
-	// no agent here whose own folder the shared one is (Goose's): its CLI
-	// of the sandbox too, since that alone would have it here (#2177)
-	os.RemoveAll(filepath.Join(h, ".config/goose"))
-	os.Remove(filepath.Join(h, "bin/goose"))
-	os.Remove(filepath.Join(h, "bin/goose.exe"))
-	shared := filepath.Join(h, ".agents/skills")
-	// a skill kept elsewhere (D:\aimer-skills\…) linked into the shared folder
-	ext := filepath.Join(h, "aimer-skills/grilling")
-	skill(t, ext, "grilling", "Grill")
-	symlink(t, ext, filepath.Join(shared, "grilling"))
-	// real folders in the shared folder
-	skill(t, filepath.Join(shared, "orchestration"), "orchestration", "Orchestrate")
-	skill(t, filepath.Join(shared, "orca-cli"), "orca-cli", "Orca")
-	// agents' links to it: absolute, relative, and to a link
-	symlink(t, filepath.Join(shared, "orchestration"), filepath.Join(h, ".pi/agent/skills/orchestration"))
-	symlink(t, filepath.Join("..", "..", ".agents", "skills", "orchestration"), filepath.Join(h, ".codex/skills/orchestration"))
-	symlink(t, filepath.Join(shared, "grilling"), filepath.Join(h, ".gemini/skills/grilling"))
-	// a byte copy of its own
-	skill(t, filepath.Join(h, ".codex/skills/orca-cli"), "orca-cli", "Orca")
-	// not a skill, and a hidden one
-	write(t, filepath.Join(shared, "notes/README.md"), "")
-	skill(t, filepath.Join(shared, ".hidden"), "hidden", "")
-
-	found := func() map[string]FoundSkill {
-		v, err := Read(nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-		m := map[string]FoundSkill{}
-		for _, f := range v.FoundSkills {
-			m[f.Name] = f
-		}
-		return m
-	}
-	byName := found()
-	if len(byName) != 3 {
-		t.Fatalf("found: %+v", byName)
-	}
-	if f := byName["grilling"]; f.Shared != filepath.Join(shared, "grilling") || f.Link != realDir(ext) || !slices.Equal(f.Agents, []string{"gemini"}) || len(f.Others) != 0 {
-		t.Errorf("grilling: %+v", f)
-	}
-	f := byName["orchestration"]
-	agents := slices.Sorted(slices.Values(f.Agents))
-	if f.Shared == "" || f.Link != "" || !slices.Equal(agents, []string{"codex", "pi"}) || len(f.Others) != 0 {
-		t.Errorf("orchestration is one skill in the shared folder, pi and codex: %+v", f)
-	}
-	if f := byName["orca-cli"]; f.Shared == "" || len(f.Agents) != 0 || len(f.Others) != 0 || !slices.Equal(f.Copies, []string{"codex"}) {
-		t.Errorf("orca-cli: %+v", f)
-	}
-
-	ok(t)(ImportSkill("orchestration"))
-	ok(t)(ImportSkill("grilling"))
-	ok(t)(ImportSkill("orca-cli"))
-	// the shared folder is as it was
-	for _, n := range []string{"orchestration", "orca-cli"} {
-		if fi, err := os.Lstat(filepath.Join(shared, n)); err != nil || !fi.IsDir() {
-			t.Errorf("%s left the shared folder: %v", n, err)
-		}
-		if _, err := os.Stat(filepath.Join(shared, n, "scripts/run.sh")); err != nil {
-			t.Errorf("%s's files: %v", n, err)
-		}
-	}
-	if !linked(filepath.Join(shared, "grilling")) {
-		t.Error("the shared folder's link went")
-	}
-	if _, err := os.Stat(filepath.Join(ext, "SKILL.md")); err != nil {
-		t.Error("the folder the shared link pointed to went")
-	}
-	// the library links to them
-	for n, want := range map[string]string{"orchestration": filepath.Join(shared, "orchestration"), "grilling": ext, "orca-cli": filepath.Join(shared, "orca-cli")} {
-		if !linked(skillDir(n)) || realDir(skillDir(n)) != realDir(want) {
-			t.Errorf("the library's %s isn't a link to %s", n, want)
-		}
-	}
-	// the agents that had it have the library's; Codex and Gemini CLI read
-	// ~/.agents/skills, where all three are kept, so a link in their own
-	// folders would be each skill twice (#595): they get none, and Codex's
-	// byte copy of its own is kept aside with the backups
-	if !ours(filepath.Join(h, ".pi/agent/skills/orchestration"), "orchestration") {
-		t.Error("pi's orchestration isn't the library's")
-	}
-	for _, d := range []string{".codex/skills/orchestration", ".gemini/skills/grilling", ".codex/skills/orca-cli"} {
-		if _, err := os.Lstat(filepath.Join(h, d)); !os.IsNotExist(err) {
-			t.Errorf("%s is there, besides the shared folder's: %v", d, err)
-		}
-	}
-	if m, _ := filepath.Glob(filepath.Join(BackupDir(), "*", "codex", "skills", "orca-cli", "SKILL.md")); len(m) != 1 {
-		t.Errorf("codex's own copy isn't kept aside: %v", m)
-	}
-	v, _ := Read(nil)
-	for _, s := range v.Skills {
-		if s.Kind != "folder" {
-			t.Errorf("%s: %+v", s.Name, s)
-		}
-		// every agent reading the shared folder has it, ticked or not
-		for _, id := range []string{"codex", "gemini"} {
-			if !slices.Contains(s.Always, id) {
-				t.Errorf("%s: %s isn't said to have it always: %v", s.Name, id, s.Always)
-			}
-		}
-		if slices.Contains(s.Always, "pi") || slices.Contains(s.Always, "claude") {
-			t.Errorf("%s: always %v", s.Name, s.Always)
-		}
-	}
-	if byName := found(); len(byName) != 0 {
-		t.Errorf("still found: %+v", byName)
-	}
-}
-
 func TestRealDir(t *testing.T) {
 	d := t.TempDir()
 	skill(t, filepath.Join(d, "a/real"), "real", "")

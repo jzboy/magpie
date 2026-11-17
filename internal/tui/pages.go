@@ -464,7 +464,7 @@ func kindNote(k provider.Kind) string {
 func (m *model) openPresets() {
 	var items []agent.Option
 	var shown []string
-	for _, d := range provider.Partners() {
+	for _, d := range []provider.Partner(nil) { // 浩哥AI lists no sponsor partners
 		items = append(items, agent.Option{Value: d.ID, Note: d.Name + " · " + tr("partner (sponsor)")})
 		shown = append(shown, d.ID)
 	}

@@ -39,7 +39,7 @@ func TestSecondSyncWritesNothing(t *testing.T) {
 		}
 		return nil
 	})
-	if files < 20 {
+	if files < 16 {
 		t.Fatalf("only %d files under home: agents weren't connected", files)
 	}
 	SyncCatalog()

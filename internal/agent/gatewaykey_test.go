@@ -82,56 +82,6 @@ func TestGatewayKeyBeyondLoopback(t *testing.T) {
 	want(wsl, gateway.Token)
 }
 
-// T3 Code's magpie instance is Claude Code routed with the gateway's
-// address and the token Claude Code is sent with: beyond loopback that is
-// the LAN sharing key, as at.gwKey() routes Claude Code itself.
-// gateway.Token is turned away there, so T3's every call was answered 401
-// (#1647, ggbdpq).
-func TestT3CodeKeyBeyondLoopback(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("USERPROFILE", home)
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	t.Setenv("XDG_CACHE_HOME", filepath.Join(home, ".cache"))
-	path := filepath.Join(home, ".t3", "userdata", "settings.json")
-	wsl := "http://172.23.80.1:3425"
-
-	env := func(gw string) map[string]string {
-		t.Helper()
-		b, err := json.Marshal(t3InstanceJSON(path, gw))
-		if err != nil {
-			t.Fatal(err)
-		}
-		e := t3Format(t, b)
-		out := map[string]string{}
-		for _, v := range e.Environment {
-			out[v.Name] = v.Value
-		}
-		return out
-	}
-
-	if err := access.ConfigureLAN(true, false); err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { access.ConfigureLAN(false, false) })
-	lan := access.LANSecret()
-	if !strings.HasPrefix(lan, access.Prefix) {
-		t.Fatalf("LAN key %q", lan)
-	}
-	if e := env(wsl); e["ANTHROPIC_AUTH_TOKEN"] != lan {
-		t.Errorf("T3 Code at %s: token %q, want the LAN sharing key", wsl, e["ANTHROPIC_AUTH_TOKEN"])
-	}
-	if e := env("http://127.0.0.1:3425"); e["ANTHROPIC_AUTH_TOKEN"] != gateway.Token {
-		t.Errorf("T3 Code on loopback: token %q, want %q", e["ANTHROPIC_AUTH_TOKEN"], gateway.Token)
-	}
-	if err := access.ConfigureLAN(false, false); err != nil {
-		t.Fatal(err)
-	}
-	if e := env(wsl); e["ANTHROPIC_AUTH_TOKEN"] != gateway.Token {
-		t.Errorf("T3 Code at %s with nothing shared: token %q, want %q", wsl, e["ANTHROPIC_AUTH_TOKEN"], gateway.Token)
-	}
-}
-
 // Air's and OpenChamber's OpenCode provider block carries the key for the
 // gateway's address, and each row's Check compares against it: beyond
 // loopback, the LAN sharing key. Against gateway.Token there, the rows said

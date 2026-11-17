@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/yetone/magpie/internal/gateway"
 	"github.com/yetone/magpie/internal/uilang"
@@ -182,6 +183,9 @@ func trayText(lang, key string, args ...any) string {
 	if s, ok := trayWords[lang][key]; ok {
 		key = s
 	}
+	// 浩哥AI names the app in the tray's words; the keys keep magpie so the
+	// callers and their tests are unchanged.
+	key = strings.ReplaceAll(key, "magpie", "浩哥AI")
 	if len(args) == 0 {
 		return key
 	}

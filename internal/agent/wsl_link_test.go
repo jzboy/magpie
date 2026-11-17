@@ -47,7 +47,7 @@ func TestWSLProbeLinks(t *testing.T) {
 // agent is told the path through the link, as it knows it.
 func TestWSLOpenThroughLinks(t *testing.T) {
 	d := parseProbe("U", "home:/home/me\ndir:.codex\n"+
-		"link:.codex /mnt/c/Users/me/.codex\nlink:.claude /data/claude/\nlink:.pi\nlink:.bashrc /etc/bashrc\n"+
+		"link:.codex /mnt/c/Users/me/.codex\nlink:.claude /data/claude/\nlink:.gemini\nlink:.bashrc /etc/bashrc\n"+
 		"win:/mnt/c C:\nwin:/mnt/wsl/d d:\nwin:/mnt/e\n")
 	if d == nil {
 		t.Fatal("no distro")
@@ -55,7 +55,7 @@ func TestWSLOpenThroughLinks(t *testing.T) {
 	if _, ok := d.Links[".bashrc"]; ok {
 		t.Errorf("a path the probe doesn't ask is taken: %v", d.Links)
 	}
-	if d.Links[".claude"] != "/data/claude" || d.Links[".pi"] != "" || d.Drives["/mnt/c"] != "C:" || d.Drives["/mnt/wsl/d"] != "D:" || len(d.Drives) != 2 {
+	if d.Links[".claude"] != "/data/claude" || d.Links[".gemini"] != "" || d.Drives["/mnt/c"] != "C:" || d.Drives["/mnt/wsl/d"] != "D:" || len(d.Drives) != 2 {
 		t.Fatalf("links %q, drives %q", d.Links, d.Drives)
 	}
 	sep := string(filepath.Separator)
@@ -69,7 +69,7 @@ func TestWSLOpenThroughLinks(t *testing.T) {
 		{filepath.Join(h, ".claude", "settings.json"), d.local("/data/claude/settings.json"), ""},
 		{filepath.Join(h, ".codexx", "a"), filepath.Join(h, ".codexx", "a"), ""},
 		{filepath.Join(h, ".omo", "agent"), filepath.Join(h, ".omo", "agent"), ""},
-		{filepath.Join(h, ".pi", "agent", "x"), "", "~/.pi in WSL U is a link magpie couldn't follow"},
+		{filepath.Join(h, ".gemini", "x"), "", "~/.gemini in WSL U is a link magpie couldn't follow"},
 	} {
 		got, err := d.open(tc.in)
 		if tc.err != "" {

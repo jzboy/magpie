@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -103,52 +102,7 @@ func TestWarmNowSendsTheScheduledWarmUp(t *testing.T) {
 
 // A Claude account's Warm up now is Claude Code's run the scheduled
 // warm-up makes (WarmClaudeVia), in that account's own config directory.
-func TestWarmNowClaudeRunsClaudeCode(t *testing.T) {
-	_, side := claudeAuthFixture(t, "")
-	rememberLogins(true) // the one Claude Code is signed in to, listed beside it
-	old := claudeWarmSend
-	t.Cleanup(func() { claudeWarmSend = old })
-	claudeWarmSend = nil
-	if err := WarmNow(context.Background(), "claude", side.User); err == nil {
-		t.Fatal("warmed with no Claude Code to send it")
-	}
-	var mu sync.Mutex
-	var dirs []string
-	fail := error(nil)
-	WarmClaudeVia(func(_ context.Context, dir string) error {
-		mu.Lock()
-		defer mu.Unlock()
-		dirs = append(dirs, dir)
-		return fail
-	})
-	if err := WarmNow(context.Background(), "claude", side.User); err != nil {
-		t.Fatalf("saved account: %v", err)
-	}
-	if err := WarmNow(context.Background(), "claude", "own@example.com"); err != nil {
-		t.Fatalf("own account: %v", err)
-	}
-	if len(dirs) != 2 || dirs[0] == "" || dirs[1] != "" {
-		t.Fatalf("Claude Code run in %q, want the saved account's directory, then its own", dirs)
-	}
-	fail = errors.New("Claude Code: You've hit your session limit")
-	if err := WarmNow(context.Background(), "claude", "own@example.com"); err == nil || !strings.Contains(err.Error(), "session limit") {
-		t.Fatalf("failed run: %v", err)
-	}
-}
-
 // An account whose sign-in lapsed is sent nothing, and says so.
-func TestWarmNowLapsedAccount(t *testing.T) {
-	_, side := claudeAuthFixture(t, "Failed to authenticate: OAuth token revoked")
-	old := claudeWarmSend
-	t.Cleanup(func() { claudeWarmSend = old })
-	ran := 0
-	WarmClaudeVia(func(context.Context, string) error { ran++; return nil })
-	err := WarmNow(context.Background(), "claude", side.User)
-	if err == nil || !strings.Contains(err.Error(), "signing in again") || ran != 0 {
-		t.Fatalf("lapsed: %v, %d runs", err, ran)
-	}
-}
-
 func warmJSON(t *testing.T, v any) string {
 	t.Helper()
 	b, err := json.Marshal(v)

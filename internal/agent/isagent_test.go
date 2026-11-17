@@ -15,7 +15,7 @@ func TestIsAgentByUserAgent(t *testing.T) {
 			t.Errorf("%s isn't an agent", a.ID)
 		}
 	}
-	for _, ua := range []string{"claude-cli/2.1.287 (external, cli)", "codex_cli_rs/0.160.0 (Mac OS 26.6.0; arm64)", "Cursor/3.2"} {
+	for _, ua := range []string{"claude-cli/2.1.287 (external, cli)", "codex_cli_rs/0.160.0 (Mac OS 26.6.0; arm64)"} {
 		if got := usage.AgentOf(ua); !usage.IsAgent(got) {
 			t.Errorf("%q reads as %q, no agent", ua, got)
 		}

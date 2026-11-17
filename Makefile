@@ -9,10 +9,14 @@ endif
 
 # A tag may hold $, ( or `, which the shell lines below would run: the
 # version keeps only what a version is spelled with.
-VERSION ?= $(or $(shell git describe --tags --always --dirty 2>/dev/null | tr -cd 'A-Za-z0-9._+-'),dev)
+# 浩哥AI ships as a non-semver build so update.Released() is false: the fork
+# never self-updates from upstream's feed (which would restore the magpie
+# brand), and stats telemetry stays off too.
+VERSION ?= haoge-1.0
 LDFLAGS  = -s -w -X main.version=$(VERSION)
 TAGS     = production
-TARGETS  = darwin/arm64 darwin/amd64 linux/amd64 linux/arm64 windows/amd64 windows/arm64 android/arm64
+# 浩哥AI builds two artifacts only: macOS arm64 (.dmg) and Windows amd64 (.exe).
+TARGETS  = darwin/arm64 windows/amd64
 
 # The GUI links the platform webview through cgo, so it is built natively.
 # `nogui` builds the terminal-only magpie, which cross-compiles anywhere.
@@ -78,16 +82,29 @@ test-ui:
 	@test -n "$(UI_TESTS)" || { echo "no GUI tests found under internal/gui/tests" >&2; exit 1; }
 	node --test --test-concurrency=$(UI_TEST_CONCURRENCY) $(UI_TESTS)
 
-# macOS bundle: menu bar app with no Dock icon (LSUIElement).
+# macOS bundle: menu bar app with no Dock icon (LSUIElement). The bundle is
+# named 浩哥AI.app; its executable stays magpie (CFBundleExecutable), and the
+# Dock icon comes from magpie.icns (no Assets.car: the icon set is pure Go).
 app: build-release
-	@rm -rf magpie.app
-	@mkdir -p magpie.app/Contents/MacOS magpie.app/Contents/Resources
-	@cp magpie magpie.app/Contents/MacOS/magpie
-	@cp build/darwin/magpie.icns magpie.app/Contents/Resources/magpie.icns
-	@cp build/darwin/Assets.car magpie.app/Contents/Resources/Assets.car
-	@cp THIRD_PARTY_NOTICES magpie.app/Contents/Resources/THIRD_PARTY_NOTICES
-	@sed 's/@VERSION@/$(VERSION)/' build/darwin/Info.plist > magpie.app/Contents/Info.plist
-	@echo "  magpie.app"
+	@rm -rf 浩哥AI.app
+	@mkdir -p 浩哥AI.app/Contents/MacOS 浩哥AI.app/Contents/Resources
+	@cp magpie 浩哥AI.app/Contents/MacOS/magpie
+	@cp build/darwin/magpie.icns 浩哥AI.app/Contents/Resources/magpie.icns
+	@cp THIRD_PARTY_NOTICES 浩哥AI.app/Contents/Resources/THIRD_PARTY_NOTICES
+	@sed 's/@VERSION@/$(VERSION)/' build/darwin/Info.plist > 浩哥AI.app/Contents/Info.plist
+	@echo "  浩哥AI.app"
+
+# macOS arm64 disk image: the .app with an Applications symlink for drag
+# install. Runs on macOS only (hdiutil); the GUI itself needs cgo + WebKit,
+# so it is built natively on an arm64 Mac (or a macOS arm64 CI runner).
+release-dmg: app
+	@mkdir -p dist
+	@rm -rf dist/dmg-stage && mkdir -p dist/dmg-stage
+	@cp -R 浩哥AI.app dist/dmg-stage/
+	@ln -s /Applications dist/dmg-stage/Applications
+	@hdiutil create -volname "浩哥AI" -srcfolder dist/dmg-stage -ov -format UDZO dist/haoge-ai-darwin-arm64.dmg
+	@rm -rf dist/dmg-stage
+	@echo "  dist/haoge-ai-darwin-arm64.dmg"
 
 icons:
 	@go run build/icon/gen.go tray internal/gui/tray.png
@@ -100,25 +117,20 @@ icons:
 	@go run build/icon/gen.go win-ico internal/gui/icon-windows.ico
 	@go run build/icon/gen.go app 1024 internal/gui/icon-1024.png
 	@go run build/icon/gen.go app 256 internal/gui/icon-256.png
-	@rm -rf build/darwin/magpie.iconset && mkdir -p build/darwin/magpie.iconset
-	@for s in 16 32 128 256 512; do \
-		go run build/icon/gen.go app $$s build/darwin/magpie.iconset/icon_$${s}x$${s}.png; \
-		go run build/icon/gen.go app $$((s*2)) build/darwin/magpie.iconset/icon_$${s}x$${s}@2x.png; \
-	done
-	@iconutil -c icns build/darwin/magpie.iconset -o build/darwin/magpie.icns && rm -rf build/darwin/magpie.iconset
-	@# macOS 26 draws the Dock icon from AppIcon.icon (Xcode 26's actool) in every icon
-	@# style: light, dark, and clear or tinted, where the bird's luminance takes the tint;
-	@# the compiled Assets.car is kept in the tree so a release needn't have it
-	@go run build/icon/gen.go glyph 1024 build/darwin/AppIcon.icon/Assets/magpie.png
-	@rm -rf build/darwin/actool && mkdir -p build/darwin/actool
-	@xcrun actool build/darwin/AppIcon.icon --compile build/darwin/actool --platform macosx \
-		--minimum-deployment-target 11.0 --app-icon AppIcon --output-partial-info-plist build/darwin/actool/partial.plist >/dev/null
-	@mv build/darwin/actool/Assets.car build/darwin/Assets.car && rm -rf build/darwin/actool
+	@# the macOS bundle icon as PNG blocks, drawn in pure Go: no iconutil, so
+	@# the whole icon set builds on Windows too. The Dock reads the .icns
+	@# (Info.plist CFBundleIconFile); the runtime icon-1024.png is the fallback.
+	@go run build/icon/gen.go icns build/darwin/magpie.icns
 
-release: clean build-release
-	@mkdir -p dist
-	@cp magpie dist/magpie-$(shell go env GOOS)-$(shell go env GOARCH)
-	@$(MAKE) --no-print-directory release-cli
+# 浩哥AI's two artifacts: the macOS arm64 .dmg (built on a Mac) and the
+# Windows amd64 .exe (cross-compiles anywhere). `make release` builds the one
+# for the host it runs on; CI builds each on its own runner.
+release:
+ifeq ($(shell uname -s),Darwin)
+	@$(MAKE) --no-print-directory release-dmg
+else
+	@$(MAKE) --no-print-directory release-windows
+endif
 
 release-cli: assets-pack conpty-pair
 	@mkdir -p dist
@@ -140,13 +152,12 @@ release-cli: assets-pack conpty-pair
 WINVER = $(shell echo $(VERSION) | sed -E 's/^v//; s/[^0-9.].*//')
 release-windows: assets-pack conpty-pair
 	@mkdir -p dist
-	@go run github.com/tc-hib/go-winres@v0.3.3 make --in build/windows/winres.json --arch amd64,arm64 --out rsrc \
+	@go run github.com/tc-hib/go-winres@v0.3.3 make --in build/windows/winres.json --arch amd64 --out rsrc \
 		--file-version "$(or $(WINVER),0.0.0)" --product-version "$(or $(WINVER),0.0.0)"
-	@for arch in amd64 arm64; do \
-		echo "  windows/$$arch (app)"; \
-		CGO_ENABLED=0 GOOS=windows GOARCH=$$arch go build -trimpath -buildvcs=false -ldflags="-s -w" -o internal/update/launcher-$$arch.com ./internal/update/launcher || exit 1; \
-		CGO_ENABLED=0 GOOS=windows GOARCH=$$arch go build -tags production,comlauncher,packedassets,conptypair -trimpath -ldflags="$(LDFLAGS) -H windowsgui" -o dist/magpie-windows-$$arch.exe . || exit 1; \
-	done; rm -f rsrc_windows_*.syso internal/update/launcher-*.com
+	@echo "  windows/amd64 (app)"
+	@CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -buildvcs=false -ldflags="-s -w" -o internal/update/launcher-amd64.com ./internal/update/launcher || exit 1
+	@CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -tags production,comlauncher,packedassets,conptypair -trimpath -ldflags="$(LDFLAGS) -H windowsgui" -o dist/haoge-ai-windows-amd64.exe . || exit 1
+	@rm -f rsrc_windows_*.syso internal/update/launcher-*.com
 
 # The desktop app for Linux links GTK 3 and WebKitGTK 4.1 through cgo, so it
 # is built natively, one arch per machine.
@@ -156,7 +167,7 @@ release-linux: assets-pack
 	@go build -tags "$(TAGS) packedassets" -trimpath -ldflags="$(LDFLAGS)" -o dist/magpie-linux-$(shell go env GOARCH) .
 
 clean:
-	rm -rf magpie magpie.exe magpie.app dist .overlay internal/gui/assets.zip rsrc_windows_*.syso internal/update/launcher-*.com internal/conptypair/amd64 internal/conptypair/arm64
+	rm -rf magpie magpie.exe magpie.app 浩哥AI.app dist .overlay internal/gui/assets.zip rsrc_windows_*.syso internal/update/launcher-*.com internal/conptypair/amd64 internal/conptypair/arm64
 
 # Development: the UI is served from internal/gui/assets and the window
 # reloads itself when a file there is saved. With fswatch installed, the

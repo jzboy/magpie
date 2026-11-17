@@ -635,42 +635,6 @@ func TestHubSaysWhatServersAreFor(t *testing.T) {
 	}
 }
 
-// Pi writes its first prompt before it has connected to the hub (it waits
-// for no codemode server), so the hub entry in its mcp.json says what the
-// hub serves as its description, the line Pi shows of a server, and the
-// line follows the servers ticked. Another entry's description is the
-// user's.
-func TestHubPiDescription(t *testing.T) {
-	h := hubSandbox(t)
-	setPiVersion(t, "1.4.0")
-	file := filepath.Join(h, ".pi/agent/mcp.json")
-	write(t, file, `{"mcpServers": {"theirs": {"command": "t", "description": "My own."}}}`)
-	ok(t)(SaveServer("", Server{Name: "wiki", Transport: "http", URL: "https://mcp.deepwiki.com/mcp", Agents: []string{"pi"}}))
-	ok(t)(SetMCPHub(true))
-	about := func() string {
-		t.Helper()
-		d, _ := piServers(t, file)[HubEntry]["description"].(string)
-		return d
-	}
-	wiki, _ := marketServer("deepwiki")
-	if d := about(); d != gateway.HubLine([]gateway.HubServer{{Name: "wiki", About: wiki.Description}}) || !strings.Contains(d, "GitHub repository") {
-		t.Fatalf("the hub entry's description %q:\n%s", d, read(t, file))
-	}
-	ok(t)(SaveServer("", Server{Name: "context7", Transport: "http", URL: "https://mcp.context7.com/mcp", Agents: []string{"pi"}}))
-	if d := about(); !strings.Contains(d, "context7 (") || !strings.Contains(d, "wiki (") {
-		t.Fatalf("context7 ticked: %q", d)
-	}
-	// one edited by hand is magpie's again on the next sync
-	write(t, file, strings.Replace(read(t, file), "Tools of", "Tools from", 1))
-	ok(t)(Sync())
-	if d := about(); !strings.HasPrefix(d, "Tools of context7") {
-		t.Fatalf("after a sync: %q", d)
-	}
-	if d, _ := piServers(t, file)["theirs"]["description"].(string); d != "My own." {
-		t.Fatalf("the user's description: %q", d)
-	}
-}
-
 func TestHubGivesMagpieImage(t *testing.T) {
 	h := hubSandbox(t)
 	claude := filepath.Join(h, ".claude.json")

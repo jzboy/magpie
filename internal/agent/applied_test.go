@@ -198,21 +198,7 @@ func TestDriftUnwiredEveryAgent(t *testing.T) {
 	managed := claudeManaged
 	claudeManaged = func() string { return filepath.Join(home, "managed-settings.json") }
 	t.Cleanup(func() { claudeManaged = managed })
-	almaApp := startAlma(t)       // Alma keeps its providers in the app
-	shelleyApp := startShelley(t) // so does Shelley its models
-	// OpenHanako gives the model to an agent of its own
-	os.MkdirAll(filepath.Join(home, ".hanako", "agents", "hana"), 0o755)
-	os.WriteFile(filepath.Join(home, ".hanako", "agents", "hana", "config.yaml"), []byte("agent:\n  name: Hana\n"), 0o644)
-	// Craft Agents, once it has run and saved its config
-	craftFixture(t, home)
-	// AstrBot is connected once it has written its settings
-	os.MkdirAll(filepath.Join(home, ".astrbot", "data"), 0o755)
-	os.WriteFile(filepath.Join(home, ".astrbot", "data", "cmd_config.json"), []byte(astrbotConfig), 0o644)
-	// QwenPaw, once it has written its agents' settings
-	qwenpawFixture(t, home)
 	for _, a := range All() {
-		// agy's gateway is in the command that starts it, in no file (its
-		// Check is TestAgy's)
 		if a.Check == nil || a.Launch != nil || a.Native != nil {
 			continue
 		}
@@ -262,8 +248,6 @@ func TestDriftUnwiredEveryAgent(t *testing.T) {
 				}
 				return nil
 			})
-			n += almaApp.repoint(gateway.URL(), "http://127.0.0.1:9")
-			n += shelleyApp.repoint(gateway.URL(), "http://127.0.0.1:9")
 			if n == 0 {
 				t.Fatal("no file holds the gateway's URL")
 			}

@@ -46,17 +46,6 @@ func TestPortMovesEveryAgent(t *testing.T) {
 	managed := claudeManaged
 	claudeManaged = func() string { return filepath.Join(home, "managed-settings.json") }
 	t.Cleanup(func() { claudeManaged = managed })
-	almaApp := startAlma(t)
-	shelleyApp := startShelley(t)
-	os.MkdirAll(filepath.Join(home, ".hanako", "agents", "hana"), 0o755)
-	os.WriteFile(filepath.Join(home, ".hanako", "agents", "hana", "config.yaml"), []byte("agent:\n  name: Hana\n"), 0o644)
-	// Craft Agents, once it has run and saved its config
-	craftFixture(t, home)
-	// AstrBot is connected once it has written its settings
-	os.MkdirAll(filepath.Join(home, ".astrbot", "data"), 0o755)
-	os.WriteFile(filepath.Join(home, ".astrbot", "data", "cmd_config.json"), []byte(astrbotConfig), 0o644)
-	// QwenPaw, once it has written its agents' settings
-	qwenpawFixture(t, home)
 	setPort(t, 3591)
 	if gateway.URL() != "http://127.0.0.1:3591" {
 		t.Fatalf("Settings' port isn't the gateway's: %s", gateway.URL())
@@ -106,18 +95,11 @@ func TestPortMovesEveryAgent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// OpenChamber reads OpenCode's config, which moves with OpenCode
 	if len(moved) < len(wired)-1 {
 		t.Errorf("moved %d of %d: %v", len(moved), len(wired), moved)
 	}
 	if left := filesWith(home, "127.0.0.1:3591"); len(left) > 0 {
 		t.Errorf("still on the old port: %v", left)
-	}
-	if almaApp.repoint("127.0.0.1:3591", "127.0.0.1:3591") > 0 {
-		t.Error("Alma still has the old port")
-	}
-	if shelleyApp.repoint("127.0.0.1:3591", "127.0.0.1:3591") > 0 {
-		t.Error("Shelley still has the old port")
 	}
 	for _, a := range wired {
 		if !a.Wired() {

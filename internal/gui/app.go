@@ -198,8 +198,8 @@ func (h *host) ChooseFolder(title string) (string, error) {
 }
 
 // panelTitle names the panel for Hyprland's rule, which places it, and
-// for niri, which finds it by it (the main window is "magpie")
-const panelTitle = "magpie panel"
+// for niri, which finds it by it (the main window is "浩哥AI")
+const panelTitle = "浩哥AI panel"
 
 // FitPanel grows or shrinks the panel to its content and keeps it anchored
 // under the tray icon; a shown panel glides there when g says how. height
@@ -426,7 +426,7 @@ func Run(version string, showMain bool, link string) error {
 		// The Mac sends the link to the running app itself.
 		SingleInstance: singleInstance(h),
 		Name:           "magpie",
-		Description:    "one place to pick every agent's model",
+		Description:    "浩哥AI — 一处为每个 Agent 挑选模型",
 		Icon:           appIconFor(),
 		Assets:         application.AssetOptions{Handler: ownWindow(handler)},
 		Mac:            application.MacOptions{ActivationPolicy: policy},
@@ -489,7 +489,7 @@ func Run(version string, showMain bool, link string) error {
 		appMenu := application.DefaultApplicationMenu()
 		help := appMenu.FindByRole(application.HelpMenu).GetSubmenu()
 		help.Clear()
-		help.Add("Learn More").OnClick(func(*application.Context) { _ = h.OpenURL("https://usemagpie.ai") })
+		help.Add("Learn More").OnClick(func(*application.Context) { _ = h.OpenURL("https://github.com/yetone/magpie") })
 		// Command-Q asks first while agents are connected (quitask.go). The
 		// role's item sends terminate:, which logging out and shutting down
 		// send too, so it is replaced rather than the app's ShouldQuit set
@@ -872,7 +872,7 @@ func (h *host) setBird(b []byte) {
 func panelOptions(goos, theme string) application.WebviewWindowOptions {
 	o := application.WebviewWindowOptions{
 		Name:            "panel",
-		Title:           "magpie",
+		Title:           "浩哥AI",
 		URL:             "/?mode=panel" + theme,
 		Width:           panelWidth,
 		Height:          520,

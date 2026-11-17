@@ -602,7 +602,7 @@ func trayTokens(lang string, t usage.Totals) string {
 // Discord: in English on a Windows magpie set to Chinese).
 func trayIdleTip(lang string, t usage.Totals, currency string, rate float64) string {
 	if t.Calls == 0 {
-		return "magpie\n" + trayText(lang, "Today: no requests yet")
+		return "浩哥AI\n" + trayText(lang, "Today: no requests yet")
 	}
 	line := trayText(lang, "Today: %s", trayTokens(lang, t)) + "\n"
 	if t.Cost > 0 {
@@ -616,7 +616,7 @@ func trayIdleTip(lang string, t usage.Totals, currency string, rate float64) str
 	if t.Calls == 1 {
 		n = "%d request"
 	}
-	return "magpie\n" + line + trayText(lang, n, t.Calls)
+	return "浩哥AI\n" + line + trayText(lang, n, t.Calls)
 }
 
 // trayChineseUnits is Settings' 万/亿 choice, read when a count is said.

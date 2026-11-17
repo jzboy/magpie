@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/yetone/magpie/internal/edit"
 	"github.com/yetone/magpie/internal/gateway"
 )
 
@@ -18,33 +17,7 @@ import (
 var wslMore = []struct {
 	id, file, suffix string
 }{
-	{"opencode", ".config/opencode/opencode.json", "/v1"},
-	{"mimocode", ".config/mimocode/mimocode.json", "/v1"},
-	{"kimi", ".kimi-code/config.toml", "/v1"},
-	{"omp", ".omp/agent/models.yml", "/v1"},
-	{"crush", ".config/crush/crush.json", "/v1"},
-	{"hermes", ".hermes/config.yaml", "/v1"},
-	{"morph", ".morph/config.yaml", "/v1"},
-	{"grok", ".grok/config.toml", "/v1"},
-	{"droid", ".factory/settings.json", "/v1"},
-	{"fx", ".fx/settings.json", "/v1"},
-	{"commandcode", ".commandcode/providers.json", "/v1"},
-	{"minimax-code", ".minimax/config.yaml", ""},
 	{"dsh", ".dsh/profiles/web/cordis.patch.yml", "/v1"}, // liby233: no dsh reads config.yaml
-	{"muse", ".config/muse/settings.json", "/v1"},
-	{"qoder", ".qoder/settings.json", "/v1"},
-	{"qoder-cn", ".qoder-cn/settings.json", "/v1"},
-	// lgtm on Discord: a CodeBuddy Code in WSL wasn't found, nor were the
-	// other CLIs magpie set up only on this machine
-	{"codebuddy", ".codebuddy/models.json", "/v1/chat/completions"},
-	{"cline", ".cline/data/settings/providers.json", "/v1"},
-	{"atomcode", ".atomcode/config.toml", "/v1"},
-	{"open-code-review", ".opencodereview/config.json", "/v1"},
-	{"snow", ".snow/profiles/magpie.json", "/v1"},
-	{"goose", ".config/goose/custom_providers/magpie.json", "/v1"},
-	{"mothx", ".mothx/settings.json", "/v1"},
-	{"penguin", ".penguin/data/default_project/.project_config.toml", "/v1"},
-	{"reasonix", ".reasonix/config.toml", "/v1"},
 }
 
 // wslFinds is what a probe of a distro with the agent of kind k prints,
@@ -107,10 +80,6 @@ func TestWSLProbeFindsMoreAgents(t *testing.T) {
 		if strings.Contains(wslProbeScript(), `wslcmd `+bin+`)`) {
 			t.Errorf("probe takes any %s command for the agent", bin)
 		}
-	}
-	// Kimi Code's old kimi-cli, in ~/.kimi, is found by its command
-	if d := parseProbe("U", "home:/home/me\nbin:kimi /home/me/.local/bin/kimi\n"); d == nil || !wslKindOf("kimi").found(*d) {
-		t.Error("kimi by its command")
 	}
 }
 
@@ -272,54 +241,6 @@ func TestWSLMoreAgentsStopped(t *testing.T) {
 	}
 }
 
-// A stopped distro's agent is built on its default files, as they can't
-// be looked at; a pick, once it has started the distro, writes the ones
-// the agent reads: an opencode.jsonc already there, the old kimi-cli's
-// ~/.kimi where there is no ~/.kimi-code.
-func TestWSLStoppedPickFindsItsFiles(t *testing.T) {
-	syncHome(t)
-	root := t.TempDir()
-	dhome := filepath.Join(root, "home", "me")
-	jsonc := filepath.Join(dhome, ".config", "opencode", "opencode.jsonc")
-	legacy := filepath.Join(dhome, ".kimi", "config.toml")
-	os.MkdirAll(filepath.Dir(jsonc), 0o755)
-	os.MkdirAll(filepath.Dir(legacy), 0o755)
-	os.WriteFile(jsonc, []byte("{\n  // mine\n  \"model\": \"anthropic/claude-sonnet-5\"\n}\n"), 0o644)
-	os.WriteFile(legacy, []byte("default_model = \"kimi-k3\"\n"), 0o644)
-	b, _ := json.Marshal(map[string]*distro{
-		"Stopped": {Name: "Stopped", Home: "/home/me", Root: root, Has: map[string]bool{"dir:.config/opencode": true, "bin:kimi": true}, Probe: wslProbeVersion},
-	})
-	os.MkdirAll(filepath.Dir(wslStatePath()), 0o755)
-	os.WriteFile(wslStatePath(), b, 0o600)
-	fakeWSL(t, "Stopped\r\n", "", nil, nil)
-	byID := map[string]*Agent{}
-	for _, a := range wslAgentsOf(wslDistros()) {
-		byID[a.ID] = a
-	}
-	oc, ki := byID["opencode@wsl:Stopped"], byID["kimi@wsl:Stopped"]
-	if oc == nil || ki == nil {
-		t.Fatalf("%v", byID)
-	}
-	if err := oc.Field("model").Set("magpie/relay/glm-4.6"); err != nil {
-		t.Fatal(err)
-	}
-	if m, _ := edit.GetJSON(jsonc, "model"); m != "magpie/relay/glm-4.6" || !strings.Contains(readFile(jsonc), "// mine") {
-		t.Fatalf("opencode.jsonc:\n%s", readFile(jsonc))
-	}
-	if _, err := os.Stat(filepath.Join(dhome, ".config", "opencode", "opencode.json")); !os.IsNotExist(err) {
-		t.Fatal("a second opencode.json beside the .jsonc")
-	}
-	if err := ki.Field("model").Set("magpie/relay/glm-4.6"); err != nil {
-		t.Fatal(err)
-	}
-	if v, _ := edit.GetTOMLTop(legacy, "default_model"); v != "magpie/relay/glm-4.6" {
-		t.Fatalf("~/.kimi/config.toml:\n%s", readFile(legacy))
-	}
-	if _, err := os.Stat(filepath.Join(dhome, ".kimi-code")); !os.IsNotExist(err) {
-		t.Fatal("a ~/.kimi-code the old kimi-cli never reads")
-	}
-}
-
 // lgtm on Discord: wsl中安装的dsh，目前magpie还是扫描不到. A dsh of today's
 // in a distro keeps its profiles' patch lists in the distro's ~/.dsh: a pick
 // puts magpie's route in them naming the gateway as the distro reaches it,
@@ -366,63 +287,6 @@ func TestWSLDshProfiles(t *testing.T) {
 	}
 }
 
-// Gemini CLI in a distro is found by its command alone (Antigravity keeps
-// ~/.gemini too), and a magpie model points the distro's ~/.gemini/.env at
-// the gateway as the distro reaches it, with the key it takes from there;
-// a model of its own puts back what that replaced.
-func TestWSLGemini(t *testing.T) {
-	home := syncHome(t)
-	k := wslKindOf("gemini")
-	if strings.Contains(wslProbeScript(), `"$HOME/" ]`) {
-		t.Fatal("the probe asks after $HOME itself")
-	}
-	if d := parseProbe("U", "home:/home/me\ndir:.gemini\n"); d != nil && k.found(*d) {
-		t.Fatal("found by a ~/.gemini Antigravity keeps too")
-	}
-	if d := parseProbe("U", "home:/home/me\nbin:gemini /home/me/.npm-global/bin/gemini\n"); d == nil || !k.found(*d) {
-		t.Fatal("not found by its command")
-	}
-	root := t.TempDir()
-	dhome := filepath.Join(root, "home", "me")
-	env := filepath.Join(dhome, ".gemini", ".env")
-	os.MkdirAll(filepath.Dir(env), 0o755)
-	os.WriteFile(env, []byte("GEMINI_API_KEY=mine\n"), 0o600)
-	d := distro{Name: "Ubuntu", Root: root, Home: "/home/me", Has: map[string]bool{"bin:gemini": true},
-		Gateway: "172.20.0.1", Running: true}
-	a := wslAgent(k, d)
-	if !a.Detected() {
-		t.Fatal("not detected")
-	}
-	if err := a.Field("model").Set("relay/glm-4.6"); err != nil {
-		t.Fatal(err)
-	}
-	gw := "http://172.20.0.1:" + gateway.Port()
-	if v, _ := edit.GetEnvFile(env, "GOOGLE_GEMINI_BASE_URL"); v != gw {
-		t.Fatalf(".env:\n%s", readFile(env))
-	}
-	if v, _ := edit.GetJSON(filepath.Join(dhome, ".gemini", "settings.json"), "model.name"); v != "relay/glm-4.6" {
-		t.Fatalf("model %q", v)
-	}
-	if msg := a.Check(); msg != "" {
-		t.Fatal(msg)
-	}
-	if v := a.Field("provider").Get(); v != magpieID {
-		t.Fatalf("auth %q", v)
-	}
-	if err := a.Field("model").Set("gemini-2.5-pro"); err != nil {
-		t.Fatal(err)
-	}
-	if v, _ := edit.GetEnvFile(env, "GEMINI_API_KEY"); v != "mine" {
-		t.Fatalf("the key of its own isn't back:\n%s", readFile(env))
-	}
-	if _, set := edit.GetEnvFile(env, "GOOGLE_GEMINI_BASE_URL"); set {
-		t.Fatalf(".env:\n%s", readFile(env))
-	}
-	if es, _ := os.ReadDir(filepath.Join(home, ".gemini")); len(es) > 0 {
-		t.Fatal("this machine's ~/.gemini was touched")
-	}
-}
-
 // A distro's address under NAT changes when WSL restarts: the next sync
 // names the gateway at the new one, and the old is gone from the file.
 func TestWSLMoreAgentsFollowTheAddress(t *testing.T) {
@@ -451,44 +315,5 @@ func TestWSLMoreAgentsFollowTheAddress(t *testing.T) {
 		if !strings.Contains(body, "http://172.29.0.1:"+gateway.Port()+c.suffix) || strings.Contains(body, "172.20.0.1") {
 			t.Errorf("%s: %s after the address moved:\n%s", c.id, c.file, body)
 		}
-	}
-}
-
-// Gemini CLI in a distro whose address moved is on magpie still, and
-// picking its model again names the new address without taking the old
-// one for the user's own: a model of its own then puts back their key.
-func TestWSLGeminiAddressMoved(t *testing.T) {
-	syncHome(t)
-	k := wslKindOf("gemini")
-	root := t.TempDir()
-	env := filepath.Join(root, "home", "me", ".gemini", ".env")
-	writeFile(t, env, "GEMINI_API_KEY=mine\n")
-	d := distro{Name: "Ubuntu", Root: root, Home: "/home/me", Has: map[string]bool{"bin:gemini": true},
-		Gateway: "172.20.0.1", Running: true}
-	if err := wslAgent(k, d).Field("model").Set("relay/glm-4.6"); err != nil {
-		t.Fatal(err)
-	}
-	d.Gateway = "172.29.0.1"
-	a := wslAgent(k, d)
-	if v := a.Field("provider").Get(); v != magpieID {
-		t.Fatalf("auth %q", v)
-	}
-	if a.Check() == "" {
-		t.Fatal("the old address passes")
-	}
-	if err := a.Field("model").Set("relay/glm-4.6"); err != nil {
-		t.Fatal(err)
-	}
-	if v, _ := edit.GetEnvFile(env, "GOOGLE_GEMINI_BASE_URL"); v != "http://172.29.0.1:"+gateway.Port() {
-		t.Fatalf(".env:\n%s", readFile(env))
-	}
-	if msg := a.Check(); msg != "" {
-		t.Fatal(msg)
-	}
-	if err := a.Field("model").Set("gemini-2.5-pro"); err != nil {
-		t.Fatal(err)
-	}
-	if body := readFile(env); body != "GEMINI_API_KEY=mine\n" {
-		t.Fatalf(".env:\n%s", body)
 	}
 }

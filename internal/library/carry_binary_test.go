@@ -155,24 +155,3 @@ func TestCarryKeepsWhatWasLeft(t *testing.T) {
 		t.Fatal("put a bundle whose left file climbs out")
 	}
 }
-
-// The same template on this computer: every agent gets it whole, the one
-// linked to the library, one given copies, and agents in a WSL distro,
-// which always get copies.
-func TestSkillTemplateReachesEveryAgent(t *testing.T) {
-	h := wslSandbox(t)
-	src := filepath.Join(home(), "src", "skills")
-	skill(t, filepath.Join(src, "pdf"), "pdf", "Read PDFs")
-	deck := pptx(t, 6<<20)
-	write(t, filepath.Join(src, "pdf/templates/report.pptx"), string(deck))
-	ok(t)(SetSkillHow("codex", HowCopy))
-	ok(t)(InstallSkills(src, []string{"pdf"}, []string{"claude", "codex", wslCodex, wslClaude, wslPi}))
-	for _, p := range []string{
-		filepath.Join(home(), ".claude/skills/pdf"), filepath.Join(home(), ".codex/skills/pdf"),
-		filepath.Join(h, ".codex/skills/pdf"), filepath.Join(h, ".claude/skills/pdf"), filepath.Join(h, ".pi/agent/skills/pdf"),
-	} {
-		if got, err := os.ReadFile(filepath.Join(p, "templates/report.pptx")); err != nil || !bytes.Equal(got, deck) {
-			t.Errorf("%s: %d bytes of %d, %v", p, len(got), len(deck), err)
-		}
-	}
-}

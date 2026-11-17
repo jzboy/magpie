@@ -48,18 +48,18 @@ func TestModelSuffixCmd(t *testing.T) {
 func TestModelSuffixAgentCmd(t *testing.T) {
 	groupsHome(t)
 	catalog.Changed = nil
-	for _, args := range [][]string{{"suffix", "pi"}, {"suffix", "pi", "off"}, {"suffix", "pi"}} {
+	for _, args := range [][]string{{"suffix", "dsh"}, {"suffix", "dsh", "off"}, {"suffix", "dsh"}} {
 		if err := modelCmd(args); err != nil {
 			t.Fatal(args, err)
 		}
 	}
-	if provider.SuffixModeFor("pi") != provider.SuffixOff || provider.SuffixMode() != provider.SuffixOn || settings.Load().PlainNames {
-		t.Fatalf("pi %q, every %q", provider.SuffixModeFor("pi"), provider.SuffixMode())
+	if provider.SuffixModeFor("dsh") != provider.SuffixOff || provider.SuffixMode() != provider.SuffixOn || settings.Load().PlainNames {
+		t.Fatalf("pi %q, every %q", provider.SuffixModeFor("dsh"), provider.SuffixMode())
 	}
-	if err := modelCmd([]string{"suffix", "pi", "every"}); err != nil || provider.AgentSuffix("pi") != "" {
-		t.Fatal(err, provider.AgentSuffix("pi"))
+	if err := modelCmd([]string{"suffix", "dsh", "every"}); err != nil || provider.AgentSuffix("dsh") != "" {
+		t.Fatal(err, provider.AgentSuffix("dsh"))
 	}
-	if err := modelCmd([]string{"suffix", "pi", "maybe"}); err == nil {
+	if err := modelCmd([]string{"suffix", "dsh", "maybe"}); err == nil {
 		t.Fatal("took maybe")
 	}
 }

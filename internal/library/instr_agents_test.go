@@ -6,38 +6,6 @@ import (
 	"testing"
 )
 
-// lysyscy8 on X (0.1.3667, Windows): the Library's Instructions page leaves
-// out MiniMax Code and WorkBuddy. MiniMax Code reads <data dir>/AGENTS.md
-// before every conversation (~/.minimax, or $MINIMAX_DATA_DIR): magpie's
-// part goes into it and the user's own text stays.
-func TestMiniMaxCodeInstructions(t *testing.T) {
-	h := sandbox(t)
-	t.Setenv("MINIMAX_DATA_DIR", "")
-	write(t, filepath.Join(h, ".minimax/config.yaml"), "")
-	f := filepath.Join(h, ".minimax/AGENTS.md")
-	write(t, f, "My own rule.\n")
-	if tg := targetByID("minimax-code"); tg == nil || tg.Instructions != f || tg.Field != "" {
-		t.Fatalf("%+v", tg)
-	}
-	shared := "Be brief."
-	ok(t)(SaveInstructions(InstructionsChange{Shared: &shared, Agents: []string{"minimax-code"}}))
-	s := read(t, f)
-	if !strings.HasPrefix(s, "My own rule.\n") || !strings.Contains(s, blockBegin+"\nBe brief.") {
-		t.Fatalf("AGENTS.md:\n%s", s)
-	}
-	ok(t)(SaveInstructions(InstructionsChange{Agents: []string{}}))
-	if s := read(t, f); s != "My own rule.\n" {
-		t.Fatalf("after taking magpie's part back:\n%q", s)
-	}
-
-	d := filepath.Join(h, "mm")
-	t.Setenv("MINIMAX_DATA_DIR", d)
-	write(t, filepath.Join(d, "config.yaml"), "")
-	if tg := targetByID("minimax-code"); tg == nil || tg.Instructions != filepath.Join(d, "AGENTS.md") {
-		t.Fatalf("with MINIMAX_DATA_DIR: %+v", tg)
-	}
-}
-
 const wbConfig = `{
   "locale": "zh-CN",
   "personalization": {
@@ -151,16 +119,5 @@ func TestWorkBuddyInstructionsImport(t *testing.T) {
 	s := read(t, f)
 	if !strings.Contains(s, `"toneStyle": "friendly"`) || !strings.Contains(s, `"locale"`) || !strings.Contains(s, `"zeta"`) {
 		t.Fatalf("other keys lost:\n%s", s)
-	}
-}
-
-// WorkBuddy AI keeps the same file in its own folder.
-func TestWorkBuddyAIInstructions(t *testing.T) {
-	h := sandbox(t)
-	write(t, filepath.Join(h, ".workbuddy-ai/models.json"), "")
-	holdApp(t, h, "WorkBuddy AI.app", "com.workbuddy.workbuddy-ai")
-	tg := targetByID("workbuddy-ai")
-	if tg == nil || tg.Instructions != filepath.Join(h, ".workbuddy-ai/app/app-config.json") || tg.Field != "personalization.customPrompt" {
-		t.Fatalf("%+v", tg)
 	}
 }

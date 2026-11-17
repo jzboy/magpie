@@ -16,7 +16,7 @@ import (
 func TestSignedInServerGoesThroughMagpie(t *testing.T) {
 	sandbox(t)
 	f := mcpauthtest.New(t)
-	agents := []string{"claude", "codex", "cursor"}
+	agents := []string{"claude", "codex"}
 	neon := Server{Name: "neon", Transport: "http", URL: f.URL, Headers: map[string]string{"Authorization": "Bearer mine", "X-Team": "acme"}, Agents: agents}
 	ok(t)(SaveServer("", neon))
 	sse := Server{Name: "old", Transport: "sse", URL: f.URL, Agents: []string{"claude"}}

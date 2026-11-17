@@ -45,10 +45,6 @@ func TestDisconnectStaysThroughSync(t *testing.T) {
 	managed := claudeManaged
 	claudeManaged = func() string { return filepath.Join(home, "managed-settings.json") }
 	t.Cleanup(func() { claudeManaged = managed })
-	startAlma(t)    // Alma keeps its providers in the app
-	startShelley(t) // so does Shelley its models
-	os.MkdirAll(filepath.Join(home, ".hanako", "agents", "hana"), 0o755)
-	os.WriteFile(filepath.Join(home, ".hanako", "agents", "hana", "config.yaml"), []byte("agent:\n  name: Hana\n"), 0o644)
 	for _, a := range All() {
 		if a.Launch != nil || a.Native != nil || a.WSL != "" || len(a.Fields) == 0 {
 			continue

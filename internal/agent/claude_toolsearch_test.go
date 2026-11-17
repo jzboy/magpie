@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"encoding/json"
 	"path/filepath"
 	"testing"
 
@@ -96,57 +95,5 @@ func TestClaudeToolSearchOn(t *testing.T) {
 	}
 	if v, _ := edit.GetJSON(path, "theme"); v != "dark" {
 		t.Fatal("theme lost")
-	}
-}
-
-// TestT3CodeToolSearchOn: T3 Code's magpie instance runs Claude Code on the
-// gateway through its own environment, which may be a Claude Code from
-// before 2.1.304: it is given ENABLE_TOOL_SEARCH=true too, and a value the
-// user gave the instance stays.
-func TestT3CodeToolSearchOn(t *testing.T) {
-	home := syncHome(t)
-	t.Setenv("T3CODE_HOME", "")
-	path := filepath.Join(home, ".t3", "userdata", "settings.json")
-	writeFile(t, path, `{}`)
-	a := t3code(home)
-	if err := a.Field("provider").Set(magpieID); err != nil {
-		t.Fatal(err)
-	}
-	search := func() []string {
-		t.Helper()
-		var file map[string]map[string]json.RawMessage
-		if err := json.Unmarshal([]byte(readFile(path)), &file); err != nil {
-			t.Fatal(err)
-		}
-		var vs []string
-		for _, v := range t3Format(t, file["providerInstances"][magpieID]).Environment {
-			if v.Name == claudeSearchEnv {
-				vs = append(vs, v.Value)
-			}
-		}
-		return vs
-	}
-	if vs := search(); len(vs) != 1 || vs[0] != "true" {
-		t.Fatalf("magpie's instance: %q, want [true]", vs)
-	}
-	// the user's own value on the instance
-	var file map[string]any
-	if err := json.Unmarshal([]byte(readFile(path)), &file); err != nil {
-		t.Fatal(err)
-	}
-	inst := file["providerInstances"].(map[string]any)[magpieID].(map[string]any)
-	env := inst["environment"].([]any)
-	for i, v := range env {
-		if v.(map[string]any)["name"] == claudeSearchEnv {
-			env[i] = map[string]any{"name": claudeSearchEnv, "value": "false", "sensitive": false}
-		}
-	}
-	b, _ := json.Marshal(file)
-	writeFile(t, path, string(b))
-	if err := a.Sync(); err != nil {
-		t.Fatal(err)
-	}
-	if vs := search(); len(vs) != 1 || vs[0] != "false" {
-		t.Fatalf("the user's false: %q", vs)
 	}
 }

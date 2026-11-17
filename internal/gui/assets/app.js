@@ -8647,9 +8647,9 @@ const IOS_EASE = "cubic-bezier(.32, .72, 0, 1)";
 function calm() { return document.documentElement.dataset.motion === "reduce" || matchMedia("(prefers-reduced-motion: reduce)").matches; }
 // Settings' Loading bird turned off: no bird on a skeleton or a README
 function birdOff() { return document.documentElement.dataset.bird === "off"; }
-// magpie's bird in parts, its wing and tail free to move (the header's logo
-// holds the shapes)
-const BIRD = `<svg viewBox="0 0 44 44"><use href="#bird" clip-path="url(#bird-body)"/><g class="tail"><use href="#bird" clip-path="url(#bird-tail)"/></g><g class="wing"><use href="#bird" clip-path="url(#bird-wing)"/></g></svg>`;
+// 浩哥AI's spark, the same mark as the header's logo and the tray icon; the
+// loading mark hops it from bar to bar (skelBird)
+const BIRD = `<svg viewBox="0 0 44 44"><g class="spark" fill="currentColor"><path class="spark-big" d="M21 6C22.9 16.8 25.2 19.1 36 21C25.2 22.9 22.9 25.2 21 36C19.1 25.2 16.8 22.9 6 21C16.8 19.1 19.1 16.8 21 6Z"/><path class="spark-small" d="M35 27C35.7 30.6 36.4 31.3 40 32C36.4 32.7 35.7 33.4 35 37C34.3 33.4 33.6 32.7 30 32C33.6 31.3 34.3 30.6 35 27Z"/></g></svg>`;
 // what is loading, with magpie's bird on it (the owner, after the plugin
 // page's README): skeletons still up after a moment, as on a slow page, get
 // the bird. It drops onto one, hops from bar to bar, each bar giving under
@@ -12555,45 +12555,18 @@ function fallbackHint(p) {
 // NancyTom on X, 11-04
 const WORKBUDDY_RISK = "Tencent may suspend a WorkBuddy account it sees used outside WorkBuddy. Accounts of the international build, WorkBuddy AI, have been banned after use through other agents (DeepSeek Harness among them), and changing an agent's prompt doesn't prevent it. Use an account you can afford to lose.";
 const QODER_RISK = "Qoder has no public API for this; magpie signs requests as its desktop client would, which Qoder may treat as third-party use and act on. Use an account you can afford to lose.";
+// 浩哥AI integrates four providers: the ChatGPT plan, ChatGPT API,
+// WorkBuddy and Qoder CN (the last two through their plugins), beside the
+// OpenAI and DeepSeek key presets.
 const SUBS = [
-  // both can also come from CLIProxyAPI's auth files or the agent's own (importing below)
-  // Anthropic has banned accounts it saw used from other tools: said before one is added
-  { agent: "claude", name: "Claude", icon: "claude-color", plans: "Pro · Max · Team", importable: true, risk: true,
-    riskNote: "Anthropic may suspend or ban a Claude account it sees used outside its own apps. magpie sends requests through Claude Code, but Anthropic may still act on them; you use it at your own risk. Use an account you can afford to lose." },
   { agent: "codex", name: "ChatGPT", icon: "openai", plans: "Plus · Pro · Business", importable: true },
   // OpenAI's Sign in with ChatGPT: the plan asked on api.openai.com, with the agent's own instructions (#933)
   { agent: "chatgpt-api", name: "ChatGPT API", icon: "openai", plans: "Plus · Pro · Business", own: true,
     hint: "Sign in with ChatGPT: your plan on OpenAI's own API, with your agent's own instructions rather than Codex's." },
-  { agent: "cursor", name: "Cursor", icon: "cursor", plans: "Pro · Ultra · Teams", single: true },
-  { agent: "grok", name: "Grok", icon: "xai", plans: "SuperGrok · X Premium+", own: true },
-  // signed in with GitHub's device code; the editors' own sign-in stays theirs
-  { agent: "copilot", name: "Copilot", icon: "githubcopilot", plans: "Free · Education · Pro · Pro+ · Max · Business · Enterprise", own: true },
-  // Z.ai's GLM Coding Plan; sites [id, label, host, word]: asked before the
-  // sign-in (a team's too); its plugin way's label holds word, else label
-  { agent: "zcode", name: "ZCode (GLM Coding Plan)", icon: "zcode", plans: "Lite · Pro · Max · Team", own: true,
-    sites: [["zai", "Z.ai", "z.ai"], ["bigmodel", "BigModel (Zhipu)", "bigmodel.cn", "BigModel (智谱)"]] },
   { agent: "workbuddy", name: "WorkBuddy (CodeBuddy)", icon: "workbuddy-color", plans: "Free · Pro", own: true, risk: true, riskNote: WORKBUDDY_RISK },
-  { agent: "workbuddy-ai", get name() { return t("WorkBuddy AI (international)"); }, icon: "workbuddy-color", plans: "Free · Pro", own: true, risk: true, riskNote: WORKBUDDY_RISK },
-  { agent: "commandcode-plan", name: "Command Code", icon: "commandcode", plans: "Go · Pro · GOAT · Max · Ultra", own: true, risk: true,
-    riskNote: "A Go plan account is used through Command Code's private interface, which Command Code may treat as a breach of its terms and ban the account for. Pro, Max and the other plans use its Provider API. Use a Go account you can afford to lose." },
-  { agent: "qoder", get name() { return t("Qoder (international)"); }, icon: "qoder", plans: "Pro", own: true, risk: true,
-    hint: "For accounts on qoder.com, the international site.",
-    riskNote: QODER_RISK },
   { agent: "qoder-cn", get name() { return t("Qoder CN"); }, icon: "qoder", plans: "Pro", own: true, risk: true,
     hint: "For accounts on qoder.cn: signed in with an Alibaba Cloud account or a phone number.",
     riskNote: QODER_RISK },
-  { agent: "devin", name: "Devin", icon: "devin", plans: "Pro · Enterprise", own: true },
-  { agent: "zed", name: "Zed", icon: "zed", plans: "Pro · Student · Business", own: true, risk: true,
-    riskNote: "Zed serves these models to its own editor; magpie signs requests as the editor would, which Zed may treat as third-party use and act on. Use an account you can afford to lose." },
-  { agent: "factory", name: "Factory", icon: "factory", plans: "Pro · Plus · Max", own: true, risk: true, importable: true,
-    riskNote: "Factory serves these models to its own Droid CLI; magpie signs requests as Droid would, which Factory may treat as third-party use and act on. Use an account you can afford to lose." },
-  { agent: "mimo-app", name: "Xiaomi MiMo", icon: "mimocode", plans: "Free · Starter · Plus · Pro · Ultra", own: true, risk: true,
-    riskNote: "Xiaomi serves these models to its own MiMo app; magpie signs requests as the app would, which Xiaomi may treat as third-party use and act on. Use an account you can afford to lose." },
-  { agent: "kiro", name: "Kiro", icon: "kiro-color", plans: "Free · Pro · Pro+ · Power", own: true },
-  // Google's sign-ins; Gemini CLI's own account is read too
-  { agent: "gemini", name: "Gemini CLI", icon: "geminicli-color", plans: "Code Assist Standard · Enterprise", own: true },
-  // accounts can also come from another tool's export (Antigravity Cockpit, Antigravity Manager, CLIProxyAPI)
-  { agent: "antigravity", name: "Antigravity", icon: "antigravity-color", plans: "Google AI Pro · Ultra · free", own: true, risk: true, importable: true },
 ];
 const subOf = (agent) => {
   const own = SUBS.find((x) => x.agent === agent);
@@ -19602,7 +19575,7 @@ function applyPrefs(s, rate) {
   // MAGPIE_NAME; starballl on X), as boot.js did for the first paint; the
   // app's windows keep theirs
   const named = s.name || s.nameEnv;
-  if (web) document.title = named ? named + " · magpie" : "magpie";
+  if (web) document.title = named ? named + " · 浩哥AI" : "浩哥AI";
   // accounts hidden while personal data is masked, until chosen otherwise
   window.hideAccounts?.follow(!!s.redactPersonal);
   // this browser's choice from before it was a setting, carried over once
@@ -20291,8 +20264,8 @@ function renderSettings() {
     row(who, t("MAGPIE_PUBLIC_URL: where other computers reach the gateway, with a gateway key"), s.publicURL, copyBtn(s.publicURL, who)).id = "publicURLRow";
   }
   const site = el("button", "text", t("Open"));
-  site.onclick = () => api("open", { url: "https://usemagpie.ai" }).catch(() => {});
-  row(t("Website"), t("downloads, docs and what's new"), "usemagpie.ai", site);
+  site.onclick = () => api("open", { url: "https://github.com/yetone/magpie" }).catch(() => {});
+  row(t("Based on"), "基于 yetone 的 magpie 二次开发（MIT）", "github.com/yetone/magpie", site);
   const lic = el("button", "text", t("View"));
   lic.onclick = showNotices;
   row(t("Open-source licenses"), t("the notices of the code and data magpie is built with"), "", lic);
@@ -23713,13 +23686,13 @@ if (mode === "window" && window.bootPrefs?.pin && !web) {
 } else $("#pin").remove();
 
 // reload the config files when the panel comes back into view
-// The magpie in the corner flaps and wags its tail as the window opens and
-// when the pointer comes over it.
+// The spark in the corner twinkles as the window opens and when the pointer
+// comes over it.
 function wag() {
   const logo = document.querySelector(".brand .logo");
   if (!logo || logo.classList.contains("wag") || calm()) return;
   logo.classList.add("wag");
-  logo.querySelector(".tail").addEventListener("animationend", () => logo.classList.remove("wag"), { once: true });
+  logo.querySelector(".spark").addEventListener("animationend", () => logo.classList.remove("wag"), { once: true });
 }
 document.querySelector(".brand")?.addEventListener("mouseenter", wag);
 setTimeout(wag, 250);
@@ -23798,7 +23771,10 @@ function layoutNav() {
   if (mode !== "window") return;
   // magpie web on a phone has its own tab bar (phonetabs.js) and no title bar
   if (phoneWeb()) import("./phonetabs.js").catch(() => {});
-  const on = !phoneWeb() && (navPick ? navPick === "side" : sideQuery.matches);
+  // 浩哥AI opens on the top navigation bar at every width — a layout of its
+  // own, apart from upstream's sidebar default. The title bar's button still
+  // switches to the sidebar (navPick "side") for whoever prefers it.
+  const on = !phoneWeb() && navPick === "side";
   if (layoutNav.done && on === sideNav()) {
     // the button goes with the phone's layout all the same
     const was = $("#sideToggle").hidden;

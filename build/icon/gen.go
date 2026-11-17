@@ -1,19 +1,19 @@
 //go:build ignore
 
-// Icon generator. Everything magpie shows is drawn from one bird: a round
-// little magpie in profile, tail cocked, black and white, on a 44-unit grid.
-// magpie.svg is the full drawing, its belly, shoulder and the slits in its
-// tail cut out of the black; the app tile uses it from 64px up.
-// magpie-small.svg drops the eye, which would only be a speck; the tray and
-// the smaller tiles use it, and so does the header in
-// internal/gui/assets/index.html.
+// Icon generator. Everything 浩哥AI shows is drawn from one mark: an AI
+// spark — a four-point star with a smaller one beside it — black and white
+// on a 44-unit grid. magpie.svg is the full drawing (both stars); the app
+// tile uses it from 64px up. magpie-small.svg is the single star, which
+// reads cleaner at the tray's and the smaller tiles' sizes, and so does the
+// header in internal/gui/assets/index.html.
 //
 //	go run build/icon/gen.go tray internal/gui/tray.png     # 44px black template icon (macOS menu bar)
 //	go run build/icon/gen.go tray-flap internal/gui/trayflap # its frames when clicked (a size after the folder for a bigger look)
 //	go run build/icon/gen.go app 64 internal/gui/icon.png   # app icon at a given size
 //	go run build/icon/gen.go win 256 build/windows/icon-256.png # the Windows tile, filling its square
 //	go run build/icon/gen.go win-ico internal/gui/icon-windows.ico # it at the tray's sizes, one .ico
-//	make icons                                              # regenerates all of them plus magpie.icns
+//	go run build/icon/gen.go icns build/darwin/magpie.icns  # the macOS bundle icon, PNG blocks (no iconutil)
+//	make icons                                              # regenerates all of them
 package main
 
 import (
@@ -71,8 +71,14 @@ func main() {
 			os.Exit(1)
 		}
 		return
+	case len(os.Args) == 3 && os.Args[1] == "icns":
+		if err := icns(os.Args[2]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		return
 	default:
-		fmt.Fprintln(os.Stderr, "usage: gen.go tray <out.png> | gen.go app|app-dark|win <size> <out.png> | gen.go win-ico <out.ico>")
+		fmt.Fprintln(os.Stderr, "usage: gen.go tray <out.png> | gen.go app|app-dark|win <size> <out.png> | gen.go win-ico <out.ico> | gen.go icns <out.icns>")
 		os.Exit(2)
 	}
 	f, err := os.Create(os.Args[len(os.Args)-1])
@@ -104,82 +110,49 @@ func tray() image.Image {
 	return img
 }
 
-// The tray bird's flap is the header logo's (internal/gui/assets/app.css,
-// .logo.wag): the drawing cut into body, tail and wing by the same clip
-// paths, each piece turned about the same point through the same keyframes
-// over the same .9s, cubic-bezier(.3, 0, .3, 1) between each two of them,
-// and the whole bird bobbing about its feet. Keep the two alike.
+// The tray mark's twinkle is the header logo's (internal/gui/assets/app.css,
+// .logo.wag): the whole spark breathes in and out once and turns a little,
+// over the same .9s, cubic-bezier(.3, 0, .3, 1) between each two keyframes.
+// Keep the two alike.
 const (
 	flapSecs  = 0.9
 	flapEvery = 0.03 // a frame every 30ms: internal/gui's flap plays them so
-	// the clip paths of index.html's #bird-body (even-odd: the wing is cut
-	// out of it), #bird-tail and #bird-wing, their H and V written as L for
-	// parse
-	clipBody = "M16 0L44 0L44 44L0 44L0 26.4L10.6 26.4L13 24.2L16 19Z M29.8 18.3L26 19L22 21L17 23.5L14.6 24.7L10.6 26.4L6 29V32L9 31.5L12.5 32L16.4 31.8L19 31.4L24 28.8L28.5 24L30.6 21.4Z"
-	clipTail = "M0 0L17 0L17.2 19.6L14 25L10.6 26.4L0 26.4Z"
-	clipWing = "M29.8 18.3L26 19L22 21L17 23.5L14.6 24.7L10.6 26.4L6 29V32L9 31.5L12.5 32L16.4 31.8L19 31.4L24 28.8L28.5 24L30.6 21.4Z"
 )
 
-// A keyframe: at is the fraction of the animation, deg the rotation.
+// A keyframe: at is the fraction of the animation, deg the value (a
+// rotation in degrees, or a scale about 1).
 type key struct{ at, deg float64 }
 
 var (
-	wingKeys = []key{{0, 0}, {.12, 10}, {.26, -3}, {.40, 8}, {.56, -2}, {.72, 3}, {1, 0}}
-	tailKeys = []key{{0, 0}, {.18, 16}, {.36, -7}, {.54, 9}, {.72, -3}, {.86, 2}, {1, 0}}
-	bobKeys  = []key{{0, 0}, {.18, -4}, {.40, 2}, {.62, -1}, {1, 0}}
-	// transform-origin, in the viewBox
-	wingAt, tailAt, bobAt = [2]float64{30, 19.8}, [2]float64{14, 22}, [2]float64{26, 38}
+	pulseKeys = []key{{0, 1}, {.2, .86}, {.45, 1.08}, {.7, .96}, {1, 1}}
+	turnKeys  = []key{{0, 0}, {.3, -8}, {.6, 6}, {1, 0}}
+	// the mark turns and breathes about the middle of the viewBox
+	markAt = [2]float64{22, 22}
 )
 
 // trayFlap writes the frames the tray icon plays when it is clicked,
-// flap-01.png on, one every flapEvery of the animation, the still bird at
+// flap-01.png on, one every flapEvery of the animation, the still mark at
 // both ends left out.
 func trayFlap(dir string, S int) error {
-	bird := parse(smallSVG)
-	body, tail, wing := parse(`d="`+clipBody+`"`), parse(`d="`+clipTail+`"`), parse(`d="`+clipWing+`"`)
+	shape := parse(smallSVG)
 	n := int(math.Round(flapSecs / flapEvery))
-	const ss = 8
-	k := float64(S) / 44
+	k0 := float64(S) / 44 * trayK
 	for f := 1; f < n; f++ {
 		t := float64(f) / float64(n)
-		bob, tl, wg := keyed(bobKeys, t), keyed(tailKeys, t), keyed(wingKeys, t)
-		// each piece is the bird and its clip path both turned as CSS turns
-		// the piece's group: the bob outside, the piece's own turn inside
-		m := func(rings [][][2]float64, at [2]float64, deg float64) []bool {
-			moved := make([][][2]float64, len(rings))
-			for i, r := range rings {
-				moved[i] = make([][2]float64, len(r))
-				for j, p := range r {
-					q := turn(turn(p, at, deg), bobAt, bob)
-					// shrunk about the middle, as tray() draws the still bird
-					moved[i][j] = [2]float64{22 + (q[0]-22)*trayK, 22 + (q[1]-22)*trayK}
-				}
+		pulse, deg := keyed(pulseKeys, t), keyed(turnKeys, t)
+		moved := make([][][2]float64, len(shape))
+		for i, r := range shape {
+			moved[i] = make([][2]float64, len(r))
+			for j, p := range r {
+				moved[i][j] = turn(p, markAt, deg)
 			}
-			return mask(moved, S*ss, k*ss)
 		}
-		pieces := [][2][]bool{
-			{m(bird, tailAt, 0), m(body, tailAt, 0)},
-			{m(bird, tailAt, tl), m(tail, tailAt, tl)},
-			{m(bird, wingAt, wg), m(wing, wingAt, wg)},
-		}
-		N := S * ss
+		k := k0 * pulse
+		o := float64(S)/2 - 22*k
+		cov := coverage(moved, S, 8, k, o, o)
 		img := image.NewNRGBA(image.Rect(0, 0, S, S))
-		for py := 0; py < S; py++ {
-			for px := 0; px < S; px++ {
-				hit := 0
-				for sy := 0; sy < ss; sy++ {
-					for sx := 0; sx < ss; sx++ {
-						i := (py*ss+sy)*N + px*ss + sx
-						for _, pc := range pieces {
-							if pc[0][i] && pc[1][i] {
-								hit++
-								break
-							}
-						}
-					}
-				}
-				img.SetNRGBA(px, py, color.NRGBA{0, 0, 0, uint8(float64(hit)/(ss*ss)*255 + 0.5)})
-			}
+		for i, a := range cov {
+			img.SetNRGBA(i%S, i/S, color.NRGBA{0, 0, 0, uint8(a*255 + 0.5)})
 		}
 		out, err := os.Create(fmt.Sprintf("%s/flap-%02d.png", dir, f))
 		if err != nil {
@@ -231,35 +204,7 @@ func turn(p, o [2]float64, deg float64) [2]float64 {
 	return [2]float64{o[0] + dx*c - dy*s, o[1] + dx*s + dy*c}
 }
 
-// mask is which of an n×n grid of samples, k to a unit, fall in the
-// rings, even-odd.
-func mask(rings [][][2]float64, n int, k float64) []bool {
-	out := make([]bool, n*n)
-	var xs []float64
-	for y := 0; y < n; y++ {
-		v := (float64(y) + 0.5) / k
-		xs = xs[:0]
-		for _, r := range rings {
-			for i, j := 0, len(r)-1; i < len(r); j, i = i, i+1 {
-				a, b := r[j], r[i]
-				if (a[1] > v) != (b[1] > v) {
-					xs = append(xs, (a[0]+(v-a[1])*(b[0]-a[0])/(b[1]-a[1]))*k)
-				}
-			}
-		}
-		sort.Float64s(xs)
-		for i := 0; i+1 < len(xs); i += 2 {
-			lo := int(math.Max(0, math.Ceil(xs[i]-0.5)))
-			hi := int(math.Min(float64(n), math.Ceil(xs[i+1]-0.5)))
-			for x := lo; x < hi; x++ {
-				out[y*n+x] = true
-			}
-		}
-	}
-	return out
-}
-
-// glyph is the bird alone, black on clear, as big on an n-pixel canvas as
+// glyph is the mark alone, black on clear, as big on an n-pixel canvas as
 // app draws it on its tile: the layer of build/darwin/AppIcon.icon, which
 // macOS 26 lays on a tile of its own, light or dark (#117).
 func glyph(n int) image.Image {
@@ -383,6 +328,35 @@ func winICO(out string, sizes []int) error {
 		ico.Write(p)
 	}
 	return os.WriteFile(out, ico.Bytes(), 0o644)
+}
+
+// icns writes the macOS bundle icon as PNG blocks (the modern icns format),
+// so it needs no iconutil and builds on any system. Each type is the tile
+// at the size macOS reads it for: ic11/12 the small 16/32pt @2x, ic07/08/09
+// the 128/256/512pt, ic13/14 the 128/256pt @2x, ic10 the 512pt @2x (1024).
+func icns(out string) error {
+	blocks := []struct {
+		typ  string
+		size int
+	}{
+		{"ic11", 32}, {"ic12", 64}, {"ic07", 128}, {"ic13", 256},
+		{"ic08", 256}, {"ic14", 512}, {"ic09", 512}, {"ic10", 1024},
+	}
+	var body bytes.Buffer
+	for _, b := range blocks {
+		var p bytes.Buffer
+		if err := png.Encode(&p, app(b.size, false)); err != nil {
+			return err
+		}
+		body.WriteString(b.typ)
+		binary.Write(&body, binary.BigEndian, uint32(p.Len()+8))
+		body.Write(p.Bytes())
+	}
+	var f bytes.Buffer
+	f.WriteString("icns")
+	binary.Write(&f, binary.BigEndian, uint32(body.Len()+8))
+	f.Write(body.Bytes())
+	return os.WriteFile(out, f.Bytes(), 0o644)
 }
 
 // coverage rasterises a shape, scaled by k and moved to (ox, oy), onto an n×n

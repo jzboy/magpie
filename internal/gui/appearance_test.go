@@ -265,9 +265,11 @@ func TestAccentTintsGrounds(t *testing.T) {
 			if !ok {
 				t.Fatalf("%s: no %s in %v", c.sel, s.name, v)
 			}
-			// purple: more blue than green, and about as light as before
-			if got[2]-got[1] < 6 {
-				t.Errorf("%s %s: %s is still grey (was %s)", c.sel, s.name, got.hex(), s.base.hex())
+			// the purple shows: the ground's blue closes on or passes its
+			// green more than the base's does, whatever the base's own hue
+			// (浩哥AI's grounds are warm paper and slate).
+			if got[2]-got[1] <= s.base[2]-s.base[1] {
+				t.Errorf("%s %s: %s took no purple (was %s)", c.sel, s.name, got.hex(), s.base.hex())
 			}
 			if r := contrast(got, s.base); r > 1.1 {
 				t.Errorf("%s %s: %s is not as light as %s", c.sel, s.name, got.hex(), s.base.hex())
@@ -342,8 +344,8 @@ func TestTintBasesAreAppCSS(t *testing.T) {
 			}
 		}
 	}
-	if !strings.Contains(block(`:root[data-theme="dark"]`), "--pop-bg: rgba(38, 38, 43, .96)") {
-		t.Errorf("app.css's dark --pop-bg is not rgba(38, 38, 43, .96)")
+	if !strings.Contains(block(`:root[data-theme="dark"]`), "--pop-bg: rgba(35, 43, 52, .96)") {
+		t.Errorf("app.css's dark --pop-bg is not rgba(35, 43, 52, .96)")
 	}
 }
 

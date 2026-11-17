@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"encoding/json"
 	"os"
 	"testing"
 
@@ -23,11 +22,11 @@ func TestFoundGroupRenamedOnlyWhereMagpieSetIt(t *testing.T) {
 	if got := provider.PublicRef("group/auto-glm-4-6"); got != "auto/glm-4.6" {
 		t.Fatalf("the found group is listed as %q", got)
 	}
-	a, err := Find("opencode")
+	a, err := Find("codex")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := a.Apply("model", "relay/glm-4.6"); err != nil {
+	if err := a.Apply("model", "spare/glm-4.6"); err != nil {
 		t.Fatal(err)
 	}
 	set := a.Values()["model"]
@@ -37,7 +36,7 @@ func TestFoundGroupRenamedOnlyWhereMagpieSetIt(t *testing.T) {
 	// what an older magpie wrote and recorded: the group by its old id,
 	// beside a key of the user's own
 	old := "magpie/group/auto-glm-4-6"
-	if err := edit.SetJSON(a.Path, edit.KV{Path: "model", Value: old}, edit.KV{Path: "theme", Value: "mine"}); err != nil {
+	if err := edit.SetTOMLTop(a.Path, edit.KV{Path: "model", Value: old}, edit.KV{Path: "theme", Value: "mine"}); err != nil {
 		t.Fatal(err)
 	}
 	record(a.ID, "model", old)
@@ -49,9 +48,8 @@ func TestFoundGroupRenamedOnlyWhereMagpieSetIt(t *testing.T) {
 	if got := appliedOf(a.ID).Fields["model"]; got != "magpie/auto/glm-4.6" {
 		t.Errorf("applied.json holds %q", got)
 	}
-	var doc map[string]any
-	if err := json.Unmarshal([]byte(readFile(a.Path)), &doc); err != nil || doc["theme"] != "mine" {
-		t.Errorf("the user's own key: %v %v", doc["theme"], err)
+	if v, _ := edit.GetTOMLTop(a.Path, "theme"); v != "mine" {
+		t.Errorf("the user's own key: %q", v)
 	}
 	if d := a.Drift(); d != nil {
 		t.Errorf("drift after the move: %+v", d)
@@ -60,7 +58,7 @@ func TestFoundGroupRenamedOnlyWhereMagpieSetIt(t *testing.T) {
 	// the user's own value, the group by its old id at an effort of their
 	// choosing, where magpie had set the group plain: theirs, kept
 	theirs := "magpie/group/auto-glm-4-6:high"
-	if err := edit.SetJSON(a.Path, edit.KV{Path: "model", Value: theirs}); err != nil {
+	if err := edit.SetTOMLTop(a.Path, edit.KV{Path: "model", Value: theirs}); err != nil {
 		t.Fatal(err)
 	}
 	record(a.ID, "model", old)
@@ -74,7 +72,7 @@ func TestFoundGroupRenamedOnlyWhereMagpieSetIt(t *testing.T) {
 	delete(m, a.ID)
 	appliedSave(m)
 	appliedMu.Unlock()
-	if err := edit.SetJSON(a.Path, edit.KV{Path: "model", Value: old}); err != nil {
+	if err := edit.SetTOMLTop(a.Path, edit.KV{Path: "model", Value: old}); err != nil {
 		t.Fatal(err)
 	}
 	SyncCatalog()
@@ -87,7 +85,7 @@ func TestFoundGroupRenamedOnlyWhereMagpieSetIt(t *testing.T) {
 // model most (XYenon on Discord), so one magpie listed before as
 // auto/glm-5-3-flash is auto/glm-5.3-flash now. An agent magpie set to the
 // old spelling is moved onto the new one on the next catalog sync, as one
-// set to group/auto-<slug> is: OpenCode checks its model against the list
+// set to group/auto-<slug> is: Codex checks its model against the list
 // magpie writes, which names the group by its new spelling only. One the
 // user set to it themselves keeps their value, which is still the group.
 func TestFoundGroupMovedOffAnOldSpelling(t *testing.T) {
@@ -104,7 +102,7 @@ func TestFoundGroupMovedOffAnOldSpelling(t *testing.T) {
 	if got := provider.PublicRef("group/auto-glm-5-3-flash"); got != "auto/glm-5.3-flash" {
 		t.Fatalf("the found group is listed as %q", got)
 	}
-	a, err := Find("opencode")
+	a, err := Find("codex")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +112,7 @@ func TestFoundGroupMovedOffAnOldSpelling(t *testing.T) {
 	// what magpie wrote and recorded while the group was listed by the
 	// first provider's spelling
 	old := "magpie/auto/glm-5-3-flash"
-	if err := edit.SetJSON(a.Path, edit.KV{Path: "model", Value: old}); err != nil {
+	if err := edit.SetTOMLTop(a.Path, edit.KV{Path: "model", Value: old}); err != nil {
 		t.Fatal(err)
 	}
 	record(a.ID, "model", old)
@@ -137,7 +135,7 @@ func TestFoundGroupMovedOffAnOldSpelling(t *testing.T) {
 	delete(m, a.ID)
 	appliedSave(m)
 	appliedMu.Unlock()
-	if err := edit.SetJSON(a.Path, edit.KV{Path: "model", Value: old}); err != nil {
+	if err := edit.SetTOMLTop(a.Path, edit.KV{Path: "model", Value: old}); err != nil {
 		t.Fatal(err)
 	}
 	SyncCatalog()

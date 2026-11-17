@@ -1,28 +1,29 @@
-/* magpie — one quiet surface, real logos, controls that read as pop-up buttons. */
+/* 浩哥AI — warm paper grounds, a teal accent, real logos, controls that read
+   as pop-up buttons. A look of its own, apart from upstream magpie. */
 :root {
-  --bg: #f4f4f6;
+  --bg: #f6f5f1;
   --card: #ffffff;
-  --card-2: #f9f9fb;      /* expanded editor */
-  --pill: #f1f1f4;
-  --pill-hover: #e9e9ee;
+  --card-2: #fbfaf7;      /* expanded editor */
+  --pill: #efece6;
+  --pill-hover: #e6e2d9;
   /* the header's view switch: its track and the thumb on the view shown, the
      track a shade deeper than a pill so the white thumb stands off it (#477) */
-  --seg-track: #e6e6eb;
+  --seg-track: #e8e4db;
   --seg-thumb: var(--card);
-  --seg-edge: 0 1px 2px rgba(0, 0, 0, .14), 0 0 0 .5px rgba(0, 0, 0, .08);
+  --seg-edge: 0 1px 2px rgba(40, 34, 24, .14), 0 0 0 .5px rgba(40, 34, 24, .08);
   /* a control's quiet text (the switch's other views, a text button): darker
      than --muted, so it reads at 4.5:1 or better on every surface it sits on */
-  --ctl-fg: #63636b;
-  --line: #e3e3e8;
-  --line-2: #ececf0;
-  --fg: #1c1c21;
-  --fg-2: #4b4b53;
-  --muted: #85858d;
-  --faint: #b9b9c2;
-  --accent: #4f46e5;
-  --accent-soft: #eeedfd;
+  --ctl-fg: #6b655c;
+  --line: #e2ddd2;
+  --line-2: #ece8df;
+  --fg: #201d1a;
+  --fg-2: #4d4842;
+  --muted: #8a847b;
+  --faint: #bdb7ac;
+  --accent: #0d9488;
+  --accent-soft: #e2f3f1;
   --accent-fg: #ffffff;
-  --sel: #ecebfb;
+  --sel: #d8ece9;
   /* the ink of what is chosen: the open page's sidebar icon, a switch's or
      tab's chosen option. The text's own, graphite as a Mac's sidebar is,
      until an accent of the user's own takes it (appearance.go accentVars) */
@@ -43,35 +44,35 @@
   --drift: #ce2c31;
   --drift-soft: #feebec;
   --pop-bg: rgba(255, 255, 255, .94);
-  --shadow: 0 16px 44px rgba(20, 22, 30, .16), 0 2px 8px rgba(20, 22, 30, .06), 0 0 0 .5px rgba(20, 22, 30, .1);
+  --shadow: 0 16px 44px rgba(40, 34, 24, .16), 0 2px 8px rgba(40, 34, 24, .06), 0 0 0 .5px rgba(40, 34, 24, .1);
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
   --code: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --logo-invert: 0;
-  --tk-s: #1a7f45; --tk-k: #7c3aed; --tk-f: #1d4ed8; --tk-n: #b45309; --tk-v: #0e7490; --tk-o: #a21caf; --tk-c: #85858d;
+  --tk-s: #1a7f45; --tk-k: #7c3aed; --tk-f: #1d4ed8; --tk-n: #b45309; --tk-v: #0d9488; --tk-o: #a21caf; --tk-c: #8a847b;
   /* what a chart tells apart: providers, agents, models */
-  --c1: #4f46e5; --c2: #0ea5e9; --c3: #10b981; --c4: #f59e0b; --c5: #ec4899; --c6: #8b5cf6; --c7: #64748b;
+  --c1: #0d9488; --c2: #0ea5e9; --c3: #10b981; --c4: #f59e0b; --c5: #ec4899; --c6: #8b5cf6; --c7: #64748b;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #1a1a1e;
-    --card: #232327;
-    --card-2: #1f1f23;
-    --pill: #2d2d33;
-    --pill-hover: #36363d;
+    --bg: #14181d;
+    --card: #1d232b;
+    --card-2: #192028;
+    --pill: #262e38;
+    --pill-hover: #303a46;
     --seg-track: rgba(255, 255, 255, .035);
     --seg-thumb: rgba(255, 255, 255, .15);
     --seg-edge: inset 0 .5px 0 rgba(255, 255, 255, .08), 0 1px 2px rgba(0, 0, 0, .3);
-    --line: #333339;
-    --line-2: #2c2c32;
-    --fg: #ededf1;
-    --fg-2: #b9b9c1;
-    --muted: #8b8b94;
-    --faint: #56565f;
-    --ctl-fg: #a1a1aa;
-    --accent: #a5b4fc;
-    --accent-soft: #2b2c47;
-    --accent-fg: #14142a;
-    --sel: #33345a;
+    --line: #2c3540;
+    --line-2: #232b34;
+    --fg: #e8eaed;
+    --fg-2: #b6bcc4;
+    --muted: #8b939e;
+    --faint: #5a636e;
+    --ctl-fg: #a3abb5;
+    --accent: #5eead4;
+    --accent-soft: #123a37;
+    --accent-fg: #06231f;
+    --sel: #16403c;
     --green: #6fd99b;
     --green-soft: #1e3a2b;
     --red: #f28b82;
@@ -80,25 +81,25 @@
     --amber-soft: #3f3220;
     --drift: #ff9592;
     --drift-soft: #3b1219;
-    --pop-bg: rgba(38, 38, 43, .96);
+    --pop-bg: rgba(35, 43, 52, .96);
     --shadow: 0 16px 44px rgba(0, 0, 0, .55), 0 2px 8px rgba(0, 0, 0, .3), 0 0 0 .5px rgba(255, 255, 255, .1);
     --logo-invert: 1;
-    --tk-s: #98d8a4; --tk-k: #c4b5fd; --tk-f: #93c5fd; --tk-n: #f2b544; --tk-v: #67e8f9; --tk-o: #f0abfc; --tk-c: #8b8b94;
-    --c1: #a5b4fc; --c2: #7dd3fc; --c3: #6ee7b7; --c4: #fcd34d; --c5: #f9a8d4; --c6: #c4b5fd; --c7: #94a3b8;
+    --tk-s: #98d8a4; --tk-k: #c4b5fd; --tk-f: #93c5fd; --tk-n: #f2b544; --tk-v: #5eead4; --tk-o: #f0abfc; --tk-c: #8b939e;
+    --c1: #5eead4; --c2: #7dd3fc; --c3: #6ee7b7; --c4: #fcd34d; --c5: #f9a8d4; --c6: #c4b5fd; --c7: #94a3b8;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #1a1a1e; --card: #232327; --card-2: #1f1f23; --pill: #2d2d33; --pill-hover: #36363d;
+  --bg: #14181d; --card: #1d232b; --card-2: #192028; --pill: #262e38; --pill-hover: #303a46;
   --seg-track: rgba(255, 255, 255, .035); --seg-thumb: rgba(255, 255, 255, .15); --seg-edge: inset 0 .5px 0 rgba(255, 255, 255, .08), 0 1px 2px rgba(0, 0, 0, .3);
-  --line: #333339; --line-2: #2c2c32; --fg: #ededf1; --fg-2: #b9b9c1; --muted: #8b8b94; --faint: #56565f; --ctl-fg: #a1a1aa;
-  --accent: #a5b4fc; --accent-soft: #2b2c47; --accent-fg: #14142a; --sel: #33345a;
+  --line: #2c3540; --line-2: #232b34; --fg: #e8eaed; --fg-2: #b6bcc4; --muted: #8b939e; --faint: #5a636e; --ctl-fg: #a3abb5;
+  --accent: #5eead4; --accent-soft: #123a37; --accent-fg: #06231f; --sel: #16403c;
   --green: #6fd99b; --green-soft: #1e3a2b; --red: #f28b82; --red-soft: #45272a; --amber: #f2b544; --amber-soft: #3f3220;
   --drift: #ff9592; --drift-soft: #3b1219;
-  --pop-bg: rgba(38, 38, 43, .96);
+  --pop-bg: rgba(35, 43, 52, .96);
   --shadow: 0 16px 44px rgba(0, 0, 0, .55), 0 2px 8px rgba(0, 0, 0, .3), 0 0 0 .5px rgba(255, 255, 255, .1);
   --logo-invert: 1;
-  --tk-s: #98d8a4; --tk-k: #c4b5fd; --tk-f: #93c5fd; --tk-n: #f2b544; --tk-v: #67e8f9; --tk-o: #f0abfc; --tk-c: #8b8b94;
-  --c1: #a5b4fc; --c2: #7dd3fc; --c3: #6ee7b7; --c4: #fcd34d; --c5: #f9a8d4; --c6: #c4b5fd; --c7: #94a3b8;
+  --tk-s: #98d8a4; --tk-k: #c4b5fd; --tk-f: #93c5fd; --tk-n: #f2b544; --tk-v: #5eead4; --tk-o: #f0abfc; --tk-c: #8b939e;
+  --c1: #5eead4; --c2: #7dd3fc; --c3: #6ee7b7; --c4: #fcd34d; --c5: #f9a8d4; --c6: #c4b5fd; --c7: #94a3b8;
 }
 /* magpie draws both themes itself. The root says so, as index.html's meta
    does, so a browser that repaints light pages dark (Chrome's Auto Dark
@@ -175,13 +176,13 @@ body.linux.panel { --panel-tint: var(--bg); }
 .tint-probe { display: none; background: var(--panel-tint); }
 /* on the frosted panel the surfaces are tints of the backdrop, not flat paint */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) body.panel { --bg: #1b1c20; --card: #25262c; --card-2: #212227; --line: rgba(255, 255, 255, .07); --line-2: rgba(255, 255, 255, .06); --pill: #2e2f36; --pill-hover: #383942; --pill-line: rgba(255, 255, 255, .11); --pill-shadow: 0 1px 2px rgba(0, 0, 0, .28); --muted: #9c9ca6; --faint: #7c7c87; --card-edge: inset 0 0 0 1px rgba(255, 255, 255, .06); }
+  :root:not([data-theme="light"]) body.panel { --bg: #171c22; --card: #1f2630; --card-2: #1b222b; --line: rgba(255, 255, 255, .07); --line-2: rgba(255, 255, 255, .06); --pill: #28313c; --pill-hover: #323d4a; --pill-line: rgba(255, 255, 255, .11); --pill-shadow: 0 1px 2px rgba(0, 0, 0, .28); --muted: #98a1ad; --faint: #78828e; --card-edge: inset 0 0 0 1px rgba(255, 255, 255, .06); }
 }
-:root[data-theme="dark"] body.panel { --bg: #1b1c20; --card: #25262c; --card-2: #212227; --line: rgba(255, 255, 255, .07); --line-2: rgba(255, 255, 255, .06); --pill: #2e2f36; --pill-hover: #383942; --pill-line: rgba(255, 255, 255, .11); --pill-shadow: 0 1px 2px rgba(0, 0, 0, .28); --muted: #9c9ca6; --faint: #7c7c87; --card-edge: inset 0 0 0 1px rgba(255, 255, 255, .06); }
+:root[data-theme="dark"] body.panel { --bg: #171c22; --card: #1f2630; --card-2: #1b222b; --line: rgba(255, 255, 255, .07); --line-2: rgba(255, 255, 255, .06); --pill: #28313c; --pill-hover: #323d4a; --pill-line: rgba(255, 255, 255, .11); --pill-shadow: 0 1px 2px rgba(0, 0, 0, .28); --muted: #98a1ad; --faint: #78828e; --card-edge: inset 0 0 0 1px rgba(255, 255, 255, .06); }
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) body.panel { --bg: #f2f2f5; --card: #ffffff; --card-2: #f8f8fa; --line: rgba(0, 0, 0, .07); --line-2: rgba(0, 0, 0, .06); --pill: #ffffff; --pill-hover: #f4f4f7; --skel: #eeeef2; --skel-hi: #e2e2e8; --pill-line: rgba(0, 0, 0, .12); --pill-shadow: 0 1px 1px rgba(0, 0, 0, .06); --faint: #9a9aa3; --card-edge: 0 0 0 1px rgba(0, 0, 0, .05), 0 1px 2px rgba(0, 0, 0, .04); }
+  :root:not([data-theme="dark"]) body.panel { --bg: #f3f1ec; --card: #ffffff; --card-2: #faf8f4; --line: rgba(0, 0, 0, .07); --line-2: rgba(0, 0, 0, .06); --pill: #ffffff; --pill-hover: #f1eee7; --skel: #ece8df; --skel-hi: #e0dbcf; --pill-line: rgba(0, 0, 0, .12); --pill-shadow: 0 1px 1px rgba(0, 0, 0, .06); --faint: #9a958b; --card-edge: 0 0 0 1px rgba(0, 0, 0, .05), 0 1px 2px rgba(0, 0, 0, .04); }
 }
-:root[data-theme="light"] body.panel { --bg: #f2f2f5; --card: #ffffff; --card-2: #f8f8fa; --line: rgba(0, 0, 0, .07); --line-2: rgba(0, 0, 0, .06); --pill: #ffffff; --pill-hover: #f4f4f7; --skel: #eeeef2; --skel-hi: #e2e2e8; --pill-line: rgba(0, 0, 0, .12); --pill-shadow: 0 1px 1px rgba(0, 0, 0, .06); --faint: #9a9aa3; --card-edge: 0 0 0 1px rgba(0, 0, 0, .05), 0 1px 2px rgba(0, 0, 0, .04); }
+:root[data-theme="light"] body.panel { --bg: #f3f1ec; --card: #ffffff; --card-2: #faf8f4; --line: rgba(0, 0, 0, .07); --line-2: rgba(0, 0, 0, .06); --pill: #ffffff; --pill-hover: #f1eee7; --skel: #ece8df; --skel-hi: #e0dbcf; --pill-line: rgba(0, 0, 0, .12); --pill-shadow: 0 1px 1px rgba(0, 0, 0, .06); --faint: #9a958b; --card-edge: 0 0 0 1px rgba(0, 0, 0, .05), 0 1px 2px rgba(0, 0, 0, .04); }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: default; appearance: none; -webkit-appearance: none; text-align: center; }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 input { font: inherit; color: var(--fg); }
@@ -256,39 +257,24 @@ body:not(.window.linux) #winclose { display: none; }
    as GNOME draws its close button, and set a little apart from the icons */
 .icon.winclose { align-self: center; width: 22px; height: 22px; margin-left: 8px; border-radius: 50%; background: var(--pill); color: var(--fg-2); }
 .icon.winclose:hover { background: color-mix(in srgb, var(--fg) 12%, transparent); }
-/* the magpie flaps, flicks its tail and bobs when the window opens and on
-   hover. It moves in pieces cut from the logo, and is drawn whole at rest, so
-   the cuts never show. */
+/* the spark twinkles when the window opens and on hover: the whole mark
+   breathes and turns a little, the small star glinting after it — the same
+   motion build/icon/gen.go draws into the tray's flap frames. */
 .logo svg { display: block; overflow: visible; }
-.logo .parts, .logo.wag .whole { display: none; }
-.logo.wag .parts { display: inline; }
-.logo .tail { transform-box: view-box; transform-origin: 14px 22px; }
-.logo .wing { transform-box: view-box; transform-origin: 30px 19.8px; }
-.logo .bird { transform-box: view-box; transform-origin: 26px 38px; }
-.logo.wag .tail { animation: tail-flick .9s cubic-bezier(.3, 0, .3, 1); }
-.logo.wag .wing { animation: wing-flap .9s cubic-bezier(.3, 0, .3, 1); }
-.logo.wag .bird { animation: bird-bob .9s cubic-bezier(.3, 0, .3, 1); }
-@keyframes wing-flap {
+.logo .spark { transform-box: view-box; transform-origin: 22px 22px; }
+.logo .spark-small { transform-box: view-box; transform-origin: 35px 32px; }
+.logo.wag .spark { animation: spark-pulse .9s cubic-bezier(.3, 0, .3, 1); }
+.logo.wag .spark-small { animation: spark-glint .9s cubic-bezier(.3, 0, .3, 1); }
+@keyframes spark-pulse {
   0%, 100% { transform: none; }
-  12% { transform: rotate(10deg); }
-  26% { transform: rotate(-3deg); }
-  40% { transform: rotate(8deg); }
-  56% { transform: rotate(-2deg); }
-  72% { transform: rotate(3deg); }
+  20% { transform: scale(.86) rotate(-8deg); }
+  45% { transform: scale(1.08) rotate(6deg); }
+  70% { transform: scale(.96); }
 }
-@keyframes tail-flick {
-  0%, 100% { transform: none; }
-  18% { transform: rotate(16deg); }
-  36% { transform: rotate(-7deg); }
-  54% { transform: rotate(9deg); }
-  72% { transform: rotate(-3deg); }
-  86% { transform: rotate(2deg); }
-}
-@keyframes bird-bob {
-  0%, 100% { transform: none; }
-  18% { transform: rotate(-4deg); }
-  40% { transform: rotate(2deg); }
-  62% { transform: rotate(-1deg); }
+@keyframes spark-glint {
+  0%, 100% { opacity: 1; transform: none; }
+  30% { opacity: .35; transform: scale(.7); }
+  60% { opacity: 1; transform: scale(1.15); }
 }
 .logo { color: var(--fg); display: inline-flex; } /* ink, like the wordmark; the accent blue fought the text in light mode */
 .seg {
@@ -1369,15 +1355,14 @@ body.masked :hover > .acct-eye, body.masked .pq-card:hover .acct-eye, body.maske
 @media (prefers-reduced-motion: reduce) { .quota-refresh { transition: none; } }
 .skeleton { display: block; border-radius: 5px; background: linear-gradient(90deg, var(--skel, var(--pill)) 25%, var(--skel-hi, var(--pill-hover)) 45%, var(--skel, var(--pill)) 65%); background-size: 240% 100%; animation: skeleton-shift 1.4s ease-in-out infinite; }
 @keyframes skeleton-shift { from { background-position: 100% 0; } to { background-position: -100% 0; } }
-/* magpie's bird on what is loading, placed by its feet (skelBird, and the
+/* 浩哥AI's spark on what is loading, centred on its point (skelBird, and the
    plugin page's README strings) */
 .sk-bird { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 1; pointer-events: none; }
 .sk-bird.roam { position: fixed; z-index: 32; }
-.sk-bird svg { position: absolute; left: -13.2px; top: -19.6px; width: 22px; height: 22px; color: var(--fg); fill: currentColor; overflow: visible; }
-.sk-bird .tail { transform-box: view-box; transform-origin: 14px 22px; }
-.sk-bird .wing { transform-box: view-box; transform-origin: 30px 19.8px; }
-.sk-bird[data-flap] .wing { animation: sk-flap .16s ease-in-out infinite alternate; }
-@keyframes sk-flap { from { transform: rotate(-22deg); } to { transform: rotate(18deg); } }
+.sk-bird svg { position: absolute; left: -11px; top: -11px; width: 22px; height: 22px; color: var(--fg); fill: currentColor; overflow: visible; }
+.sk-bird .spark { transform-box: view-box; transform-origin: 22px 22px; }
+.sk-bird[data-flap] .spark { animation: sk-flap .3s ease-in-out infinite alternate; }
+@keyframes sk-flap { from { transform: scale(.82) rotate(-10deg); } to { transform: scale(1.12) rotate(8deg); } }
 .sk-cost { width: 72px; height: 15px; }
 .skeleton-card { min-height: 78px; display: flex; flex-direction: column; gap: 9px; justify-content: center; }
 .sk-title { width: 38%; height: 12px; }
@@ -4757,7 +4742,7 @@ body.panel .modal { padding: 16px 12px; }
      the old one, and the page stayed a few pixels wider than the window
      (#2142, #1864, #2023). No specificity: any transition declared wins. */
   :where(*), :where(*)::before, :where(*)::after { transition-property: none; }
-  .skeleton, .sk-bird .wing { animation: none !important; }
+  .skeleton, .sk-bird .spark { animation: none !important; }
 }
 
 /* A browser on a phone: keep the desktop and tray's layout independent.

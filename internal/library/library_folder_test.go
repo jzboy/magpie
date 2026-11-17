@@ -117,53 +117,6 @@ func TestFoundInLibraryFolder(t *testing.T) {
 	}
 }
 
-// #595: a library skill kept in ~/.agents/skills is had by every agent
-// that reads that folder: none of them gets a link of its own besides
-// (the skill twice), one made before goes, and the page says they have it.
-func TestSharedSkillNotLinkedTwice(t *testing.T) {
-	h := sandbox(t)
-	os.RemoveAll(filepath.Join(h, ".config/goose"))
-	ext := filepath.Join(h, "src/lint")
-	skill(t, ext, "lint", "Lint")
-	ok(t)(InstallSkills(ext, []string{""}, []string{"codex", "gemini", "pi"}))
-	for _, d := range []string{".codex/skills/lint", ".gemini/skills/lint", ".pi/agent/skills/lint"} {
-		if !ours(filepath.Join(h, d), "lint") {
-			t.Fatalf("%s isn't the library's", d)
-		}
-	}
-	v, _ := Read(nil)
-	if len(v.Skills) != 1 || len(v.Skills[0].Always) != 0 {
-		t.Fatalf("always before it's shared: %+v", v.Skills)
-	}
-	// it is put in the shared folder too (npx skills add, a link of the user's)
-	symlink(t, ext, filepath.Join(h, ".agents/skills/lint"))
-	ok(t)(Sync())
-	for _, d := range []string{".codex/skills/lint", ".gemini/skills/lint"} {
-		if _, err := os.Lstat(filepath.Join(h, d)); !os.IsNotExist(err) {
-			t.Errorf("%s is still there: %v", d, err)
-		}
-	}
-	if !ours(filepath.Join(h, ".pi/agent/skills/lint"), "lint") {
-		t.Error("pi, which doesn't read the shared folder, lost it")
-	}
-	if !linked(filepath.Join(h, ".agents/skills/lint")) || read(t, filepath.Join(ext, "SKILL.md")) == "" {
-		t.Error("the shared folder's entry changed")
-	}
-	v, _ = Read(nil)
-	always := v.Skills[0].Always
-	if !slices.Contains(always, "codex") || !slices.Contains(always, "gemini") || slices.Contains(always, "pi") || slices.Contains(always, "claude") {
-		t.Errorf("always: %v", always)
-	}
-	// ticked again, it still gets no link of its own
-	ok(t)(SkillAgents("lint", []string{"codex", "claude"}))
-	if _, err := os.Lstat(filepath.Join(h, ".codex/skills/lint")); !os.IsNotExist(err) {
-		t.Errorf("codex got a link again: %v", err)
-	}
-	if !ours(filepath.Join(h, ".claude/skills/lint"), "lint") {
-		t.Error("claude didn't get it")
-	}
-}
-
 // #595: a skill linked from a folder whose link was replaced by the folder
 // itself is the library's own: the page doesn't say it's linked, as
 // Remove moves it to the backups.

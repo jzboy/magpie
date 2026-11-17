@@ -930,8 +930,10 @@ func (s *Server) ListenAndServe(ctx context.Context) error {
 	go usage.KeepOutsideCallsRead(ctx)
 	// and moves the built-in subscriptions being retired onto their plugins
 	go provider.KeepRetiringMoved(ctx)
-	// and fetches the partner list every hour, asked for or not
-	go provider.KeepPartnersFresh(ctx)
+	// and installs 浩哥AI's integrated subscriptions' plugins once
+	// (WorkBuddy, Qoder CN), so they work out of the box
+	go provider.EnsureIntegratedPlugins(ctx)
+	// 浩哥AI lists no sponsor partners: the partner feed is not fetched.
 	go provider.KeepPluginsListed(ctx) // models a plugin's vendor drops or adds, while magpie runs
 	// and renews the plugins' sign-ins as they come due, used or not (#5080)
 	go provider.KeepPluginsSignedIn(ctx)

@@ -94,6 +94,18 @@ func readFile(path string) string {
 	return string(b)
 }
 
+// providerAt is the object at providers.<id> (or provider.<id>) of a JSON
+// file, decoded.
+func providerAt(t *testing.T, path, top string) map[string]any {
+	t.Helper()
+	var f map[string]json.RawMessage
+	var ps map[string]map[string]any
+	if err := json.Unmarshal([]byte(readFile(path)), &f); err != nil || json.Unmarshal(f[top], &ps) != nil {
+		t.Fatalf("%s: %v\n%s", path, err, readFile(path))
+	}
+	return ps[magpieID]
+}
+
 // Pi is handed each model's window: without one it takes every model for a
 // 128K one.
 func TestPiModelsCarryContextWindow(t *testing.T) {
@@ -237,15 +249,6 @@ func TestMaxTokensWithinContextWindow(t *testing.T) {
 // keep of magpie's models; a file magpie wrote nothing into stays as it is.
 func TestSyncCatalogRewritesAgentLists(t *testing.T) {
 	home := syncHome(t)
-	piModels := filepath.Join(home, ".pi", "agent", "models.json")
-	writeFile(t, piModels, `{"providers":{"mine":{"baseUrl":"http://x"},"magpie":{"name":"magpie","models":[]}}}`)
-	// connected: a block of magpie's name in an agent not on magpie is the
-	// user's own (TestCatalogSyncLeavesAHandWrittenMagpieBlock)
-	writeFile(t, filepath.Join(home, ".pi", "agent", "settings.json"), `{"defaultProvider":"magpie","defaultModel":"relay/glm-4.6"}`)
-	setUpInMagpie("pi")
-	crushCfg := filepath.Join(home, ".config", "crush", "crush.json")
-	crushBody := `{"providers":{"mine":{"base_url":"http://x"}}}`
-	writeFile(t, crushCfg, crushBody)
 	codexDir := filepath.Join(home, ".codex")
 	codexCat := filepath.Join(codexDir, "magpie-models.json")
 	writeFile(t, filepath.Join(codexDir, "config.toml"), "model = \"relay/glm-4.6\"\nmodel_provider = \"magpie\"\nmodel_catalog_json = '"+codexCat+"'\n")
@@ -256,26 +259,18 @@ func TestSyncCatalogRewritesAgentLists(t *testing.T) {
 	}
 	SyncCatalog()
 
-	pi := strings.ReplaceAll(readFile(piModels), " ", "")
-	if !strings.Contains(pi, `"relay/glm-4.6"`) || !strings.Contains(pi, `"added/m2"`) ||
-		!strings.Contains(pi, `"contextWindow":204800`) || !strings.Contains(pi, `"mine"`) {
-		t.Errorf("pi models.json:\n%s", pi)
-	}
-	if got := readFile(crushCfg); got != crushBody {
-		t.Errorf("crush config without magpie changed:\n%s", got)
-	}
 	cx := readFile(codexCat)
 	if !strings.Contains(cx, `"slug": "added/m2"`) || !strings.Contains(cx, `"context_window": 204800`) {
 		t.Errorf("codex catalog:\n%s", cx)
 	}
 
 	// nothing changed since: nothing is written
-	st, _ := os.Stat(piModels)
-	os.Chtimes(piModels, st.ModTime().Add(-1e12), st.ModTime().Add(-1e12))
-	was, _ := os.Stat(piModels)
+	st, _ := os.Stat(codexCat)
+	os.Chtimes(codexCat, st.ModTime().Add(-1e12), st.ModTime().Add(-1e12))
+	was, _ := os.Stat(codexCat)
 	SyncCatalog()
-	if now, _ := os.Stat(piModels); !now.ModTime().Equal(was.ModTime()) {
-		t.Error("pi models.json rewritten though nothing changed")
+	if now, _ := os.Stat(codexCat); !now.ModTime().Equal(was.ModTime()) {
+		t.Error("codex catalog rewritten though nothing changed")
 	}
 }
 

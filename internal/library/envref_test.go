@@ -148,18 +148,18 @@ func TestEnvRefsLeftOut(t *testing.T) {
 }
 
 // Through SaveServer: the library keeps ${NAME}, Claude Code and Codex get
-// it in their syntax, Antigravity is left out with the reason, the page is
-// told which agent reads none, and a sync rewrites nothing.
+// it in their syntax, the page is told which agent reads none, and a sync
+// rewrites nothing.
 func TestEnvRefsLibrary(t *testing.T) {
-	h, _ := antigravity(t)
+	h := sandbox(t)
 	s := Server{Name: "docs", Transport: "http", URL: "https://example.com/mcp",
 		Headers: map[string]string{"Authorization": "Bearer ${DOCS_TOKEN}", "X-Static": "literal"},
-		Agents:  []string{"claude", "codex", "agy"}}
+		Agents:  []string{"claude", "codex"}}
 	r, err := SaveServer("", s)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(r.Problems) != 1 || r.Problems[0].Agent != "agy" || r.Problems[0].Error != errNoEnvRef.Error() {
+	if len(r.Problems) != 0 {
 		t.Errorf("problems: %+v", r.Problems)
 	}
 	l, err := load()
@@ -177,21 +177,17 @@ func TestEnvRefsLibrary(t *testing.T) {
 	if !strings.Contains(codex, `bearer_token_env_var = "DOCS_TOKEN"`) || strings.Contains(codex, "${") || !strings.Contains(codex, "literal") {
 		t.Errorf("codex:\n%s", codex)
 	}
-	agy := targetByID("agy").MCP.Path
-	if b, err := os.ReadFile(agy); err == nil && strings.Contains(string(b), "docs") {
-		t.Errorf("agy was given it:\n%s", b)
-	}
 	v, err := Read(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, a := range v.Agents {
-		if want := a.ID == "agy"; (a.ID == "agy" || a.ID == "claude" || a.ID == "codex") && a.NoEnvRefs != want {
+		if (a.ID == "claude" || a.ID == "codex") && a.NoEnvRefs {
 			t.Errorf("%s: noEnvRefs %v", a.ID, a.NoEnvRefs)
 		}
 	}
 	before := claude + codex
-	if r, err := Sync(); err != nil || len(r.Problems) != 1 || len(r.Changed) != 0 {
+	if r, err := Sync(); err != nil || len(r.Problems) != 0 || len(r.Changed) != 0 {
 		t.Errorf("sync: %+v %v", r, err)
 	}
 	if after := read(t, filepath.Join(h, ".claude.json")) + read(t, filepath.Join(h, ".codex/config.toml")); after != before {

@@ -834,16 +834,15 @@ func mantleRegions(ids ...string) []Region {
 	return out
 }
 
-// Presets lists every preset, sponsored ones first within their kind.
+// Presets lists the presets 浩哥AI integrates: OpenAI and DeepSeek. The
+// full table stays for lookups (Preset, IconForCatalog, balance probes),
+// so a provider saved under another preset keeps working; the picker
+// offers only these two.
 func Presets() []PresetDef {
-	out := make([]PresetDef, 0, len(presets))
+	var out []PresetDef
 	for _, p := range presets {
-		if p.Sponsored {
-			out = append(out, p)
-		}
-	}
-	for _, p := range presets {
-		if !p.Sponsored {
+		switch p.ID {
+		case "openai", "deepseek":
 			out = append(out, p)
 		}
 	}

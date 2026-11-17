@@ -35,17 +35,9 @@ func TestAgentHomeTakenByAFile(t *testing.T) {
 		t.Errorf("dsh is a target: %v", ids(Targets()))
 	}
 
-	// a part of an agent that is there, where a file is in the way: that
-	// part is left out, the rest given
-	write(t, filepath.Join(h, ".gemini/skills"), "")
-	g := targetByID("gemini")
-	if g == nil || g.Skills != "" || g.Instructions == "" || g.MCP == nil {
-		t.Errorf("gemini target: %+v", g)
-	}
-
 	shared := "Use tabs."
-	ok(t)(SaveInstructions(InstructionsChange{Shared: &shared, Agents: []string{"claude", "gemini", "dsh"}}))
-	ok(t)(SaveServer("", Server{Name: "fs", Transport: "stdio", Command: "npx", Agents: []string{"claude", "gemini"}}))
+	ok(t)(SaveInstructions(InstructionsChange{Shared: &shared, Agents: []string{"claude", "dsh"}}))
+	ok(t)(SaveServer("", Server{Name: "fs", Transport: "stdio", Command: "npx", Agents: []string{"claude"}}))
 	ok(t)(Sync())
 	if b, err := os.ReadFile(filepath.Join(h, ".dsh")); err != nil || string(b) != "ls -la\n" {
 		t.Errorf("~/.dsh: %q %v", b, err)

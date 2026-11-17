@@ -1530,7 +1530,7 @@ func providersState() providersJSON {
 	// both lists made once at their size: each grown by append was 6 MB of
 	// what forty polls of the Providers page allocated with real accounts
 	s.Providers = make([]providerJSON, 0, len(all))
-	partners, presets := provider.Partners(), provider.Presets()
+	partners, presets := []provider.Partner(nil), provider.Presets() // 浩哥AI lists no sponsor partners
 	s.Presets = make([]presetJSON, 0, len(partners)+len(presets))
 	for _, p := range all {
 		// a preset is added once any provider is its, whatever its id

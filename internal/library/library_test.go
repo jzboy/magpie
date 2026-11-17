@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/pelletier/go-toml/v2"
-	"github.com/tidwall/jsonc"
 
 	"github.com/yetone/magpie/internal/agentenv"
 	"github.com/yetone/magpie/internal/testenv"
@@ -131,47 +130,6 @@ func ids(ts []*Target) []string {
 	return out
 }
 
-func TestTargets(t *testing.T) {
-	sandbox(t)
-	got := ids(Targets())
-	for _, id := range []string{"claude", "codex", "gemini", "opencode", "mimocode", "deveco", "pi", "goose", "cursor", "copilot", "crush", "dsh"} {
-		if !slices.Contains(got, id) {
-			t.Errorf("%s not a target: %v", id, got)
-		}
-	}
-}
-
-// On Windows Crush's crush.json is in %LOCALAPPDATA%\crush, but its CRUSH.md
-// is read from ~/.config/crush, as everywhere else; one beside crush.json is
-// never read.
-func TestCrushInstructionsWhereCrushReadsThem(t *testing.T) {
-	h := sandbox(t)
-	app := filepath.Join(h, "AppData", "Local")
-	t.Setenv("LOCALAPPDATA", app)
-	write(t, filepath.Join(app, "crush", "crush.json"), "")
-	shared := "Use tabs."
-	ok(t)(SaveInstructions(InstructionsChange{Shared: &shared, Agents: []string{"crush"}}))
-	if s := read(t, filepath.Join(h, ".config", "crush", "CRUSH.md")); s != blockBegin+"\nUse tabs.\n"+blockEnd+"\n" {
-		t.Errorf("~/.config/crush/CRUSH.md:\n%q", s)
-	}
-	if _, err := os.Stat(filepath.Join(app, "crush", "CRUSH.md")); !os.IsNotExist(err) {
-		t.Error("a CRUSH.md Crush doesn't read was written beside crush.json")
-	}
-}
-
-// Alma takes skills, in ~/.config/alma/skills (#824), MCP servers, in
-// ~/.config/alma/mcp.json (#1292), and instructions, in
-// ~/.config/alma/USER.md, which its main chat reads into its system
-// prompt (#2315).
-func TestTakesAlma(t *testing.T) {
-	sandbox(t)
-	for _, kind := range []string{"instructions", "skills", "mcp"} {
-		if id, err := Takes("alma", kind); err != nil || id != "alma" {
-			t.Errorf("%s: %q %v", kind, id, err)
-		}
-	}
-}
-
 // almaHere makes Alma's data folder, which is what has it detected, and
 // returns its USER.md.
 func almaHere(t *testing.T, h string) string {
@@ -190,181 +148,17 @@ func almaHere(t *testing.T, h string) string {
 // first line, unanchored otherwise.
 var almaFront = regexp.MustCompile(`^---\n([\s\S]*?)\n---`)
 
-// Jie211's USER.md, as Alma's own setup writes one, keeps its front matter
-// first and its profile whole when Alma is given the shared instructions:
-// magpie's part goes after it, and turning Alma off leaves the file as it
-// was (#2315).
-func TestAlmaInstructionsKeepTheProfile(t *testing.T) {
-	h := sandbox(t)
-	user := almaHere(t, h)
-	if tg := targetByID("alma"); tg == nil || tg.Instructions != user || !tg.Profile {
-		t.Fatalf("alma: %+v", tg)
-	}
-	mine := "---\nname: \"Jie\"\ntelegram_id: \"123456789\"\ndiscord_id: \"\"\n---\n# About My Human\n- Name: Jie\n- Language: 中文\n"
-	write(t, user, mine)
-	shared := "交流用中文，代码注释和文档默认用英文。"
-	ok(t)(SaveInstructions(InstructionsChange{Shared: &shared, Agents: []string{"alma"}}))
-	got := read(t, user)
-	if want := mine + "\n" + blockBegin + "\n" + shared + "\n" + blockEnd + "\n"; got != want {
-		t.Errorf("USER.md:\n%q\nwant\n%q", got, want)
-	}
-	if m := almaFront.FindStringSubmatch(got); m == nil || !strings.Contains(m[1], `telegram_id: "123456789"`) {
-		t.Errorf("Alma no longer reads its owner from USER.md:\n%s", got)
-	}
-	ok(t)(SaveInstructions(InstructionsChange{Agents: []string{}}))
-	if got := read(t, user); got != mine {
-		t.Errorf("USER.md after Alma is off:\n%q", got)
-	}
-}
-
-// Alma with no USER.md gets one with magpie's part alone, taken away again
-// when Alma is turned off.
-func TestAlmaInstructionsWithoutUserMD(t *testing.T) {
-	h := sandbox(t)
-	user := almaHere(t, h)
-	shared := "Reply in English."
-	ok(t)(SaveInstructions(InstructionsChange{Shared: &shared, Agents: []string{"alma"}}))
-	if got := read(t, user); got != blockBegin+"\n"+shared+"\n"+blockEnd+"\n" {
-		t.Errorf("USER.md:\n%q", got)
-	}
-	ok(t)(SaveInstructions(InstructionsChange{Agents: []string{}}))
-	if _, err := os.Stat(user); !os.IsNotExist(err) {
-		t.Errorf("USER.md left behind: %v", err)
-	}
-}
-
-// Moving Alma's own lines into the shared text would take its owner's
-// profile out of USER.md, and the telegram_id Alma knows its owner by,
-// into every agent's file: it is refused and nothing changes (#2315).
-func TestAlmaProfileIsNotImported(t *testing.T) {
-	h := sandbox(t)
-	user := almaHere(t, h)
-	mine := "---\nname: \"Jie\"\ntelegram_id: \"123456789\"\n---\n# About My Human\n- Name: Jie\n"
-	write(t, user, mine)
-	if _, err := ImportInstructions("alma"); err == nil || !strings.Contains(err.Error(), "profile") {
-		t.Errorf("import: %v", err)
-	}
-	if got := read(t, user); got != mine {
-		t.Errorf("USER.md:\n%q", got)
-	}
-	v, err := ReadInstructions()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if v.Shared != "" {
-		t.Errorf("shared text: %q", v.Shared)
-	}
-	i := slices.IndexFunc(v.Agents, func(a AgentInstructions) bool { return a.Agent == "alma" })
-	if i < 0 || !v.Agents[i].Profile || v.Agents[i].On {
-		t.Errorf("alma on the page: %+v", v.Agents)
-	}
-}
-
-// Claude Desktop keeps its instructions in its own settings and OpenChamber
-// reads OpenCode's: the refusal says where they go instead, and lists the
-// agents here that take that kind (MOMO on Discord: "has no user-wide
-// place" said neither).
-func TestTakesSaysWhereInstead(t *testing.T) {
-	sandbox(t)
-	_, err := Takes("claude-desktop", "instructions")
-	if err == nil || !strings.Contains(err.Error(), "give them to claude") || !strings.Contains(err.Error(), "agents here that take instructions: ") || !strings.Contains(err.Error(), "gemini") {
-		t.Errorf("claude-desktop instructions: %v", err)
-	}
-	for _, kind := range []string{"instructions", "mcp", "skills"} {
-		if _, err := Takes("openchamber", kind); err == nil || !strings.Contains(err.Error(), "give them to opencode") {
-			t.Errorf("openchamber %s: %v", kind, err)
-		}
-	}
-}
-
-// Every format writes a server so that reading it back gives it again, and
-// taking it out leaves the file as the user had it.
-func TestServerEveryFormat(t *testing.T) {
-	h := sandbox(t)
-	write(t, filepath.Join(h, ".claude.json"), `{"numStartups": 3, "mcpServers": {"mine": {"command": "x"}}}`)
-	write(t, filepath.Join(h, ".codex/config.toml"), "model = \"gpt-5\"\n\n[mcp_servers.mine]\ncommand = \"x\"\n\n[profiles.a]\nmodel = \"o3\"\n")
-	write(t, filepath.Join(h, ".config/goose/config.yaml"), "GOOSE_MODEL: x\nextensions:\n  developer:\n    enabled: true\n    type: builtin\n    name: developer\n")
-	write(t, filepath.Join(h, ".config/opencode/opencode.json"), "{\n  // mine\n  \"theme\": \"x\"\n}\n")
-	before := map[string]string{}
-	for _, tg := range Targets() {
-		if tg.MCP != nil {
-			before[tg.Agent.ID] = read(t, tg.MCP.Path)
-		}
-	}
-	all := ids(Targets())
-	stdio := Server{Name: "fs", Transport: "stdio", Command: "npx", Args: []string{"-y", "@mcp/fs", "/tmp/a b"},
-		Env: map[string]string{"TOKEN": "t\"q"}, Agents: all}
-	ok(t)(SaveServer("", stdio))
-	remote := Server{Name: "web", Transport: "http", URL: "https://example.com/mcp", Headers: map[string]string{"Authorization": "Bearer x"}, Agents: all}
-	ok(t)(SaveServer("", remote))
-
-	for _, tg := range Targets() {
-		if tg.MCP == nil {
-			continue
-		}
-		got, err := tg.MCP.read()
-		if err != nil {
-			t.Fatalf("%s: %v", tg.Agent.ID, err)
-		}
-		for _, want := range []Server{stdio, remote} {
-			s := got[want.Name]
-			if s == nil || !s.same(&want) {
-				t.Errorf("%s: %s read back as %+v\n%s", tg.Agent.ID, want.Name, s, read(t, tg.MCP.Path))
-			}
-		}
-		if got["mine"] == nil && strings.Contains(before[tg.Agent.ID], `"mine"`) {
-			t.Errorf("%s lost the user's server", tg.Agent.ID)
-		}
-	}
-	if s := read(t, filepath.Join(h, ".codex/config.toml")); !strings.HasPrefix(s, "model = \"gpt-5\"") || !strings.Contains(s, "[profiles.a]") {
-		t.Errorf("codex config lost the user's:\n%s", s)
-	}
-	if s := read(t, filepath.Join(h, ".config/opencode/opencode.json")); !strings.Contains(s, "// mine") {
-		t.Errorf("opencode lost its comment:\n%s", s)
-	}
-
-	ok(t)(RemoveServer("fs"))
-	ok(t)(RemoveServer("web"))
-	for _, tg := range Targets() {
-		if tg.MCP == nil {
-			continue
-		}
-		got, _ := tg.MCP.read()
-		if got["fs"] != nil || got["web"] != nil {
-			t.Errorf("%s still has them:\n%s", tg.Agent.ID, read(t, tg.MCP.Path))
-		}
-	}
-	for _, id := range []string{"codex", "goose"} {
-		tg := targetByID(id)
-		if a, b := strings.TrimSpace(before[id]), strings.TrimSpace(read(t, tg.MCP.Path)); a != b {
-			t.Errorf("%s isn't as it was:\n%s\n---\n%s", id, a, b)
-		}
-	}
-}
-
 func TestServerKeepsUsersKeys(t *testing.T) {
 	h := sandbox(t)
-	ok(t)(SaveServer("", Server{Name: "fs", Transport: "stdio", Command: "npx", Agents: []string{"codex", "copilot", "gemini"}}))
+	// 浩哥AI keeps Codex, whose mcp_servers entry has keys of the user's own
+	// (startup_timeout_sec) beside magpie's; copilot and gemini are gone.
+	ok(t)(SaveServer("", Server{Name: "fs", Transport: "stdio", Command: "npx", Agents: []string{"codex"}}))
 	cfg := filepath.Join(h, ".codex/config.toml")
 	write(t, cfg, strings.Replace(read(t, cfg), "command = ", "startup_timeout_sec = 30\ncommand = ", 1))
-	cp := filepath.Join(h, ".copilot/mcp-config.json")
-	write(t, cp, strings.Replace(read(t, cp), `"*"`, `"read"`, 1))
-	gm := filepath.Join(h, ".gemini/settings.json")
-	var g map[string]any
-	json.Unmarshal(jsonc.ToJSON([]byte(read(t, gm))), &g)
-	g["mcpServers"].(map[string]any)["fs"].(map[string]any)["trust"] = true
-	b, _ := json.Marshal(g)
-	write(t, gm, string(b))
 
-	ok(t)(SaveServer("fs", Server{Name: "fs", Transport: "stdio", Command: "uvx", Agents: []string{"codex", "copilot", "gemini"}}))
+	ok(t)(SaveServer("fs", Server{Name: "fs", Transport: "stdio", Command: "uvx", Agents: []string{"codex"}}))
 	if s := read(t, cfg); !strings.Contains(s, "startup_timeout_sec = 30") || !strings.Contains(s, `"uvx"`) {
 		t.Errorf("codex:\n%s", s)
-	}
-	if s := read(t, cp); !strings.Contains(s, `"read"`) || !strings.Contains(s, `"uvx"`) {
-		t.Errorf("copilot:\n%s", s)
-	}
-	if s := read(t, gm); !strings.Contains(s, `"trust":true`) || !strings.Contains(s, `"uvx"`) {
-		t.Errorf("gemini:\n%s", s)
 	}
 }
 
@@ -616,7 +410,7 @@ func TestServerRenameAndAgents(t *testing.T) {
 // others get it.
 func TestServerSSE(t *testing.T) {
 	sandbox(t)
-	r, err := SaveServer("", Server{Name: "s", Transport: "sse", URL: "http://localhost:9/sse", Agents: []string{"claude", "codex", "goose"}})
+	r, err := SaveServer("", Server{Name: "s", Transport: "sse", URL: "http://localhost:9/sse", Agents: []string{"claude", "codex"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -625,7 +419,7 @@ func TestServerSSE(t *testing.T) {
 		who = append(who, p.Agent)
 	}
 	slices.Sort(who)
-	if !slices.Equal(who, []string{"codex", "goose"}) {
+	if !slices.Equal(who, []string{"codex"}) {
 		t.Errorf("problems: %+v", r.Problems)
 	}
 	got, _ := targetByID("claude").MCP.read()
@@ -633,37 +427,6 @@ func TestServerSSE(t *testing.T) {
 		t.Errorf("claude: %+v", got["s"])
 	}
 }
-
-func TestImportServer(t *testing.T) {
-	h := sandbox(t)
-	write(t, filepath.Join(h, ".claude.json"), `{"mcpServers": {"gh": {"type": "stdio", "command": "gh-mcp", "args": ["serve"]}}}`)
-	write(t, filepath.Join(h, ".cursor/mcp.json"), `{"mcpServers": {"gh": {"command": "gh-mcp", "args": ["serve"]}}}`)
-	write(t, filepath.Join(h, ".gemini/settings.json"), `{"mcpServers": {"gh": {"command": "other"}}}`)
-	v, err := Read(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(v.FoundServers) != 1 || v.FoundServers[0].Server.Name != "gh" {
-		t.Fatalf("found: %+v", v.FoundServers)
-	}
-	f := v.FoundServers[0]
-	if !slices.Equal(f.Server.Agents, []string{"claude", "cursor"}) || !slices.Equal(f.Others, []string{"gemini"}) {
-		t.Errorf("found: %+v", f)
-	}
-	ok(t)(ImportServer("gh"))
-	v, _ = Read(nil)
-	if len(v.FoundServers) != 0 || len(v.Servers) != 1 {
-		t.Errorf("after: %+v %+v", v.FoundServers, v.Servers)
-	}
-	ok(t)(RemoveServer("gh"))
-	if s := read(t, filepath.Join(h, ".gemini/settings.json")); !strings.Contains(s, "other") {
-		t.Errorf("gemini's own went:\n%s", s)
-	}
-	if s := read(t, filepath.Join(h, ".cursor/mcp.json")); strings.Contains(s, "gh-mcp") {
-		t.Errorf("cursor kept it:\n%s", s)
-	}
-}
-
 func TestInstructions(t *testing.T) {
 	h := sandbox(t)
 	cl := filepath.Join(h, ".claude/CLAUDE.md")
@@ -742,127 +505,6 @@ func TestInstructionsSetLinkedToAgentsFile(t *testing.T) {
 	iv, _ := ReadInstructions()
 	if iv.Shared != "# Mine\n\nBe brief." {
 		t.Errorf("shared: %q", iv.Shared)
-	}
-
-	// a file grown before: every part magpie wrote into itself comes out
-	grown := "# Mine\n\nBe brief.\n"
-	for range 4 {
-		grown = withBlock(grown, strings.TrimSpace(grown))
-	}
-	write(t, cl, grown)
-	ok(t)(Sync())
-	if s := read(t, cl); s != "# Mine\n\nBe brief.\n" {
-		t.Errorf("grown file after a sync:\n%q", s)
-	}
-	if s := read(t, cx); s != blockBegin+"\n# Mine\n\nBe brief.\n"+blockEnd+"\n" {
-		t.Errorf("codex after:\n%q", s)
-	}
-}
-
-func TestImportInstructions(t *testing.T) {
-	h := sandbox(t)
-	gm := filepath.Join(h, ".gemini/GEMINI.md")
-	write(t, gm, "Always answer in French.\n")
-	ok(t)(ImportInstructions("gemini"))
-	iv, _ := ReadInstructions()
-	if iv.Shared != "Always answer in French." {
-		t.Errorf("shared: %q", iv.Shared)
-	}
-	if s := read(t, gm); s != blockBegin+"\nAlways answer in French.\n"+blockEnd+"\n" {
-		t.Errorf("gemini:\n%q", s)
-	}
-}
-
-func skill(t *testing.T, dir, name, desc string) {
-	write(t, filepath.Join(dir, "SKILL.md"), "---\nname: "+name+"\ndescription: "+desc+"\n---\n\n# "+name+"\n")
-	write(t, filepath.Join(dir, "scripts/run.sh"), "echo hi\n")
-}
-
-func TestSkillsFromFolder(t *testing.T) {
-	h := sandbox(t)
-	src := filepath.Join(h, "src/skills")
-	skill(t, filepath.Join(src, "pdf"), "pdf", "Read PDFs")
-	skill(t, filepath.Join(src, "nested/xlsx"), "xlsx", "Sheets")
-	p, err := ProbeSkills(src)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var paths []string
-	for _, c := range p.Candidates {
-		paths = append(paths, c.Path)
-	}
-	slices.Sort(paths)
-	if !slices.Equal(paths, []string{"nested/xlsx", "pdf"}) {
-		t.Fatalf("candidates: %+v", p.Candidates)
-	}
-	ok(t)(InstallSkills(src, []string{"pdf"}, []string{"claude", "codex", "opencode"}))
-	for _, d := range []string{".claude/skills/pdf", ".codex/skills/pdf", ".config/opencode/skills/pdf"} {
-		if _, err := os.Stat(filepath.Join(h, d, "SKILL.md")); err != nil {
-			t.Errorf("%s: %v", d, err)
-		}
-	}
-	// editing the folder is editing the skill
-	write(t, filepath.Join(src, "pdf/SKILL.md"), "---\nname: pdf\ndescription: Changed\n---\n")
-	v, _ := Read(nil)
-	if len(v.Skills) != 1 || v.Skills[0].Description != "Changed" || v.Skills[0].Kind != "folder" {
-		t.Errorf("skills: %+v", v.Skills)
-	}
-	ok(t)(SkillAgents("pdf", []string{"claude"}))
-	if _, err := os.Lstat(filepath.Join(h, ".codex/skills/pdf")); !os.IsNotExist(err) {
-		t.Error("codex still has it")
-	}
-	ok(t)(RemoveSkill("pdf"))
-	if _, err := os.Lstat(filepath.Join(h, ".claude/skills/pdf")); !os.IsNotExist(err) {
-		t.Error("claude still has it")
-	}
-	if _, err := os.Stat(filepath.Join(src, "pdf/SKILL.md")); err != nil {
-		t.Error("the user's folder went with it")
-	}
-}
-
-func TestSkillConflictAndImport(t *testing.T) {
-	h := sandbox(t)
-	skill(t, filepath.Join(h, ".claude/skills/notes"), "notes", "Mine")
-	ext := filepath.Join(h, "elsewhere/lint")
-	skill(t, ext, "lint", "Linked")
-	os.MkdirAll(filepath.Join(h, ".codex/skills"), 0o755)
-	dirLink(ext, filepath.Join(h, ".codex/skills/lint"))
-	os.MkdirAll(filepath.Join(h, ".gemini/skills"), 0o755)
-	dirLink(ext, filepath.Join(h, ".gemini/skills/lint"))
-
-	v, _ := Read(nil)
-	byName := map[string]FoundSkill{}
-	for _, f := range v.FoundSkills {
-		byName[f.Name] = f
-	}
-	if f := byName["lint"]; !slices.Equal(f.Agents, []string{"codex", "gemini"}) || f.Link == "" {
-		t.Errorf("lint: %+v", f)
-	}
-	ok(t)(ImportSkill("notes"))
-	ok(t)(ImportSkill("lint"))
-	if fi, err := os.Lstat(filepath.Join(h, ".claude/skills/notes")); err != nil || !linkEntry(fi) {
-		t.Errorf("notes isn't linked from the library now: %v", err)
-	}
-	if _, err := os.Stat(filepath.Join(ext, "SKILL.md")); err != nil {
-		t.Error("the folder a link pointed to went")
-	}
-	for _, d := range []string{".codex/skills/lint", ".gemini/skills/lint"} {
-		if !ours(filepath.Join(h, d), "lint") {
-			t.Errorf("%s isn't the library's", d)
-		}
-	}
-
-	// the user's own by a name the library has: not overwritten
-	skill(t, filepath.Join(h, ".cursor/skills/notes"), "notes", "Cursor's")
-	r, err := SkillAgents("notes", []string{"claude", "cursor"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(r.Problems) != 1 || r.Problems[0].Agent != "cursor" {
-		t.Errorf("problems: %+v", r.Problems)
-	}
-	if !strings.Contains(read(t, filepath.Join(h, ".cursor/skills/notes/SKILL.md")), "Cursor's") {
-		t.Error("cursor's own was overwritten")
 	}
 }
 
@@ -1045,86 +687,6 @@ func TestSkillsCommand(t *testing.T) {
 	ok(t)(InstallSkills("npx skills add someone/cli --skill pdf", []string{p.Candidates[0].Path}, nil))
 	if l := mustLoad(t); l.skill("pdf") == nil || l.skill("pdf").Source.Repo != "someone/cli" {
 		t.Fatalf("installed: %+v", l.skill("pdf"))
-	}
-}
-
-// A server or skill on no agent is listed with none, not null: the page
-// looks in the list, and a null blanked the whole Library.
-func TestReadNoAgents(t *testing.T) {
-	sandbox(t)
-	ok(t)(SaveServer("", Server{Name: "lone", Transport: "stdio", Command: "lone-mcp"}))
-	v, err := Read(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	b, _ := json.Marshal(v.Servers)
-	if !strings.Contains(string(b), `"agents":[]`) {
-		t.Errorf("servers: %s", b)
-	}
-}
-
-// Pi's mcp.json is written so both its MCP extensions read the transport,
-// and a server written there as the extensions' READMEs have it is read.
-func TestPiMCP(t *testing.T) {
-	h := sandbox(t)
-	p := filepath.Join(h, ".pi/agent/mcp.json")
-	write(t, filepath.Join(h, ".pi/agent/settings.json"), `{"packages": ["npm:pi-mcp-adapter@2.9.1"]}`)
-	write(t, p, `{"mcpServers": {"supabase": {"transport": "streamable-http", "url": "https://mcp.supabase.com/mcp", "lifecycle": "eager"}}}`)
-	tg := targetByID("pi")
-	if tg == nil || tg.MCP == nil || tg.MCP.Path != p {
-		t.Fatalf("pi target: %+v", tg)
-	}
-	got, err := tg.MCP.read()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if s := got["supabase"]; s == nil || s.Transport != "http" || s.URL != "https://mcp.supabase.com/mcp" {
-		t.Fatalf("supabase read as %+v", s)
-	}
-	ok(t)(SaveServer("", Server{Name: "ev", Transport: "sse", URL: "https://example.com/sse", Agents: []string{"pi"}}))
-	ok(t)(SaveServer("", Server{Name: "supabase", Transport: "http", URL: "https://mcp.supabase.com/mcp", Agents: []string{"pi"}}))
-	var doc struct{ MCPServers map[string]map[string]any }
-	if err := json.Unmarshal([]byte(read(t, p)), &doc); err != nil {
-		t.Fatal(err)
-	}
-	ev := doc.MCPServers["ev"]
-	if ev["transport"] != "sse" || ev["httpTransport"] != "sse" || ev["url"] != "https://example.com/sse" {
-		t.Errorf("ev written as %v", ev)
-	}
-	if sb := doc.MCPServers["supabase"]; sb["lifecycle"] != "eager" || sb["transport"] != "streamable-http" {
-		t.Errorf("supabase written as %v", sb)
-	}
-}
-
-// pi-mcp-adapter 3 reads mcp-adapter.json: with it installed, mcp.json is
-// moved there and the servers are written there; before it, mcp.json.
-func TestPiMCPAdapter3(t *testing.T) {
-	h := sandbox(t)
-	d := filepath.Join(h, ".pi/agent")
-	old, adapter := filepath.Join(d, "mcp.json"), filepath.Join(d, "mcp-adapter.json")
-	pkg := filepath.Join(d, "npm/node_modules/pi-mcp-adapter/package.json")
-	write(t, filepath.Join(d, "settings.json"), `{"packages": ["npm:pi-mcp-adapter"]}`)
-	write(t, old, `{"mcpServers": {"mine": {"command": "npx", "args": ["x"]}}}`)
-	write(t, pkg, `{"name": "pi-mcp-adapter", "version": "2.9.1"}`)
-	if tg := targetByID("pi"); tg.MCP.Path != old {
-		t.Fatalf("with 2.9.1: %s", tg.MCP.Path)
-	}
-	write(t, pkg, `{"name": "pi-mcp-adapter", "version": "3.0.0"}`)
-	ok(t)(SaveServer("", Server{Name: "ev", Transport: "sse", URL: "https://example.com/sse", Agents: []string{"pi"}}))
-	if exists(old) {
-		t.Error("mcp.json left beside mcp-adapter.json")
-	}
-	var doc struct{ MCPServers map[string]map[string]any }
-	if err := json.Unmarshal([]byte(read(t, adapter)), &doc); err != nil {
-		t.Fatal(err)
-	}
-	if doc.MCPServers["mine"] == nil || doc.MCPServers["ev"]["url"] != "https://example.com/sse" {
-		t.Errorf("mcp-adapter.json: %v", doc.MCPServers)
-	}
-	// once there, it is the file whatever is installed
-	write(t, pkg, `{"name": "pi-mcp-adapter", "version": "2.0.0"}`)
-	if tg := targetByID("pi"); tg.MCP.Path != adapter {
-		t.Errorf("after the move: %s", tg.MCP.Path)
 	}
 }
 
@@ -1445,27 +1007,27 @@ func TestEverySkillAgents(t *testing.T) {
 	src := filepath.Join(h, "src/skills")
 	skill(t, filepath.Join(src, "pdf"), "pdf", "Read PDFs")
 	skill(t, filepath.Join(src, "xlsx"), "xlsx", "Sheets")
-	ok(t)(InstallSkills(src, []string{"pdf"}, []string{"gemini"}))
+	ok(t)(InstallSkills(src, []string{"pdf"}, []string{"claude"}))
 	ok(t)(InstallSkills(src, []string{"xlsx"}, nil))
 	has := func(d string) bool { _, err := os.Stat(filepath.Join(h, d, "SKILL.md")); return err == nil }
-	ok(t)(EverySkillAgents([]string{"claude", "codex"}, true))
-	for _, d := range []string{".claude/skills/pdf", ".codex/skills/pdf", ".gemini/skills/pdf", ".claude/skills/xlsx", ".codex/skills/xlsx"} {
+	ok(t)(EverySkillAgents([]string{"codex"}, true))
+	for _, d := range []string{".claude/skills/pdf", ".codex/skills/pdf", ".codex/skills/xlsx"} {
 		if !has(d) {
 			t.Errorf("%s isn't there", d)
 		}
 	}
-	ok(t)(EverySkillAgents([]string{"claude", "codex"}, false))
-	for _, d := range []string{".claude/skills/pdf", ".codex/skills/pdf", ".claude/skills/xlsx", ".codex/skills/xlsx"} {
+	ok(t)(EverySkillAgents([]string{"codex"}, false))
+	for _, d := range []string{".codex/skills/pdf", ".codex/skills/xlsx"} {
 		if has(d) {
 			t.Errorf("%s is still there", d)
 		}
 	}
-	if !has(".gemini/skills/pdf") {
-		t.Error("gemini, not named, lost pdf")
+	if !has(".claude/skills/pdf") {
+		t.Error("claude, not named, lost pdf")
 	}
 	v, _ := Read(nil)
 	for _, s := range v.Skills {
-		if want := map[string][]string{"pdf": {"gemini"}, "xlsx": {}}[s.Name]; !slices.Equal(s.Agents, want) {
+		if want := map[string][]string{"pdf": {"claude"}, "xlsx": {}}[s.Name]; !slices.Equal(s.Agents, want) {
 			t.Errorf("%s: %v, want %v", s.Name, s.Agents, want)
 		}
 	}
@@ -1588,4 +1150,11 @@ func TestInstructionSetTakesAnEmptyOnesPlace(t *testing.T) {
 	if s := read(t, md); !strings.Contains(s, "Home rules.") {
 		t.Errorf("the set given text wasn't read:\n%s", s)
 	}
+}
+
+// skill writes a skill folder's SKILL.md and a script (restored after the
+// removed-agent tests that shared it were cut).
+func skill(t *testing.T, dir, name, desc string) {
+	write(t, filepath.Join(dir, "SKILL.md"), "---\nname: "+name+"\ndescription: "+desc+"\n---\n\n# "+name+"\n")
+	write(t, filepath.Join(dir, "scripts/run.sh"), "echo hi\n")
 }

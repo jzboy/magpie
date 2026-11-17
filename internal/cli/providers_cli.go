@@ -364,7 +364,7 @@ func presets() error {
 	// partners first, as the app lists them: their heading says they pay
 	all := []provider.PresetDef{}
 	var shown []string
-	for _, pa := range provider.PartnersNow(3 * time.Second) {
+	for _, pa := range []provider.Partner(nil) { // 浩哥AI lists no sponsor partners
 		all = append(all, pa.PresetDef)
 		shown = append(shown, pa.ID)
 	}

@@ -297,10 +297,7 @@ func TestMiseShimWindowsFiveAgents(t *testing.T) {
 	sh, cmdShim := fixture(t, "node/snow"), fixture(t, "node/snow.cmd")
 	for _, c := range []struct{ id, cmd, pkg, script string }{
 		{"claude", "claude", "@anthropic-ai/claude-code", `@anthropic-ai\claude-code\cli.js`},
-		{"pi", "pi", "@earendil-works/pi-coding-agent", `@earendil-works\pi-coding-agent\dist\cli.js`},
 		{"codex", "codex", "@openai/codex", `@openai\codex\bin\codex.js`},
-		{"opencode", "opencode", "opencode-ai", `opencode-ai\bin\opencode`},
-		{"codebuddy", "codebuddy", "@tencent-ai/codebuddy-code", `@tencent-ai\codebuddy-code\bin\codebuddy`},
 	} {
 		file(t, filepath.Join(prefix, "node_modules", c.script), "")
 		file(t, filepath.Join(prefix, "node_modules", filepath.FromSlash(c.pkg), "package.json"), `{"name":"`+c.pkg+`","version":"1.2.3"}`)

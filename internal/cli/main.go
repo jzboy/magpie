@@ -502,15 +502,8 @@ func run(args []string) error {
 	// something else writing the file fails every session there until
 	// magpie writes its own list again
 	gateway.WhileServing = append(gateway.WhileServing, agent.KeepDshWired)
-	// and Cursor Private Inference's variables, which the Mac's launchd
-	// forgets at a restart, for the gateway's address now
-	gateway.WhileServing = append(gateway.WhileServing, agent.KeepCursorLocalEnv)
-	// and magpie's models in OpenMausBot's engine, which OpenMausBot
-	// writes back as it held them when an engine is changed in it
-	gateway.WhileServing = append(gateway.WhileServing, agent.KeepOpenMausBotListed)
-	// and Claude Science's daemon, which a restart of the computer ends,
-	// started on the gateway again while it is connected
-	gateway.WhileServing = append(gateway.WhileServing, agent.KeepClaudeScience)
+	// 浩哥AI keeps no Cursor Private Inference, OpenMausBot or Claude
+	// Science agent, so their keep-alive loops are not served.
 	// and every agent's own telemetry off while Settings › Privacy says so,
 	// an agent found since too
 	gateway.WhileServing = append(gateway.WhileServing, agent.KeepTelemetryAllOff)

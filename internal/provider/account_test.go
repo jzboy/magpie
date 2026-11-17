@@ -6,9 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"io"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"slices"
@@ -17,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yetone/magpie/internal/catalog"
 	"github.com/yetone/magpie/internal/codexcat"
 	"github.com/yetone/magpie/internal/plugin"
 	"github.com/yetone/magpie/internal/testenv"
@@ -141,10 +137,7 @@ func TestAccountsAreProviders(t *testing.T) {
 	if !ok || codex.Account == nil || codex.Account.User != "me@example.com" || codex.Account.Plan != "pro" || !codex.Ready() {
 		t.Fatalf("codex: %+v", codex)
 	}
-	copilot, ok := find(all, "copilot")
-	if !ok || copilot.Account == nil || copilot.Account.User != "octocat" || copilot.Chat == "" {
-		t.Fatalf("copilot: %+v", copilot)
-	}
+	// 浩哥AI integrates ChatGPT and ChatGPT API; Copilot's sign-in is not read.
 	var ids []string
 	for _, e := range Catalog() {
 		ids = append(ids, e.ID)
@@ -347,259 +340,12 @@ func stopPluginHost() {
 	}
 }
 
-func TestClaudeAccountIsProvider(t *testing.T) {
-	home := claudeHome(t)
-	creds := claudeSignIn(t, home, time.Now().Add(time.Hour))
-
-	// Claude's models are the catalog's: magpie asks Anthropic nothing with
-	// the account's sign-in, not even its model list
-	asked := false
-	anthropic := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		asked = true
-		w.WriteHeader(500)
-	}))
-	defer anthropic.Close()
-	claudeBase = anthropic.URL
-	os.MkdirAll(filepath.Dir(catalog.CachePath()), 0o755)
-	if err := os.WriteFile(catalog.CachePath(), []byte(`{"anthropic": {"models": {
-	  "claude-sonnet-5": {"id":"claude-sonnet-5","name":"Claude Sonnet 5","modalities":{"input":["text"],"output":["text"]}},
-	  "claude-opus-5-5": {"id":"claude-opus-5-5","name":"Claude Opus 5.5","modalities":{"input":["text"],"output":["text"]}}}}}`), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	catalog.Reset()
-	t.Cleanup(catalog.Reset)
-
-	p, ok := find(All(), "claude")
-	if !ok || p.Account == nil || p.Account.User != "Claude Max" || !p.Account.Unnamed() || p.Account.Plan != "max" || !p.Ready() {
-		t.Fatalf("claude: %+v %v", p, ok)
-	}
-	if p.Anthropic != claudeBase || p.Chat != "" || p.Responses != "" || p.Host() == "" {
-		t.Fatalf("endpoints: %+v", p)
-	}
-
-	if got := len(p.Available()); got != 2 {
-		t.Fatalf("available before a fetch: %d", got)
-	}
-	if ms, err := p.Fetch(context.Background()); err != nil || len(ms) != 2 || asked {
-		t.Fatalf("fetch: %v %v asked Anthropic: %v", ms, err, asked)
-	}
-	p, _ = find(All(), "claude")
-	if at, ok := p.Fetched(); !ok || time.Since(at) > time.Minute {
-		t.Fatalf("not marked fetched: %v %v", at, ok)
-	}
-	var ids []string
-	for _, e := range Catalog() {
-		ids = append(ids, e.ID)
-	}
-	if !contains(ids, "claude/claude-opus-5-5") {
-		t.Fatalf("catalog: %v", ids)
-	}
-	if rp, model, ok := Resolve("claude/claude-opus-5-5"); !ok || rp.ID != "claude" || model != "claude-opus-5-5" {
-		t.Fatalf("resolve: %+v %q %v", rp, model, ok)
-	}
-
-	// picks are saved, the login never is
-	if err := Save(Provider{ID: "claude", Name: "x", Models: []string{"claude-opus-5-5"}}); err != nil {
-		t.Fatal(err)
-	}
-	b, _ := os.ReadFile(Path())
-	if strings.Contains(string(b), "sk-ant-") || !strings.Contains(string(b), `"claude-opus-5-5"`) {
-		t.Fatalf("stored: %s", b)
-	}
-	p, _ = find(All(), "claude")
-	if p.Account == nil || len(p.Exposed()) != 1 || p.Exposed()[0].ID != "claude-opus-5-5" {
-		t.Fatalf("picks: %+v", p.Exposed())
-	}
-
-	// nothing goes to the API in Claude Code's name: the account is used
-	// by running Claude Code, so a direct request is refused unsigned and
-	// a body is sent as written
-	req, _ := http.NewRequest("POST", p.Anthropic+"/v1/messages", nil)
-	if err := p.Sign(context.Background(), req, Anthropic, nil); !errors.Is(err, errClaudeViaCLI) || req.Header.Get("Authorization") != "" {
-		t.Fatalf("signed a direct request: %v %v", err, req.Header)
-	}
-	if body := `{"model":"claude-sonnet-5","messages":[]}`; string(p.Prepare([]byte(body))) != body {
-		t.Fatalf("prepare: %s", p.Prepare([]byte(body)))
-	}
-
-	// signing out of Claude Code removes the provider
-	os.Remove(creds)
-	forgetClaudeCredential()
-	if _, ok := find(All(), "claude"); ok {
-		t.Fatal("claude still listed after sign-out")
-	}
-}
-
-func TestCopilotSignAndModels(t *testing.T) {
-	signIn(t)
-	var mu sync.Mutex
-	var enabled []string
-	var api *httptest.Server
-	api = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != "Bearer sess" || r.Header.Get("Copilot-Integration-Id") == "" {
-			w.WriteHeader(401)
-			return
-		}
-		if r.URL.Path == "/models" {
-			io := `{"data":[
-			  {"id":"gpt-5.5","name":"GPT-5.5","model_picker_enabled":true,"capabilities":{"type":"chat","supports":{"reasoning_effort":["low","high"]}}},
-			  {"id":"claude-sonnet-5","name":"Claude Sonnet 5","model_picker_category":"versatile","policy":{"state":"disabled","terms":"Enable access"},"capabilities":{"type":"chat"}},
-			  {"id":"claude-opus-5","name":"Claude Opus 5","model_picker_category":"powerful","policy":{"state":"disabled"},"capabilities":{"type":"chat"}},
-			  {"id":"gpt-4.1","name":"GPT-4.1","model_picker_category":"versatile","policy":{"state":"enabled"},"capabilities":{"type":"chat"}},
-			  {"id":"gpt-4.1-2025-04-14","name":"GPT-4.1","policy":{"state":"enabled"},"capabilities":{"type":"chat"}},
-			  {"id":"mai-code-2-flash","name":"MAI-Code-2-Flash","vendor":"Experimental","model_picker_enabled":true,"model_picker_category":"lightweight","policy":{"state":"enabled"},"supported_endpoints":["/chat/completions","/responses"],"capabilities":{"type":"chat","supports":{"reasoning_effort":["high"]}}},
-			  {"id":"kimi-k3-base","name":"Kimi K3 (GitHub)","vendor":"Experimental","model_picker_category":"powerful","policy":{"state":"enabled"},"capabilities":{"type":"chat"}},
-			  {"id":"exec-agent-a","name":"Exec","model_picker_enabled":true,"capabilities":{"type":"chat"}},
-			  {"id":"text-embedding-3-small","name":"Emb","model_picker_enabled":true,"capabilities":{"type":"embeddings"}}]}`
-			w.Write([]byte(io))
-			return
-		}
-		if r.Method == "POST" && strings.HasSuffix(r.URL.Path, "/policy") {
-			b, _ := io.ReadAll(r.Body)
-			mu.Lock()
-			enabled = append(enabled, strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/models/"), "/policy")+" "+string(b))
-			mu.Unlock()
-			return
-		}
-		w.Write([]byte(`{"path":"` + r.URL.Path + `","initiator":"` + r.Header.Get("X-Initiator") + `"}`))
-	}))
-	defer api.Close()
-	tokens := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != "token gho_x" {
-			w.WriteHeader(401)
-			return
-		}
-		json.NewEncoder(w).Encode(map[string]any{"token": "sess", "expires_at": time.Now().Add(time.Hour).Unix(), "endpoints": map[string]string{"api": api.URL}})
-	}))
-	defer tokens.Close()
-	old := CopilotTokenURL
-	CopilotTokenURL = tokens.URL
-	defer func() { CopilotTokenURL = old }()
-	copilotSessions = map[string]copilotSession{}
-
-	p, _ := find(All(), "copilot")
-	ms, err := p.Fetch(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
-	var ids []string
-	for _, m := range ms {
-		ids = append(ids, m.ID)
-	}
-	// an Experimental vendor's the picker offers stays listed (#4343), one
-	// it doesn't (kimi-k3-base) stays out
-	if strings.Join(ids, ",") != "gpt-5.5,claude-sonnet-5,gpt-4.1,mai-code-2-flash,auto" || len(ms[0].Efforts) != 2 {
-		t.Fatalf("models: %v %+v", ids, ms)
-	}
-	p, _ = find(All(), "copilot")
-	if got := p.Available(); len(got) != 5 || got[0].ID != "gpt-5.5" {
-		t.Fatalf("available after fetch: %+v", got)
-	}
-
-	body := []byte(`{"model":"gpt-5.5","messages":[{"role":"user","content":"hi"},{"role":"tool","content":"x"}]}`)
-	req, _ := http.NewRequest("POST", p.Chat+"/chat/completions", nil)
-	if err := p.Sign(context.Background(), req, Chat, body); err != nil {
-		t.Fatal(err)
-	}
-	if !strings.HasPrefix(req.URL.String(), api.URL) || req.URL.Path != "/chat/completions" || req.Header.Get("X-Initiator") != "agent" {
-		t.Fatalf("signed: %s %v", req.URL, req.Header)
-	}
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var got map[string]string
-	json.NewDecoder(res.Body).Decode(&got)
-	if got["path"] != "/chat/completions" || got["initiator"] != "agent" {
-		t.Fatalf("api saw %v", got)
-	}
-	if len(enabled) != 0 {
-		t.Fatalf("enabled an enabled model: %v", enabled)
-	}
-
-	// a model whose terms wait has them accepted on its first request only
-	for range 2 {
-		req, _ = http.NewRequest("POST", p.Chat+"/chat/completions", nil)
-		if err := p.Sign(context.Background(), req, Chat, []byte(`{"model":"claude-sonnet-5","messages":[]}`)); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if len(enabled) != 1 || enabled[0] != `claude-sonnet-5 {"state":"enabled"}` {
-		t.Fatalf("enabled: %v", enabled)
-	}
-
-	// after a restart the list is asked again before a first request
-	copilotTerms = map[string]map[string]bool{}
-	enabled = nil
-	req, _ = http.NewRequest("POST", p.Chat+"/chat/completions", nil)
-	if err := p.Sign(context.Background(), req, Chat, []byte(`{"model":"claude-sonnet-5","messages":[]}`)); err != nil {
-		t.Fatal(err)
-	}
-	if len(enabled) != 1 {
-		t.Fatalf("enabled after restart: %v", enabled)
-	}
-}
-
 // Copilot lists GPT-4.1, GPT-4o and the models before them with no
 // supported_endpoints, and serves them on chat completions alone: asked on
 // /v1/messages, Copilot answers "no model endpoints available given user
 // constraints", which read as the plan's refusal (#754: an Education
 // account's copilot/gpt-4o from Claude Code). They are asked on Chat, a
 // model the list names for no picker (gpt-4o) too.
-func TestCopilotModelsWithoutEndpointsOnChat(t *testing.T) {
-	signIn(t)
-	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/models" {
-			w.Write([]byte(`{"data":[
-			  {"id":"claude-haiku-4.5","name":"Claude Haiku 4.5","model_picker_enabled":true,"model_picker_category":"lightweight","policy":{"state":"enabled"},"supported_endpoints":["/chat/completions","/v1/messages"],"capabilities":{"type":"chat"}},
-			  {"id":"gpt-4.1","name":"GPT-4.1","model_picker_enabled":false,"model_picker_category":"versatile","policy":{"state":"enabled"},"capabilities":{"type":"chat"}},
-			  {"id":"gpt-4o","name":"GPT-4o","model_picker_enabled":false,"capabilities":{"type":"chat"}},
-			  {"id":"text-embedding-3-small","name":"Emb","model_picker_enabled":false,"capabilities":{"type":"embeddings"}}]}`))
-			return
-		}
-		w.WriteHeader(404)
-	}))
-	defer api.Close()
-	tokens := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{"token": "sess", "expires_at": time.Now().Add(time.Hour).Unix(), "endpoints": map[string]string{"api": api.URL}})
-	}))
-	defer tokens.Close()
-	old := CopilotTokenURL
-	CopilotTokenURL = tokens.URL
-	defer func() { CopilotTokenURL = old }()
-	copilotSessions = map[string]copilotSession{}
-	copilotSeenMu.Lock()
-	copilotSeen = map[string][]string{}
-	copilotSeenMu.Unlock()
-
-	p, _ := find(All(), "copilot")
-	if _, err := p.Fetch(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	p, _ = find(All(), "copilot")
-	for model, want := range map[string]string{
-		"claude-haiku-4.5": "chat anthropic",
-		"gpt-4.1":          "chat", // listed
-		"gpt-4o":           "chat", // not listed, and asked for by hand
-	} {
-		var got []string
-		for _, a := range p.APIs(model) {
-			got = append(got, string(a))
-		}
-		if strings.Join(got, " ") != want {
-			t.Errorf("APIs(%s) = %v, want %s", model, got, want)
-		}
-	}
-	// what Copilot's /v1/messages said is kept, and said not to be the plan
-	msg := p.Explain("Copilot: 400 Bad Request: no model endpoints available given user constraints", 400, []byte("no model endpoints available given user constraints\n"))
-	if !strings.Contains(msg, "no model endpoints available given user constraints") || !strings.Contains(msg, "Anthropic's Messages API") {
-		t.Errorf("explained: %s", msg)
-	}
-	if got := p.Explain("Copilot: 400", 400, []byte(`{"error":{"code":"model_not_supported"}}`)); got != "Copilot: 400" {
-		t.Errorf("a refusal of the model was explained as the API's: %s", got)
-	}
-}
-
 // Logging out of Claude Code can leave its credentials behind; what the CLI
 // says wins, so a signed-out account is not a provider.
 func TestClaudeSignedOut(t *testing.T) {

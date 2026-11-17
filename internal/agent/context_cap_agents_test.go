@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -22,10 +21,6 @@ func TestEveryAgentFollowsContextCap(t *testing.T) {
 	managed := claudeManaged
 	claudeManaged = func() string { return filepath.Join(home, "managed-settings.json") }
 	t.Cleanup(func() { claudeManaged = managed })
-	startAlma(t)
-	startShelley(t)
-	os.MkdirAll(filepath.Join(home, ".hanako", "agents", "hana"), 0o755)
-	os.WriteFile(filepath.Join(home, ".hanako", "agents", "hana", "config.yaml"), []byte("agent:\n  name: Hana\n"), 0o644)
 	if err := provider.Save(provider.Provider{ID: "v", Name: "V", Chat: "https://example.test/v1", Key: "k",
 		Models: []string{"big", "plain-model-of-no-window"}}); err != nil {
 		t.Fatal(err)

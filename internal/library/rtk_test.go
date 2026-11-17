@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"reflect"
+
 	"runtime"
 	"strings"
 	"testing"
@@ -98,118 +98,6 @@ func TestRTK(t *testing.T) {
 
 // TestRTKRemove: switching an agent off takes out just what rtk's installer
 // put in, as rtk 0.50 writes it, with no rtk to do it.
-func TestRTKRemove(t *testing.T) {
-	h := sandbox(t)
-	hook := func(key, matcher, cmd string) string {
-		quoted, _ := json.Marshal(cmd) // a Windows path has backslashes
-		return `"hooks": {
-    "` + key + `": [
-      {
-        "matcher": "` + matcher + `",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ` + string(quoted) + `
-          }
-        ]
-      }
-    ]
-  }`
-	}
-	claude := filepath.Join(h, ".claude")
-	write(t, filepath.Join(claude, "settings.json"), `{
-  "model": "opus",
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Write",
-        "hooks": [{"type": "command", "command": "lint"}]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "rtk hook claude"
-          }
-        ]
-      }
-    ]
-  }
-}
-`)
-	write(t, filepath.Join(claude, "CLAUDE.md"), "# mine\n\n@RTK.md\n")
-	write(t, filepath.Join(claude, "RTK.md"), "# RTK\n")
-	codex := filepath.Join(h, ".codex")
-	write(t, filepath.Join(codex, "hooks.json"), "{\n  "+hook("PreToolUse", "Bash", "rtk hook codex")+"\n}\n")
-	write(t, filepath.Join(codex, "AGENTS.md"), "@"+filepath.Join(codex, "RTK.md")+"\n")
-	write(t, filepath.Join(codex, "RTK.md"), "# RTK\n")
-	gemini := filepath.Join(h, ".gemini")
-	sh := filepath.Join(gemini, "hooks", "rtk-hook-gemini.sh")
-	write(t, filepath.Join(gemini, "settings.json"), "{\n  \"theme\": \"dark\",\n  "+hook("BeforeTool", "run_shell_command", sh)+"\n}\n")
-	write(t, sh, "#!/bin/sh\n")
-	write(t, filepath.Join(gemini, "hooks", ".rtk-hook.sha256"), "x\n")
-	write(t, filepath.Join(gemini, "GEMINI.md"), "# g\n")
-	write(t, filepath.Join(h, ".cursor", "hooks.json"), `{"version":1,"hooks":{"preToolUse":[{"command":"rtk hook cursor","matcher":"Shell"}]}}`)
-	copilot := filepath.Join(h, ".copilot")
-	write(t, filepath.Join(copilot, "hooks", "rtk-rewrite.json"), "{}")
-	write(t, filepath.Join(copilot, "copilot-instructions.md"), "# c\n\n<!-- rtk-instructions v2 -->\nAlways prefix shell commands with rtk\n<!-- /rtk-instructions -->\n")
-	write(t, filepath.Join(h, ".pi", "agent", "extensions", "rtk.ts"), "x")
-	write(t, filepath.Join(h, ".config", "opencode", "plugins", "rtk.ts"), "x")
-
-	ids := []string{"claude", "codex", "gemini", "cursor", "copilot", "pi", "opencode"}
-	v := ReadRTK()
-	if v.Path != "" {
-		t.Fatalf("rtk found at %s", v.Path)
-	}
-	on := map[string]bool{}
-	for _, a := range v.Agents {
-		on[a.ID] = a.On
-	}
-	for _, id := range ids {
-		if !on[id] {
-			t.Fatalf("%s's hook isn't seen: %v", id, on)
-		}
-		if _, err := SetRTK(id, false); err != nil {
-			t.Fatal(err)
-		}
-	}
-	for _, a := range ReadRTK().Agents {
-		if a.On {
-			t.Fatalf("%s still has rtk", a.ID)
-		}
-	}
-	jsonIs := func(p, want string) {
-		t.Helper()
-		var got, w any
-		if err := json.Unmarshal([]byte(read(t, p)), &got); err != nil {
-			t.Fatalf("%s: %v\n%s", p, err, read(t, p))
-		}
-		json.Unmarshal([]byte(want), &w)
-		if !reflect.DeepEqual(got, w) {
-			t.Fatalf("%s:\n%s\nwant %s", p, read(t, p), want)
-		}
-	}
-	jsonIs(filepath.Join(claude, "settings.json"), `{"model":"opus","hooks":{"PreToolUse":[{"matcher":"Write","hooks":[{"type":"command","command":"lint"}]}]}}`)
-	jsonIs(filepath.Join(codex, "hooks.json"), `{}`)
-	jsonIs(filepath.Join(gemini, "settings.json"), `{"theme":"dark"}`)
-	jsonIs(filepath.Join(h, ".cursor", "hooks.json"), `{"version":1}`)
-	for p, want := range map[string]string{
-		filepath.Join(claude, "CLAUDE.md"):                  "# mine\n",
-		filepath.Join(copilot, "copilot-instructions.md"):   "# c\n",
-		filepath.Join(gemini, "GEMINI.md"):                  "# g\n",
-		filepath.Join(claude, "RTK.md"):                     "",
-		filepath.Join(codex, "AGENTS.md"):                   "",
-		filepath.Join(codex, "RTK.md"):                      "",
-		sh:                                                  "",
-		filepath.Join(copilot, "hooks", "rtk-rewrite.json"): "",
-	} {
-		if got := read(t, p); got != want {
-			t.Errorf("%s = %q, want %q", p, got, want)
-		}
-	}
-}
-
 // TestRTKRemoveClaudeOtherEvents (#2879): rtk 1.0.1's installer writes its
 // hook under hooks.PostToolUse too, when the rtk pipeline has after_tool
 // rules (its src/hooks/init/claude.rs: "enabling rtk:posthook adds
@@ -693,56 +581,8 @@ func TestRTKHermesHome(t *testing.T) {
 
 // Grok App is listed on the RTK tab with the switch unable to turn on:
 // rtk init has no Grok agent, so there is nothing to install.
-func TestRTKNoHookGrokApp(t *testing.T) {
-	h := sandbox(t)
-	root := filepath.Join(h, "grok-app-data")
-	t.Setenv("GROK_APP_HOME", root)
-	write(t, filepath.Join(root, "agent-home", "config.toml"), "")
-	var app *RTKAgent
-	for _, a := range ReadRTK().Agents {
-		if a.ID == "grok-app" {
-			app = &a
-		}
-	}
-	if app == nil {
-		t.Fatal("Grok App isn't listed")
-	}
-	if b, _ := json.Marshal(app); app.On || !strings.Contains(string(b), `"noHook":true`) || !strings.Contains(app.Blocked, "no Grok or Grok App agent") {
-		t.Fatalf("listed as %s", b)
-	}
-	if _, err := SetRTK("grok-app", true); err == nil || !strings.Contains(err.Error(), "Grok App") {
-		t.Fatalf("switched on: %v", err)
-	}
-	if _, err := RTKTakes("grok-app"); err == nil || !strings.Contains(err.Error(), "no Grok or Grok App agent") {
-		t.Fatalf("magpie library rtk on grok-app: %v", err)
-	}
-}
-
 // Grok Build, which Grok App runs, has no rtk agent either (#1625's
 // sibling): it is listed with the switch off, never switched on.
-func TestRTKNoHookGrokBuild(t *testing.T) {
-	h := sandbox(t)
-	write(t, filepath.Join(h, ".grok", "config.toml"), "")
-	var grok *RTKAgent
-	for _, a := range ReadRTK().Agents {
-		if a.ID == "grok" {
-			grok = &a
-		}
-	}
-	if grok == nil {
-		t.Fatal("Grok Build isn't listed")
-	}
-	if b, _ := json.Marshal(grok); grok.On || !strings.Contains(string(b), `"noHook":true`) || !strings.Contains(grok.Blocked, "no Grok agent") {
-		t.Fatalf("listed as %s", b)
-	}
-	if _, err := SetRTK("grok", true); err == nil || !strings.Contains(err.Error(), "Grok Build") {
-		t.Fatalf("switched on: %v", err)
-	}
-	if _, err := RTKTakes("grok"); err == nil || !strings.Contains(err.Error(), "no Grok agent") {
-		t.Fatalf("magpie library rtk on grok: %v", err)
-	}
-}
-
 // TestRTKGainRealDaily reads what rtk 1.0.1 itself printed for rtk gain
 // --daily --format json (testdata/rtk-gain-daily.json, made by real rtk from
 // its own history.db): every day comes through, oldest first, and the days

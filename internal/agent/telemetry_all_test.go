@@ -33,11 +33,11 @@ func TestTelemetryAllOff(t *testing.T) {
 	home, gpath := telemetryHome(t, ".gemini/settings.json", `{"ui": {"theme": "x"}}`)
 	onPath(t, "gemini", "qwen", "codex")
 	qpath := filepath.Join(home, ".qwen", "settings.json")
-	writeAt(t, qpath, `{}`)
+	writeFile(t, qpath, `{}`)
 	// Codex: the user keeps analytics on themselves
 	const codexTheirs = "[analytics]\nenabled = true\n"
 	cpath := filepath.Join(home, ".codex", "config.toml")
-	writeAt(t, cpath, codexTheirs)
+	writeFile(t, cpath, codexTheirs)
 	// Qwen Code off by its own row before
 	if err := qwen(home).SetTelemetry(true); err != nil {
 		t.Fatal(err)
@@ -66,7 +66,7 @@ func TestTelemetryAllOff(t *testing.T) {
 
 	// Claude Code found later
 	cl := filepath.Join(home, ".claude", "settings.json")
-	writeAt(t, cl, `{"model": "opus"}`)
+	writeFile(t, cl, `{"model": "opus"}`)
 	if err := KeepTelemetryOff(claude(home)); err != nil {
 		t.Fatal(err)
 	}
@@ -124,7 +124,7 @@ func TestTelemetryAllLeavesTheUsersOff(t *testing.T) {
 // An unreadable settings.json is unknown: nothing is turned off by it.
 func TestTelemetryAllUnreadableSettings(t *testing.T) {
 	home, gpath := telemetryHome(t, ".gemini/settings.json", `{}`)
-	writeAt(t, settings.Path(), `{"agentTelemetryOff": true`)
+	writeFile(t, settings.Path(), `{"agentTelemetryOff": true`)
 	if TelemetryAllOff() {
 		t.Fatal("an unreadable settings.json read as on")
 	}

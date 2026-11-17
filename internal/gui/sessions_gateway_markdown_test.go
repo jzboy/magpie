@@ -36,25 +36,26 @@ func TestGatewaySessionExportsMarkdown(t *testing.T) {
 	if w.Code != 200 || !settings.Load().GatewayConversations {
 		t.Fatalf("consent: %d %s", w.Code, w.Body)
 	}
-	id := "019a2b3c-pi-remote"
-	usage.Append(usage.Record{Time: time.Now(), Agent: "pi", Session: id, Provider: "fake", Model: "m", Status: 200})
-	if err := sessions.SaveGatewayTurn(sessions.GatewayTurn{Agent: "pi", Session: id, Time: time.Now(),
+	id := "019a2b3c-codex-remote"
+	usage.Append(usage.Record{Time: time.Now(), Agent: "codex", Session: id, Provider: "fake", Model: "m", Status: 200})
+	if err := sessions.SaveGatewayTurn(sessions.GatewayTurn{Agent: "codex", Session: id, Time: time.Now(),
 		Input:  []sessions.Part{{Role: "user", Kind: "text", Text: "rename foo to bar"}},
 		Output: []sessions.Part{{Role: "assistant", Kind: "text", Text: "Renamed it in a.go."}}}); err != nil {
 		t.Fatal(err)
 	}
 	check := func(md string) {
 		t.Helper()
-		for _, want := range []string{"- **Agent:** Pi\n", "- **Recorded by:** magpie's gateway\n", "## User\n\nrename foo to bar\n", "## Assistant\n\nRenamed it in a.go.\n"} {
+		for _, want := range []string{"- **Agent:** Codex\n", "- **Recorded by:** magpie's gateway\n", "## User\n\nrename foo to bar\n", "## Assistant\n\nRenamed it in a.go.\n"} {
 			if !strings.Contains(md, want) {
 				t.Fatalf("no %q in\n%s", want, md)
 			}
 		}
 	}
-	q := "?agent=pi&id=" + id
+	q := "?agent=codex&id=" + id
 	w = httptest.NewRecorder()
 	mux.ServeHTTP(w, httptest.NewRequest("GET", "/api/sessions/markdown"+q, nil))
-	if w.Code != 200 || !strings.Contains(w.Header().Get("Content-Disposition"), `filename="magpie-session-pi-019a2b3c-pi-.md"`) {
+	cd := w.Header().Get("Content-Disposition")
+	if w.Code != 200 || !strings.Contains(cd, `filename="magpie-session-codex-`) || !strings.HasSuffix(strings.TrimSuffix(cd, `"`), ".md") {
 		t.Fatalf("download: %d %v %s", w.Code, w.Header(), w.Body)
 	}
 	check(w.Body.String())
@@ -74,7 +75,7 @@ func TestGatewaySessionExportsMarkdown(t *testing.T) {
 
 	// another agent's session of the same id isn't this one
 	w = httptest.NewRecorder()
-	mux.ServeHTTP(w, httptest.NewRequest("GET", "/api/sessions/markdown?agent=codex&id="+id, nil))
+	mux.ServeHTTP(w, httptest.NewRequest("GET", "/api/sessions/markdown?agent=claude-desktop&id="+id, nil))
 	if w.Code == 200 || strings.Contains(w.Body.String(), "rename foo") {
 		t.Fatalf("cross-agent: %d %s", w.Code, w.Body)
 	}

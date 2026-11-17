@@ -469,7 +469,10 @@ func (k wslKind) served() wslKind {
 	return k
 }
 
-var wslKinds = []wslKind{
+// wslKindsAll holds every WSL twin magpie ever knew; wslKinds below is the
+// list 浩哥AI serves (Claude Code, Codex, DeepSeek Harness). Readers that
+// name one kind (wslKindOf) still find it here.
+var wslKindsAll = []wslKind{
 	// its daemon, which magpie starts there itself (claudescience_wsl.go):
 	// the probe looks in ~/.local/bin, where its installer puts it
 	{id: ScienceID, name: scienceName, dir: ".claude-science", bin: "claude-science", in: scienceIn, ownNotice: true},
@@ -857,6 +860,19 @@ var wslKinds = []wslKind{
 		}},
 }
 
+// wslKinds are the WSL twins 浩哥AI lists: Claude Code, Codex and DeepSeek
+// Harness; workbuddy and Claude Desktop have no WSL twin.
+var wslKinds = func() []wslKind {
+	var out []wslKind
+	for _, k := range wslKindsAll {
+		switch k.id {
+		case "claude", "codex", "dsh":
+			out = append(out, k)
+		}
+	}
+	return out
+}()
+
 // wslOwnAsleep is a stopped distro's options for an agent's model fields
 // (keys) whose live ones read its files: the providers of the value last
 // seen, and magpie's.
@@ -920,7 +936,7 @@ func (a *Agent) ListsFor() string {
 }
 
 func wslKindOf(id string) wslKind {
-	for _, k := range wslKinds {
+	for _, k := range wslKindsAll {
 		if k.id == id {
 			return k
 		}

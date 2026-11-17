@@ -14,7 +14,7 @@ import (
 // plugins: WorkBuddy (China) and Qoder CN. Their built-in code is retired
 // upstream (AGENTS.md); the plugin does sign-in, models, requests and
 // usage, and the mover hands the built-in id to it.
-var integratedSubs = []string{"workbuddy", QoderCNID}
+var integratedSubs = []string{"workbuddy", QoderCNID, "zcode"}
 
 // integratedState remembers which integrated plugins were installed once,
 // so one the user removed later is not added again on the next start.

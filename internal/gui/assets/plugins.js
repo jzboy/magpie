@@ -19,8 +19,12 @@
   const heads = {};      // /api/plugins/git: a git plugin's spec → the commit its repository is at
   let failed = "";       // why what's installed couldn't be loaded
   let failedList = "";   // ...and the plugins suggested
-  let tab = "discover", regBox;
-  try { tab = localStorage.getItem("magpie.pluginTab") || tab; } catch {}
+  let tab = "builtin", regBox;
+  try {
+    tab = localStorage.getItem("magpie.pluginTab") || tab;
+    // 浩哥AI offers no Discover market: a saved tab of it opens Built-in
+    if (tab !== "installed" && tab !== "builtin") tab = "builtin";
+  } catch {}
   let query = "";
   let hits = null;       // npm's answer for query: { q, list } | { q, loading } | { q, error }
   let searchTimer = 0;
@@ -244,13 +248,13 @@
   // the sidebar's dot, followed: Plugins opens on Installed, where the
   // plugins with an update are named at the top
   window.pluginTabTo = (id) => { tab = id; };
-  // pluginQuery: Discover, looking for q (the add sheet found nothing by it)
+  // pluginQuery: the add sheet found nothing by q. 浩哥AI offers no Discover
+  // market, so Plugins opens on Built-in and nothing is searched upstream.
   window.pluginQuery = (q) => {
     query = q;
-    tab = "discover";
+    tab = "builtin";
     clearTimeout(searchTimer);
-    hits = q.trim().length >= 2 ? { q: q.trim(), loading: true } : null;
-    if (hits) searchNPM(hits.q);
+    hits = null;
     draw();
   };
 
@@ -261,7 +265,7 @@
   let agentsFor = null; // the click that asked for Agents, till they are drawn
   window.pluginAgentsTo = (ev) => {
     query = "";
-    tab = "discover";
+    tab = "builtin";
     clearTimeout(searchTimer);
     hits = null;
     // Agents alone, whoever wrote them
@@ -937,19 +941,19 @@
 
   function head() {
     const n = mine?.plugins?.length || 0;
-    const tabs = segs([["builtin", t("Built-in")], ["discover", t("Discover")], ["installed", t("Installed") + (n ? " · " + n : "")]], tab, (id) => {
+    const tabs = segs([["builtin", t("Built-in")], ["installed", t("Installed") + (n ? " · " + n : "")]], tab === "discover" ? "builtin" : tab, (id) => {
       tab = id;
       try { localStorage.setItem("magpie.pluginTab", id); } catch {}
       searchShown();
       drawBody();
     });
     tabs.classList.add("lib-tabs");
-    tabs.querySelectorAll(".opt")[2].dataset.sub = "installed";
+    tabs.querySelectorAll(".opt")[1].dataset.sub = "installed";
     q.placeholder = t("Search plugins and npm…");
     if (q.value !== query) q.value = query;
     q.setAttribute("aria-label", t("Search plugins"));
     mirror = mirrorSwitch();
-    replaceKeeping(headBox, [tabs, el("span", "grow"), mirror, find]);
+    replaceKeeping(headBox, [tabs, el("span", "grow"), mirror]);
     searchShown();
     headBox.classList.toggle("stuck", page.scrollTop > 0);
     return headBox;
@@ -963,7 +967,6 @@
   // or fetch through a mirror
   let mirror = null;
   function searchShown() {
-    find.hidden = tab === "builtin";
     if (mirror) mirror.hidden = !mine || tab === "builtin";
   }
   function mirrorSwitch() {
@@ -1192,10 +1195,7 @@
     const es = mine.plugins || [];
     if (!es.length) {
       const none = el("div", "pm-none");
-      none.append(logo("", true), el("b", "", t("No plugins yet")), el("p", "", t("Install a subscription or a middleware from Discover; a subscription signs in from here.")));
-      const b = el("button", "pm-act get", t("Discover plugins"));
-      b.onclick = () => { tab = "discover"; draw(); };
-      none.append(b);
+      none.append(logo("", true), el("b", "", t("No plugins yet")), el("p", "", t("A subscription or a middleware is installed from the Providers page, or from a plugin's own package.")));
       body.append(none);
       return;
     }

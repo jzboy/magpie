@@ -978,24 +978,7 @@ magpie.plugin("library", (ctx) => {
     // the buttons keep together at the end, on a line of their own when the
     // window is too narrow for the tabs and them
     const acts = el("span", "lib-headacts");
-    // The market sits under everything the tab lists, many screens down with
-    // dozens of skills (#1348): the strip that stays at the top goes to it.
-    if (lib && (tab === "mcp" || tab === "skills")) {
-      const go = button("", "lib-discover", (e) => {
-        const mk = page.querySelector(`.mk[data-market="${tab}"]`);
-        if (!mk || !window.scrollOnPurpose?.(e, 1500)) return;
-        // its heading just under the strip, however many lines that takes
-        const top = mk.getBoundingClientRect().top - page.getBoundingClientRect().top + page.scrollTop - head.getBoundingClientRect().height - 8;
-        page.scrollTo({ top, behavior: calm() ? "auto" : "smooth" });
-        mk.querySelector("input")?.focus({ preventScroll: true });
-      });
-      go.append(glyph(GLYPH.search, "lib-mini"), el("span", "", t("Discover")));
-      go.title = tab === "mcp" ? t("Go to the MCP servers you can add, under the list") : t("Go to the skills you can add, under the list");
-      // a narrow window's title bar shows the icon alone (app.css
-      // .tools-tight): the name stays the button's, not only its tooltip's
-      go.setAttribute("aria-label", t("Discover"));
-      acts.append(go);
-    }
+    // The Library's Discover market is not offered in 浩哥AI.
     const more = button("", "lib-more", () => lib && reveal(lib.dir));
     more.append(glyph(GLYPH.folder, "lib-mini"), el("span", "", t("Library folder")));
     more.setAttribute("aria-label", t("Library folder"));
@@ -2180,7 +2163,6 @@ magpie.plugin("library", (ctx) => {
       }
       body.append(list);
     }
-    if (live.length) body.append(discover("pi"));
   }
   function piRow(p, others, what, name, sub, on, tags, filtered, remove) {
     const key = p.id + " " + (what.ext || what.pkg);
@@ -2869,6 +2851,18 @@ magpie.plugin("library", (ctx) => {
       const unchecked = lib.servers.filter((s) => (!s.hidden && (inUse(s) || (agentless() && lib.mcpHub && inHub(s))) || health.has(s.name)) && health.get(s.name)?.key !== healthKey(s));
       queueMicrotask(() => checkHealth(unchecked));
     }
+    // magpie-vision (Magpie Image Recognition) is offered right here: the
+    // Library's Discover market is gone, and this is the one server it was
+    // kept for.
+    if (!agentless() && !lib.servers.some((s) => s.name === "magpie-vision")) {
+      const vr = el("div", "row lib-row lib-vision-add");
+      const vw = el("div", "who");
+      vw.append(el("div", "name", "Magpie Image Recognition"),
+        el("div", "sub", t("Add it so agents can read images with the image recognition model in Settings → Models → Images")));
+      vr.append(glyph(GLYPH.doc), vw, button(t("Add"), "action",
+        () => change("market/server", { id: "magpie-vision", values: {} }, t("{name} is in the library now", { name: "Magpie Image Recognition" }))));
+      body.append(vr);
+    }
     // an agent's own servers (Codex's node_repl, added each time it starts)
     // aren't listed: magpie leaves them as they are
     const found = agentless() ? [] : lib.foundServers.filter((f) => !f.own);
@@ -2889,7 +2883,6 @@ magpie.plugin("library", (ctx) => {
         body.append(el("p", "lib-aside lib-wb-trust", t("{agent} connects a server only once you trust it: switch it on in {agent}'s MCP settings, and again after its command or address changes.", { agent: wb.name })));
       }
     }
-    body.append(discover("mcp"));
   }
 
   // The MCP hub (#2679): magpie as each agent's one MCP server, handing
@@ -5657,7 +5650,6 @@ magpie.plugin("library", (ctx) => {
     if (shownAgents().some((a) => a.id === "claude-desktop" && a.skills)) {
       body.append(el("p", "lib-aside", t("Claude Desktop shows skill changes once its window is reloaded ({keys}). It gets a copy of each skill, and one you change in Desktop is left as it is.", { keys: /^Mac/.test(navigator.platform) ? "⌘R" : "Ctrl+R" })));
     }
-    body.append(discover("skills"));
   }
 
   // Skills a check for updates found in the GitHub repositories the

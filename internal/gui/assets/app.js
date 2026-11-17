@@ -12567,6 +12567,10 @@ const SUBS = [
   { agent: "qoder-cn", get name() { return t("Qoder CN"); }, icon: "qoder", plans: "Pro", own: true, risk: true,
     hint: "For accounts on qoder.cn: signed in with an Alibaba Cloud account or a phone number.",
     riskNote: QODER_RISK },
+  // Z.ai's GLM Coding Plan; sites [id, label, host, word], asked before the
+  // sign-in (a team's too); its plugin way's label holds word, else label
+  { agent: "zcode", name: "ZCode (GLM Coding Plan)", icon: "zcode", plans: "Lite · Pro · Max · Team", own: true,
+    sites: [["zai", "Z.ai", "z.ai"], ["bigmodel", "BigModel (Zhipu)", "bigmodel.cn", "BigModel (智谱)"]] },
 ];
 const subOf = (agent) => {
   const own = SUBS.find((x) => x.agent === agent);

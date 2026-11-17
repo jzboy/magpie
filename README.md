@@ -1,6 +1,5 @@
 <div align="center">
 
-<a href="https://usemagpie.ai"><img src="site/public/img/icon-256.png" width="112" alt="magpie"></a>
 
 # magpie
 

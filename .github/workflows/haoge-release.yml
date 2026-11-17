@@ -22,7 +22,17 @@ permissions:
 
 jobs:
   dmg:
-    runs-on: macos-14
+    # A self-hosted Apple-silicon Mac: GitHub's hosted macOS runners are not
+    # available to this repository ("macos-14-arm64-us-default is not
+    # supported"). The runner is registered at Settings → Actions → Runners
+    # and gets the labels self-hosted, macOS and ARM64. To use a runner group
+    # instead, write:
+    #   runs-on:
+    #     group: Default
+    #     labels: [self-hosted, macOS, ARM64]
+    # An Intel Mac labels itself X64 and would produce an x64 dmg (rename the
+    # artifact and the Makefile's release-dmg output then).
+    runs-on: [self-hosted, macOS, ARM64]
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4

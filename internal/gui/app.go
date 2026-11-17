@@ -818,10 +818,13 @@ func singleInstance(h *host) *application.SingleInstanceOptions {
 	}
 }
 
-// instanceID is the single instance's id, the config dir's.
+// instanceID is the single instance's id, the config dir's. It is 浩哥AI's
+// own prefix, not magpie's: the two share a config folder, and with the
+// same id a launch of 浩哥AI beside a running magpie handed itself over to
+// that magpie and showed the original window instead.
 func instanceID() string {
 	sum := sha256.Sum256([]byte(settings.Dir()))
-	return "ai.usemagpie.app.i" + hex.EncodeToString(sum[:6])
+	return "ai.haoge.app.i" + hex.EncodeToString(sum[:6])
 }
 
 // flap plays trayFlap on the tray icon, a frame every 30ms as they were

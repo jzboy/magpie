@@ -2823,9 +2823,8 @@ function paintInstalls() {
       parts.push(r);
     }
   }
-  // the agents plugins add, installed from Plugins as every plugin is: in
-  // sight with the commands folded (the owner: not folded away with them)
-  if (pluginAgents.length) parts.push(pluginAgentsRow());
+  // 浩哥AI lists no "More in Plugins" row here: the Agents page shows the
+  // five agents it sets up, and nothing more.
   box.replaceChildren(...parts);
 }
 

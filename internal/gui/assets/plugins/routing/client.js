@@ -106,9 +106,9 @@ function routingPage(part) {
   const logo = document.createElementNS(NS, "svg");
   logo.setAttribute("viewBox", "0 0 44 44");
   logo.setAttribute("class", "rt-bird");
-  logo.innerHTML = '<use href="#bird"/>';
+  logo.innerHTML = '<use href="#haoge-spark"/>';
   const hubSub = el("small"), chip = el("i");
-  hub.append(logo, el("b", "", "magpie"), hubSub, chip);
+  hub.append(logo, el("b", "", "浩哥AI"), hubSub, chip);
   const list = el("ol", "rt-accts");
   // the magpies fly over the nodes, the wires run under them
   const sky = document.createElementNS(NS, "svg");
@@ -9496,7 +9496,7 @@ function routingPage(part) {
   pWires.setAttribute("class", "ps-wires");
   pSky.setAttribute("class", "ps-sky");
   const pFrom = el("div", "ps-col ps-from"), pTo = el("div", "ps-col ps-to"), pHub = el("div", "ps-hub");
-  pHub.innerHTML = '<svg viewBox="0 0 44 44" aria-hidden="true"><use href="#bird"/></svg>';
+  pHub.innerHTML = '<svg viewBox="0 0 44 44" aria-hidden="true"><use href="#haoge-spark"/></svg>';
   pStage.append(pWires, pFrom, pHub, pTo, pSky);
   pStage.setAttribute("aria-hidden", "true");
   let pAg = [], pDst = [];          // the keys on the stage, in their places

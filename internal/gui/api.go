@@ -867,7 +867,9 @@ func codexWindowUnder(st settings.Settings, model string) *codexRunWindow {
 }
 
 func settingsState() settingsJSON {
-	s := settingsJSON{Settings: settings.Load(), Version: Version, Dir: tilde(settings.Dir()), Portable: settings.Portable() != "", Gateway: gateway.URL()}
+	// About shows the version as released ("1.4.0"), not the marker that
+	// keeps the fork from updating itself (+haoge)
+	s := settingsJSON{Settings: settings.Load(), Version: update.Display(Version), Dir: tilde(settings.Dir()), Portable: settings.Portable() != "", Gateway: gateway.URL()}
 	s.AddrEnv = os.Getenv("MAGPIE_ADDR")
 	s.NameEnv = settings.EnvName()
 	s.Log = tilde(applog.Current())

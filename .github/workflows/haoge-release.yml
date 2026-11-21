@@ -36,6 +36,9 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+        with:
+          # the version comes from the newest haoge-v tag
+          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -54,6 +57,9 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+        with:
+          # the version comes from the newest haoge-v tag
+          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -81,14 +87,22 @@ jobs:
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
         run: |
           files=(dist/haoge-ai-windows-amd64.exe)
           [ -f dist/haoge-ai-darwin-arm64.dmg ] && files+=(dist/haoge-ai-darwin-arm64.dmg)
-          gh release create "${{ github.ref_name }}" \
-            --repo "${{ github.repository }}" \
-            --title "浩哥AI ${{ github.ref_name }}" \
-            --notes "浩哥AI — Windows amd64 (.exe)，macOS arm64 (.dmg) 由可用的 macOS 运行器构建时附带。基于 yetone/magpie 二次开发（MIT）。" \
-            "${files[@]}"
+          # A tag can already have a Release (an earlier run of the same
+          # push created it, and v1.3's dmg was lost this way): create
+          # refuses a Release that exists, so its assets are uploaded to it
+          # instead, the dmg included.
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "浩哥AI $TAG" \
+              --notes "浩哥AI — Windows amd64 (.exe)，macOS arm64 (.dmg) 由可用的 macOS 运行器构建时附带。基于 yetone/magpie 二次开发（MIT）。" \
+              "${files[@]}"
+          fi
 
   # Puts the CI-built dmg on the haoge-ai branch beside the Windows exe, so
   # both artifacts live on the branch (the dmg cannot be built on Windows).

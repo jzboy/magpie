@@ -9,10 +9,14 @@ endif
 
 # A tag may hold $, ( or `, which the shell lines below would run: the
 # version keeps only what a version is spelled with.
-# 浩哥AI ships as a non-semver build so update.Released() is false: the fork
-# never self-updates from upstream's feed (which would restore the magpie
-# brand), and stats telemetry stays off too.
-VERSION ?= haoge-1.0
+# 浩哥AI's version comes from the newest haoge-v tag (1.4.0+haoge) and
+# moves with every release. The +haoge marker keeps update.Released()
+# false: the fork never self-updates from upstream's feed (which would
+# restore the magpie brand), and stats telemetry stays off too.
+VERSION ?= $(shell go run ./build/version 2>/dev/null || echo 0.0.0-dev+haoge)
+# How many things build at once: the machine's cores (Go's own default is
+# the same; said here so the icon set runs that many at a time too).
+JOBS ?= $(shell sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
 LDFLAGS  = -s -w -X main.version=$(VERSION)
 TAGS     = production
 # 浩哥AI builds two artifacts only: macOS arm64 (.dmg) and Windows amd64 (.exe).
@@ -64,7 +68,7 @@ cli:
 	$(OVERLAY) CGO_ENABLED=0 go build $$F -tags nogui -trimpath -ldflags="$(LDFLAGS)" -o magpie .
 
 build-release: assets-pack
-	$(OVERLAY) go build $$F -tags "$(TAGS) packedassets" -trimpath -ldflags="$(LDFLAGS)" -o magpie .
+	$(OVERLAY) go build -p $(JOBS) $$F -tags "$(TAGS) packedassets" -trimpath -ldflags="$(LDFLAGS)" -o magpie .
 
 install:
 	go install -tags "$(TAGS)" -trimpath -ldflags="$(LDFLAGS)" .
@@ -97,30 +101,36 @@ app: build-release
 # macOS arm64 disk image: the .app with an Applications symlink for drag
 # install. Runs on macOS only (hdiutil); the GUI itself needs cgo + WebKit,
 # so it is built natively on an arm64 Mac (or a macOS arm64 CI runner).
+# hdiutil's UDZO is zlib on one core, with no parallel option: ULFO
+# (lzfse, macOS 10.11+) compresses several times faster for a slightly
+# larger image. DMG_FORMAT=UDZO brings the old one back.
+DMG_FORMAT ?= ULFO
 release-dmg: app
 	@mkdir -p dist
 	@rm -rf dist/dmg-stage && mkdir -p dist/dmg-stage
 	@cp -R 浩哥AI.app dist/dmg-stage/
 	@ln -s /Applications dist/dmg-stage/Applications
-	@hdiutil create -volname "浩哥AI" -srcfolder dist/dmg-stage -ov -format UDZO dist/haoge-ai-darwin-arm64.dmg
+	@hdiutil create -volname "浩哥AI" -srcfolder dist/dmg-stage -ov -format $(DMG_FORMAT) dist/haoge-ai-darwin-arm64.dmg
 	@rm -rf dist/dmg-stage
 	@echo "  dist/haoge-ai-darwin-arm64.dmg"
 
 icons:
-	@go run build/icon/gen.go tray internal/gui/tray.png
-	@go run build/icon/gen.go tray-flap internal/gui/trayflap
+	@mkdir -p dist/tools
+	@go build -trimpath -o dist/tools/gen-icons build/icon/gen.go
 	@# Windows draws an app's icon to the edges of its square: the exe's
-	@# icon group (build/windows/winres.json) and the tray's .ico
-	@for s in 16 20 24 32 40 48 64 128 256; do \
-		go run build/icon/gen.go win $$s build/windows/icon-$$s.png; \
-	done
-	@go run build/icon/gen.go win-ico internal/gui/icon-windows.ico
-	@go run build/icon/gen.go app 1024 internal/gui/icon-1024.png
-	@go run build/icon/gen.go app 256 internal/gui/icon-256.png
-	@# the macOS bundle icon as PNG blocks, drawn in pure Go: no iconutil, so
-	@# the whole icon set builds on Windows too. The Dock reads the .icns
-	@# (Info.plist CFBundleIconFile); the runtime icon-1024.png is the fallback.
-	@go run build/icon/gen.go icns build/darwin/magpie.icns
+	@# icon group (build/windows/winres.json) and the tray's .ico. Every icon
+	@# is drawn on its own, so all of them run at once (the compiler was the
+	@# slow part: it is built once above, not once per icon), and the recipe
+	@# fails if any of them did.
+	@pids=""; bg() { "$$@" & pids="$$pids $$!"; }; \
+	 bg dist/tools/gen-icons tray internal/gui/tray.png; \
+	 bg dist/tools/gen-icons tray-flap internal/gui/trayflap; \
+	 for s in 16 20 24 32 40 48 64 128 256; do bg dist/tools/gen-icons win $$s build/windows/icon-$$s.png; done; \
+	 bg dist/tools/gen-icons win-ico internal/gui/icon-windows.ico; \
+	 bg dist/tools/gen-icons app 1024 internal/gui/icon-1024.png; \
+	 bg dist/tools/gen-icons app 256 internal/gui/icon-256.png; \
+	 bg dist/tools/gen-icons icns build/darwin/magpie.icns; \
+	 for p in $$pids; do wait $$p || exit 1; done
 
 # 浩哥AI's two artifacts: the macOS arm64 .dmg (built on a Mac) and the
 # Windows amd64 .exe (cross-compiles anywhere). `make release` builds the one

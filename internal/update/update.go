@@ -215,10 +215,22 @@ func latestFrom(ctx context.Context, feed, lang string) (*Release, error) {
 
 // Released reports whether v is a release version rather than a build from
 // source ("dev", "0bcb2cc-dirty", git describe's "v0.1.0-3-g0bcb2cc");
-// only releases update themselves.
+// only releases update themselves. 浩哥AI's releases carry "+haoge" (the
+// version goes up with each tag, the fork still never updates from
+// upstream's feed).
 func Released(v string) bool {
 	s := parse(v)
-	return s != nil && !describe.MatchString(s.pre) && !strings.Contains(s.pre, "dirty")
+	return s != nil && !describe.MatchString(s.pre) && !strings.Contains(s.pre, "dirty") && !forked.MatchString(v)
+}
+
+// forked marks a 浩哥AI build: a semver that changes with every tag, and
+// one update.Released turns down.
+var forked = lazyre.New(`\+haoge($|\+)`)
+
+// Display is a version as the app shows it: the fork's marker (+haoge)
+// left out, the rest as built ("1.4.0", "1.3.2-3-g0bcb2cc").
+func Display(v string) string {
+	return strings.TrimSuffix(strings.TrimSpace(v), "+haoge")
 }
 
 // describe matches what git describe adds after a tag: commits since, hash.

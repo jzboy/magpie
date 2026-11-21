@@ -39,9 +39,24 @@ func TestNewer(t *testing.T) {
 }
 
 func TestReleased(t *testing.T) {
-	for v, want := range map[string]bool{"0.1.0": true, "v1.2.3": true, "dev": false, "0bcb2cc-dirty": false, "v0.1.0-3-g0bcb2cc": false} {
+	for v, want := range map[string]bool{
+		"0.1.0": true, "v1.2.3": true, "v1.2.3+build.5": true, "dev": false, "0bcb2cc-dirty": false, "v0.1.0-3-g0bcb2cc": false,
+		// 浩哥AI's own builds: the version moves with every tag, and the
+		// fork never updates itself from upstream's feed
+		"1.4.0+haoge": false, "1.3.2-3-g0bcb2cc+haoge": false,
+	} {
 		if Released(v) != want {
 			t.Errorf("Released(%q) != %v", v, want)
+		}
+	}
+}
+
+func TestDisplay(t *testing.T) {
+	for v, want := range map[string]string{
+		"1.4.0+haoge": "1.4.0", "1.3.2-3-g0bcb2cc+haoge": "1.3.2-3-g0bcb2cc", "v1.2.3": "v1.2.3", "dev": "dev",
+	} {
+		if got := Display(v); got != want {
+			t.Errorf("Display(%q) = %q, want %q", v, got, want)
 		}
 	}
 }

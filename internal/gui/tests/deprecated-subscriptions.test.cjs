@@ -55,9 +55,9 @@ function serve(lang, calls) {
 
 const L = {
   en: { badge: "Deprecated", why: "So that magpie itself isn't banned over them", head: "These built-in subscriptions are deprecated: Cursor, Kiro", later: "Not now",
-    more: "More in Plugins" },
+    lookFor: "look for a plugin" },
   zh: { badge: "已弃用", why: "为免 magpie 本体因此被封禁", head: "以下内置订阅已弃用：Cursor、Kiro", later: "暂不",
-    more: "插件中还有更多" },
+    lookFor: "找找插件" },
 };
 
 // The notice after a load is the page's own boot, not an action on a
@@ -116,13 +116,15 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       assert.equal(await page.locator('.tile[data-pick="Grok"]').count(), 1, "Grok, on its plugin, isn't there");
       assert.equal(await page.locator('.tile[data-pick="Zed"]').count(), 0, "Zed, with no account, is offered");
       assert.equal(await sheet.locator(".deprecated").count(), 2, "more than Cursor's and Kiro's badges in the sheet");
-      // a search for Zed: More in Plugins, which opens Plugins on it
+      // a search for Zed: nothing offered, not even a More in Plugins tile;
+      // the sheet's way to Plugins is "look for a plugin", which opens the
+      // tab on the search
       await sheet.locator("input.find").fill("zed");
-      const more = sheet.locator('.tile[data-pick="plugins"]');
-      await more.waitFor();
+      const none = sheet.locator(".none button", { hasText: w.lookFor });
+      await none.waitFor();
       assert.equal(await page.locator('.tile[data-pick="Zed"]').count(), 0, "the search offers Zed's built-in");
-      assert.equal((await more.innerText()).trim(), w.more);
-      await more.click();
+      assert.equal(await sheet.locator(".tile.more-plugins").count(), 0, "the add sheet still has its More in Plugins tile");
+      await none.click();
       await page.locator("#view-plugins").waitFor();
       assert.equal(await page.locator(".pm-find input").inputValue(), "zed", "Plugins isn't opened on the search");
       await page.locator(`#view-plugins .pm-card[data-pkg="${pkg("zed")}"]`).waitFor();

@@ -44,7 +44,7 @@ async function serve(route, lang, added, ctl = {}) {
 }
 
 const SAID = {
-  en: [/^Not added · Cindy asks to add magpie/, /^Added · magpie is a provider in Cindy/],
+  en: [/^Not added · Cindy asks to add 浩哥AI/, /^Added · 浩哥AI is a provider in Cindy/],
   zh: [/^未添加 · /, /^已添加 · /],
   "zh-TW": [/^未新增 · /, /^已新增 · /],
   ja: [/^未追加 · /, /^追加済み · /],
@@ -53,30 +53,30 @@ const SAID = {
 // Lody has no status magpie can read: its line asks to confirm in Lody, in
 // the reader's language, and never says added or not
 const UNKNOWN = {
-  en: "Opens Lody to add magpie as a provider — confirm it there",
-  zh: "打开 Lody 添加 magpie 供应商，在其中确认",
-  "zh-TW": "開啟 Lody 新增 magpie 供應商，在其中確認",
-  ja: "Lody を開いて magpie をプロバイダとして追加します。そちらで確認してください",
-  de: "Öffnet Lody, um magpie als Anbieter hinzuzufügen — dort bestätigen",
+  en: "Opens Lody to add 浩哥AI as a provider — confirm it there",
+  zh: "打开 Lody 添加 浩哥AI 供应商，在其中确认",
+  "zh-TW": "開啟 Lody 新增 浩哥AI 供應商，在其中確認",
+  ja: "Lody を開いて 浩哥AI をプロバイダとして追加します。そちらで確認してください",
+  de: "Öffnet Lody, um 浩哥AI als Anbieter hinzuzufügen — dort bestätigen",
 };
 
 // what a click on Add magpie became, in the reader's language (sungt,
 // 10-29: a link nothing opened did nothing, and nothing said so)
 const OPENED = {
-  en: "Sent to Cindy: confirm adding magpie there",
-  zh: "已交给 Cindy：请在其中确认添加 magpie",
-  "zh-TW": "已交給 Cindy：請在其中確認新增 magpie",
-  ja: "Cindy に渡しました。そちらで magpie の追加を確認してください",
-  de: "An Cindy übergeben: dort das Hinzufügen von magpie bestätigen",
+  en: "Sent to Cindy: confirm adding 浩哥AI there",
+  zh: "已交给 Cindy：请在其中确认添加 浩哥AI",
+  "zh-TW": "已交給 Cindy：請在其中確認新增 浩哥AI",
+  ja: "Cindy に渡しました。そちらで 浩哥AI の追加を確認してください",
+  de: "An Cindy übergeben: dort das Hinzufügen von 浩哥AI bestätigen",
 };
 // the i18n.js key api.go's linkSaid sends
 const LINK_SAID = "Nothing on this computer opens {app}'s links, so {app} didn't open: open {app} once or install it again, then click Add magpie again";
 const NO_HANDLER = {
-  en: "Nothing on this computer opens Cindy's links, so Cindy didn't open: open Cindy once or install it again, then click Add magpie again",
-  zh: "这台电脑上没有程序能打开 Cindy 的链接，所以 Cindy 没有打开：先打开一次 Cindy 或重新安装，再点「添加 magpie」",
-  "zh-TW": "這台電腦上沒有程式能開啟 Cindy 的連結，所以 Cindy 沒有開啟：先開啟一次 Cindy 或重新安裝，再點「新增 magpie」",
-  ja: "このコンピュータには Cindy のリンクを開くアプリがないため、Cindy は開きませんでした。Cindy を一度起動するか入れ直してから、もう一度「magpie を追加」を押してください",
-  de: "Auf diesem Computer öffnet nichts die Links von Cindy, daher wurde Cindy nicht geöffnet: Cindy einmal starten oder neu installieren, dann erneut auf „magpie hinzufügen“ klicken",
+  en: "Nothing on this computer opens Cindy's links, so Cindy didn't open: open Cindy once or install it again, then click Add 浩哥AI again",
+  zh: "这台电脑上没有程序能打开 Cindy 的链接，所以 Cindy 没有打开：先打开一次 Cindy 或重新安装，再点「添加 浩哥AI」",
+  "zh-TW": "這台電腦上沒有程式能開啟 Cindy 的連結，所以 Cindy 沒有開啟：先開啟一次 Cindy 或重新安裝，再點「新增 浩哥AI」",
+  ja: "このコンピュータには Cindy のリンクを開くアプリがないため、Cindy は開きませんでした。Cindy を一度起動するか入れ直してから、もう一度「浩哥AI を追加」を押してください",
+  de: "Auf diesem Computer öffnet nichts die Links von Cindy, daher wurde Cindy nicht geöffnet: Cindy einmal starten oder neu installieren, dann erneut auf „浩哥AI hinzufügen“ klicken",
 };
 
 for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium", "webkit"])) {

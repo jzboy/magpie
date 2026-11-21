@@ -115,10 +115,10 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         assert.equal(await desk.locator(".quota-track").count(), 0);
         // a cycle of days, used up
         assert.equal((await card.locator(".quota-windows").nth(2).locator(".quota-labels span").first().textContent()).trim(), w.cycle);
-        assert.equal((await lines.nth(1).textContent()).trim(), w.line);
+        assert.equal((await lines.nth(1).textContent()).trim(), await page.evaluate((x) => brand(x), w.line));
         assert.match(await lines.nth(1).getAttribute("class"), /spent/);
         // a magpie too old to tell
-        assert.equal((await card.locator(".subscription-error").textContent()).trim(), w.old);
+        assert.equal((await card.locator(".subscription-error").textContent()).trim(), await page.evaluate((x) => brand(x), w.old));
 
         // Used / Left turns the key's count to what is left
         await page.locator("#quotaMode .opt").nth(1).click();

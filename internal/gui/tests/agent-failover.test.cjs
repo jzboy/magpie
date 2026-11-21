@@ -79,7 +79,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         await page.route("**/*", server(lang));
         await page.goto("http://magpie.test/?view=agents");
         await page.locator(`${row("codex")} .ag-st`).waitFor();
-        const tr = (k) => page.evaluate(([k, lang]) => (lang === "en" ? k : I18N[lang]?.[k]), [k, lang]);
+        const tr = (k) => page.evaluate(([k, lang]) => (lang === "en" ? k : I18N[lang]?.[k]), [k, lang])
+          .then((s) => s && page.evaluate((x) => brand(x), s));
         for (const k of [said, title, manage, only]) assert.ok(await tr(k), `${lang} has ${k.slice(0, 40)}`);
         const want = (await tr(said));
         const wantTitle = (await tr(title)).replaceAll("{agent}", "Codex");

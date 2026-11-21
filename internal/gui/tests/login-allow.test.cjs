@@ -21,7 +21,7 @@ const { watchSettingsReads, settingsDrawn, reach } = require("./reader.cjs");
 const assets = path.resolve(__dirname, "../assets");
 const loginItems = "x-apple.systempreferences:com.apple.LoginItems-Settings.extension";
 const line = {
-  en: "Switched off in System Settings’ Login Items, so magpie won’t open at login",
+  en: "Switched off in System Settings’ Login Items, so 浩哥AI won’t open at login",
   zh: "已在系统设置的登录项里关闭，登录时不会打开 magpie",
   "zh-TW": "已在系統設定的登入項目裡關閉，登入時不會開啟 magpie",
   ja: "システム設定のログイン項目でオフになっているため、ログイン時に magpie は開きません",

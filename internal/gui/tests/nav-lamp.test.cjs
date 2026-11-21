@@ -76,6 +76,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
       await page.route("**/*", serve(lang, theme));
+      await page.addInitScript(() => localStorage.setItem("magpie.navLayout", "side"));
       await page.goto("http://magpie.test/?view=settings");
       await page.waitForSelector(".nav-sub > .nav-s + .nav-s");
       await page.mouse.move(40, 300); // over the sidebar, which loads the lamp
@@ -158,6 +159,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
       await page.route("**/*", serve(lang, theme));
+      await page.addInitScript(() => localStorage.setItem("magpie.navLayout", "side"));
       await page.goto("http://magpie.test/?view=agents");
       await page.waitForSelector("body.side-nav #side #nav > button[data-view]");
       await page.mouse.move(40, 300); // over the sidebar, which loads the lamp

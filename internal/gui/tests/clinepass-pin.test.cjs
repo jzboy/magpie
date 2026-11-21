@@ -90,7 +90,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       assert.equal(await tick.locator("input").isChecked(), false, "not pinned as saved");
       // the note says what the tick does since Cline refused providerOptions (#5442)
       const note = await tick.locator("input").evaluate((i) => (i.getAttribute("aria-describedby") || "").split(" ").map((id) => document.getElementById(id)?.textContent).filter(Boolean).join(" "));
-      assert.equal(note, lang === "zh" ? zh[2] : "Since 2026-11-06 Cline refuses a pinned DeepSeek or GLM request with 403, so magpie sends them unpinned and Cline picks the host; only glm-5.3-flash still asks Z.ai");
+      // the page brands what it shows (i18n.js brand)
+      const noteWant = await page.evaluate((x) => brand(x), "Since 2026-11-06 Cline refuses a pinned DeepSeek or GLM request with 403, so magpie sends them unpinned and Cline picks the host; only glm-5.3-flash still asks Z.ai");
+      assert.equal(note, lang === "zh" ? await page.evaluate((x) => brand(x), zh[2]) : noteWant);
       await tick.locator("input").check();
       const n = posts.length;
       await page.locator(".editor .bar").getByRole("button", { name: w.save, exact: true }).click();

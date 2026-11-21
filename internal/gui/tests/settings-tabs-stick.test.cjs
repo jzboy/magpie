@@ -143,12 +143,15 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       assert.ok(Math.abs(rest.below) <= 0.5, `and the part right under it: ${rest.below}`);
       assert.equal(rest.stuck, false, "no hairline at the top");
 
-      // About at its foot: the tabs and the search are at the view's top,
+      // the foot of a long part (General: About is three rows now, too
+      // short to scroll): the tabs and the search are at the view's top,
       // each one under nothing, on a strip the rows don't show through
+      await page.locator(":is(#setTab-general, .nav-s[data-of=setTab-general]):visible").press("Enter");
+      await page.locator("#setPage-general").waitFor();
       await toFoot(page, set);
       const at = await headAt(page, set, ".set-head");
       assert.ok(at.gap >= -0.5 && at.gap <= 1, `the tabs at the top of the view: ${at.gap}`);
-      assert.ok(at.controls >= 9, `every tab and the search box seen: ${at.controls}`);
+      assert.ok(at.controls >= 4, `every tab and the search box seen: ${at.controls}`);
       assert.ok(at.under, "nothing over the tabs or the search box");
       const s = await strip(page, `${set} .set-head`);
       assert.equal(s.position, "sticky");
@@ -166,16 +169,6 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const after = await headAt(page, set, ".set-head");
       assert.ok(after.gap >= -0.5 && after.gap <= 1, `the tabs still at the top: ${after.gap}`);
 
-      // the Library's tabs, the same way (they stayed already: .lib-head)
-      const libv = "#view-library";
-      await page.locator('#nav button[data-view="library"]').click();
-      await page.locator(`${libv} .lib-row, ${libv} .row`).first().waitFor();
-      await toFoot(page, libv);
-      const la = await headAt(page, libv, ".lib-head");
-      assert.ok(la.gap >= -2.5 && la.gap <= 1, `the Library's tabs at the top of the view: ${la.gap}`);
-      assert.ok(la.under, "nothing over the Library's tabs");
-      await page.locator(`${libv} .lib-tabs > button`).nth(0).click();
-      await page.waitForFunction(() => document.querySelectorAll("#view-library .lib-tabs > button")[0]?.classList.contains("on"));
       // and the Plugins' head is the same strip
       await page.locator('#nav button[data-view="plugins"]').click();
       await page.locator("#view-plugins .pm-head").waitFor();
@@ -197,6 +190,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       assert.equal(s.content, "none", "no strip of its own in the title bar");
       const y0 = await page.locator("#view-settings .set-head").evaluate((h) => h.getBoundingClientRect().top);
       assert.equal(y0, 0, "in the title bar");
+      // a part long enough to scroll: About is three rows now
+      await page.locator(":is(#setTab-general, .nav-s[data-of=setTab-general]):visible").press("Enter");
+      await page.locator("#setPage-general").waitFor();
       await toFoot(page, "#view-settings");
       assert.equal(await page.locator("#view-settings .set-head").evaluate((h) => h.getBoundingClientRect().top), 0, "still in the title bar");
       assert.ok(await page.locator("#setQ").isVisible(), "the search box in the title bar");

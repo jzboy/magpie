@@ -195,7 +195,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       assert.deepEqual(await scroll(), was, "nothing scrolls");
       const names = async () => (await pop.locator(".am-or .n").allInnerTexts()).map((s) => s.trim());
       assert.deepEqual(await names(), ["claude-opus-5.5", "claude-sonnet-4-5", "gpt-5.5", "gpt-5-codex"], "the shown as handed, the hidden left out");
-      assert.equal(await pop.locator(".am-foot").innerText().then((s) => s.includes(w.handed)), true);
+      // the page brands what it shows (i18n.js brand)
+      const s0 = await page.evaluate((x) => brand(x), w.handed);
+      assert.equal(await pop.locator(".am-foot").innerText().then((s) => s.includes(s0)), true);
       await pop.locator(".am-or").first().focus();
       await page.keyboard.press("Alt+ArrowDown");
       await page.waitForTimeout(150);

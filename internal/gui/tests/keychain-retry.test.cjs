@@ -36,7 +36,8 @@ function serve(lang, posts, retry) {
     if (url.pathname === "/api/groups") return json({ groups: [] });
     if (url.pathname === "/api/plugins") return json({ plugins: [] });
     if (route.request().method() === "POST") {
-      posts.push({ path: url.pathname, body: route.request().postDataJSON() });
+      // the page's own beacons (update pill, title bar) are not this test's
+      if (url.pathname !== "/api/update/using" && url.pathname !== "/api/window/titlebar") posts.push({ path: url.pathname, body: route.request().postDataJSON() });
       if (url.pathname === "/api/provider/keychain-retry") read = true;
       return json(providers());
     }

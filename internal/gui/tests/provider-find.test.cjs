@@ -64,7 +64,7 @@ function fixture(lang) {
       return json(providers);
     }
     // the window saying it is in use (update/using), or that it went from view (page-away), is not the page's doing
-    if (request.method() !== "GET" && url.pathname !== "/api/update/using" && url.pathname !== "/api/page-away") posted.push(url.pathname);
+    if (request.method() !== "GET" && url.pathname !== "/api/update/using" && url.pathname !== "/api/page-away" && url.pathname !== "/api/window/titlebar") posted.push(url.pathname);
     if (url.pathname === "/api/providers") return json(providers);
     if (url.pathname === "/api/groups") return json({ groups: [] });
     if (url.pathname === "/api/plugins") return json({ plugins: [] });

@@ -47,7 +47,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         const none = page.locator("#gatewayKeys .gw-keys .none");
         await none.waitFor();
         const said = (await none.textContent()).trim();
-        assert.equal(said, tr(lang, c.key, { what: c.title }), `${c.status}`);
+        // the page brands what it shows (i18n.js brand)
+        assert.equal(said, await page.evaluate((x) => brand(x), tr(lang, c.key, { what: c.title })), `${c.status}`);
         assert.doesNotMatch(await page.locator("#gatewayKeys").textContent(), /<!DOCTYPE|<html|<head/i);
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), "fits");
         assert.deepEqual(errors, []);
@@ -82,7 +83,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const none = page.locator("#gatewayKeys .gw-keys .none");
       await none.waitFor();
       const said = (await none.textContent()).trim();
-      assert.equal(said, tr(lang, "A proxy in front of magpie answered, not magpie ({what})", { what: "remote magpie answered 524: " + title }));
+      assert.equal(said, await page.evaluate((x) => brand(x), tr(lang, "A proxy in front of magpie answered, not magpie ({what})", { what: "remote magpie answered 524: " + title })));
       assert.doesNotMatch(said, /<!DOCTYPE|<html|<head/i);
       assert.deepEqual(errors, []);
     });

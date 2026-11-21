@@ -10,7 +10,7 @@ const { test } = require("node:test");
 const { chromium, webkit } = require("playwright");
 
 const assets = path.resolve(__dirname, "../assets");
-const said = "Cursor isn't signed in; sign in from magpie's Providers page or run `cursor-agent login`";
+const said = "Cursor isn't signed in; sign in from 浩哥AI's Providers page or run `cursor-agent login`";
 const cursor = (listError) => ({
   id: "cursor", name: "Cursor", icon: "cursor", chat: "http://127.0.0.1/plugin/cursor/v1", responses: "", anthropic: "", catalog: "",
   models: [{ id: "auto", name: "Auto", on: true }], agents: [], fallback: [], headers: {}, chosen: [],

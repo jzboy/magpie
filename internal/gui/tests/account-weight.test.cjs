@@ -16,10 +16,10 @@ const { chromium, webkit } = require("playwright");
 
 const assets = path.resolve(process.env.MAGPIE_ACC_ASSETS || path.resolve(__dirname, "../assets"));
 const claude = () => ({
-  id: "claude", name: "Claude Code", icon: "claude-color", chat: "", responses: "", anthropic: "", catalog: "", routing: "",
+  id: "codex", name: "ChatGPT", icon: "openai", chat: "", responses: "", anthropic: "", catalog: "", routing: "",
   models: [{ id: "claude-opus-5-5", name: "Claude Opus 5.5", on: true }], agents: [], fallback: [], headers: {}, keyList: [],
   account: {
-    agent: "claude", agentName: "Claude Code", user: "max@example.com", plan: "max",
+    agent: "codex", agentName: "ChatGPT", user: "max@example.com", plan: "max",
     logins: [
       { user: "max@example.com", plan: "max", active: true, on: true },
       { user: "pro@example.com", plan: "pro", on: true },
@@ -77,7 +77,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const posts = [];
       await page.route("**/*", serve(lang, web, posts));
       await page.goto("http://magpie.test/?view=providers");
-      await page.locator(".row.provider", { hasText: "Claude Code" }).first().click();
+      await page.locator(".row.provider", { hasText: "ChatGPT" }).first().click();
       await page.locator('.editor .acc[data-account-id="off@example.com"]').waitFor();
       const chip = (id) => page.locator(`.editor .acc[data-account-id="${id}"] .key-weight`);
       const scrolled = () => page.evaluate(() => [window.scrollY, ...[...document.querySelectorAll("*")].filter((e) => e.scrollTop > 0).map((e) => `${e.className}:${e.scrollTop}`)].join(" "));
@@ -128,7 +128,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       await box.fill("2");
       await box.press("Enter");
       for (let i = 0; i < 60 && !posts.length; i++) await new Promise((r) => setTimeout(r, 50));
-      assert.deepEqual(posts.at(-1), { id: "claude", account: "pro@example.com", weight: 2 }, at);
+      assert.deepEqual(posts.at(-1), { id: "codex", account: "pro@example.com", weight: 2 }, at);
       await chip("pro@example.com").filter({ hasText: await say(page, lang, "Weight {n} · {share}%", { n: 2, share: 40 }) }).waitFor();
       assert.equal((await chip("max@example.com").textContent()).trim(), await say(page, lang, "Weight {n} · {share}%", { n: 3, share: 60 }), at);
       // said once state is read again, after the chips are drawn: wait for it

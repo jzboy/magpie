@@ -58,10 +58,10 @@ function server(lang, asked) {
 }
 
 const L = {
-  en: { installed: "Installed", serves: "Serves Zed", two: "Serves 超级麦吉, MagiCrew", off: "Switch off", remove: "Remove", cancel: "Cancel",
+  en: { installed: "Installed", serves: "Serves zed", two: "Serves 超级麦吉, MagiCrew", off: "Switch off", remove: "Remove", cancel: "Cancel",
     askOff: "Zed stops working while the plugin is off. Its accounts are kept.",
     askRemove: "Zed stops working until the plugin is installed again. Its accounts are kept.", removed: "removed" },
-  zh: { installed: "已安装", serves: "承载 Zed", two: "承载 超级麦吉、MagiCrew", off: "停用", remove: "移除", cancel: "取消",
+  zh: { installed: "已安装", serves: "承载 zed", two: "承载 超级麦吉、MagiCrew", off: "停用", remove: "移除", cancel: "取消",
     askOff: "插件停用期间，Zed 也会停用。它的账号会保留。", askRemove: "Zed 会停用，直到再次安装插件。它的账号会保留。", removed: "已移除" },
 };
 

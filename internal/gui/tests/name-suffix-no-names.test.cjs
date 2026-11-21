@@ -16,10 +16,10 @@ const { chromium, webkit } = require("playwright");
 
 const assets = path.resolve(__dirname, "../assets");
 const said = {
-  en: "Changes nothing in Goose, Hermes Agent: magpie’s names don’t reach their model lists",
-  zh: "对 Goose, Hermes Agent 不起作用：它们的模型列表里没有 magpie 给的名称",
-  "zh-TW": "對 Goose, Hermes Agent 不起作用：它們的模型列表裡沒有 magpie 給的名稱",
-  ja: "Goose, Hermes Agent には効きません：そのモデル一覧には magpie の名前が出ません",
+  en: "Changes nothing in Goose, Hermes Agent: 浩哥AI’s names don’t reach their model lists",
+  zh: "对 Goose, Hermes Agent 不起作用：它们的模型列表里没有 浩哥AI 给的名称",
+  "zh-TW": "對 Goose, Hermes Agent 不起作用：它們的模型列表裡沒有 浩哥AI 給的名稱",
+  ja: "Goose, Hermes Agent には効きません：そのモデル一覧には 浩哥AI の名前が出ません",
   de: "Wirkt nicht in Goose, Hermes Agent: deren Modelllisten zeigen magpies Namen nicht",
 };
 const names = { en: "Model settings", zh: "模型设置" };

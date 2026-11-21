@@ -34,7 +34,7 @@ const presets = [
 const prov = (id, name, extra = {}) => ({ id, name, icon: "openai", preset: id, models: [], agents: [], key: { set: true, masked: "sk-…ab12" }, ...extra });
 const providers = [
   prov("anthropic", "Anthropic"), prov("openrouter", "OpenRouter"),
-  prov("claude", "Claude", { preset: "", account: { agent: "claude", logins: [{ user: "a" }, { user: "b" }] } }),
+  prov("codex", "ChatGPT", { preset: "", account: { agent: "codex", logins: [{ user: "a" }, { user: "b" }] } }),
 ];
 
 function server(lang, list = providers) {
@@ -115,18 +115,16 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
 
         // added: a green dot and no word, a subscription's count beside it
         const row = (name) => rows.filter({ has: page.locator(".n", { hasText: new RegExp("^" + name + "$") }) });
-        for (const name of ["Anthropic", "OpenRouter", "Claude", "Kimi"]) assert.equal(await row(name).locator(".have").count(), 1, name);
+        for (const name of ["Anthropic", "OpenRouter", "ChatGPT", "Kimi"]) assert.equal(await row(name).locator(".have").count(), 1, name);
         assert.equal(await row("OpenAI").locator(".have").count(), 0);
         assert.equal(await sheet.locator(".tile .st.added").count(), 0);
-        assert.equal(await row("Claude").locator(".cnt").textContent(), "2");
+        assert.equal(await row("ChatGPT").locator(".cnt").textContent(), "2");
         assert.equal(await row("Anthropic").locator(".cnt").count(), 0);
         const dot = await row("Anthropic").locator(".have").evaluate((e) => { const r = e.getBoundingClientRect(); return [r.width, r.height, getComputedStyle(e).backgroundColor]; });
         assert.deepEqual(dot.slice(0, 2), [6, 6]);
         assert.notEqual(dot[2], "rgba(0, 0, 0, 0)");
         assert.match(await row("OpenAI").getAttribute("title"), /api\.openai\.example\.com/);
         // short names, the long one in the title
-        assert.equal(await row("Grok").count(), 1);
-        assert.match(await row("Grok").getAttribute("title"), /SuperGrok/);
         assert.equal(await row("Tencent Cloud").count(), 1);
         // a vendor's global and China presets: one row
         assert.equal(await sheet.locator(".tile .n", { hasText: "China" }).count(), 0);

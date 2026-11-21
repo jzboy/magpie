@@ -51,13 +51,13 @@ function fixture(lang, world, theme = "light") {
 const words = {
   en: {
     quit: "Quit magpie 0.1.550 and take over", restart: "Restart gateway", running: "running",
-    notMagpie: /Port 3999 is held by \/usr\/bin\/python3 \(pid 4242\), which isn't magpie/,
-    container: /Port 3999 is forwarded by \/Applications\/OrbStack\.app\/.*OrbStack Helper \(pid 873\) to a container or a VM: the magpie 0\.1\.552 .*docker stop <name>.*another port in Settings/,
+    notMagpie: /Port 3999 is held by \/usr\/bin\/python3 \(pid 4242\), which isn't (magpie|浩哥AI)/,
+    container: /Port 3999 is forwarded by \/Applications\/OrbStack\.app\/.*OrbStack Helper \(pid 873\) to a container or a VM: the (magpie|浩哥AI) 0\.1\.552 .*docker stop <name>.*another port in Settings/,
   },
   zh: {
     quit: "关闭 magpie 0.1.550 并接管网关", restart: "重启网关", running: "运行中",
-    notMagpie: /端口 3999 被 \/usr\/bin\/python3（pid 4242）占用，它不是 magpie/,
-    container: /端口 3999 由 \/Applications\/OrbStack\.app\/.*OrbStack Helper（pid 873）转发到一个容器或虚拟机：在那里应答的 magpie 0\.1\.552 .*docker stop <名称>.*换到其他端口/,
+    notMagpie: /端口 3999 被 \/usr\/bin\/python3（pid 4242）占用，它不是 (magpie|浩哥AI)/,
+    container: /端口 3999 由 \/Applications\/OrbStack\.app\/.*OrbStack Helper（pid 873）转发到一个容器或虚拟机：在那里应答的 (magpie|浩哥AI) 0\.1\.552 .*docker stop <名称>.*换到其他端口/,
   },
 };
 
@@ -93,7 +93,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         };
         const { context, page } = await open(world);
         const fix = page.locator("#gateway .gw-fix");
-        assert.equal((await fix.textContent()).trim(), w.quit);
+        // the page brands what it shows (i18n.js brand)
+        assert.equal((await fix.textContent()).trim(), await page.evaluate((x) => brand(x), w.quit));
         assert(await noLeftAccent(fix), "the button has a left border");
         const before = await scrolls(page);
         await fix.click();

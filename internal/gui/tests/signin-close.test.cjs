@@ -22,9 +22,9 @@ const { chromium, webkit } = require("playwright");
 const assets = path.resolve(__dirname, "../assets");
 const LINK = "https://qoder.com/device/" + "a1b2c3d4e5".repeat(14) + "LprwDu";
 const account = {
-  id: "qoder", name: "Qoder", icon: "qoder", chat: "", responses: "", anthropic: "", catalog: "",
+  id: "qoder-cn", name: "Qoder CN", icon: "qoder", chat: "", responses: "", anthropic: "", catalog: "",
   models: [{ id: "qwen3.8-max", name: "Qwen3.8-Max", on: true }], agents: [], fallback: [], headers: {}, keyList: [],
-  account: { agent: "qoder", agentName: "Qoder", user: "alice@example.com", logins: [{ user: "alice@example.com", active: true, on: true, own: true, plan: "personal_standard" }] },
+  account: { agent: "qoder-cn", agentName: "Qoder CN", user: "alice@example.com", logins: [{ user: "alice@example.com", active: true, on: true, own: true, plan: "personal_standard" }] },
 };
 
 function serve(lang, ctl) {
@@ -41,13 +41,13 @@ function serve(lang, ctl) {
     if (url.pathname === "/api/usage/quotas") return json([]);
     if (url.pathname === "/api/signin" && req.method() === "POST") {
       ctl.started++;
-      return json({ id: "q" + ctl.started, agent: "qoder", state: "waiting", url: LINK, instructions: "" });
+      return json({ id: "q" + ctl.started, agent: "qoder-cn", state: "waiting", url: LINK, instructions: "" });
     }
     const m = /^\/api\/signin\/([^/]+)(\/cancel)?$/.exec(url.pathname);
     if (m && m[2]) { ctl.canceled.push(m[1]); return route.fulfill({ status: 204 }); }
     if (m) {
       ctl.polled.push(m[1]);
-      return json({ id: m[1], agent: "qoder", state: ctl.canceled.includes(m[1]) ? "canceled" : "waiting", url: LINK });
+      return json({ id: m[1], agent: "qoder-cn", state: ctl.canceled.includes(m[1]) ? "canceled" : "waiting", url: LINK });
     }
     if (url.pathname === "/api/provider/save") { ctl.saved.push(req.postDataJSON().id); return json({ providers: [account], presets: [], excluded: [], gateway: { running: true, window: true } }); }
     if (url.pathname === "/api/open") { ctl.opened.push(req.postDataJSON().url); return json({}); }
@@ -59,8 +59,8 @@ function serve(lang, ctl) {
 }
 
 const W = {
-  en: { add: "Add another Qoder (international) account", wait: "Finish signing in to Qoder (international) in your browser", again: "Open again", close: "Close", cancel: "Cancel", stop: "Stop waiting for this sign-in" },
-  zh: { add: "添加另一个 Qoder 国际版 (qoder.com) 账号", wait: "请在浏览器中完成 Qoder 国际版 (qoder.com) 登录", again: "重新打开", close: "关闭", cancel: "取消", stop: "不再等待这次登录" },
+  en: { add: "Add another Qoder CN account", wait: "Finish signing in to Qoder CN in your browser", again: "Open again", close: "Close", cancel: "Cancel", stop: "Stop waiting for this sign-in" },
+  zh: { add: "添加另一个 Qoder 中国版 (qoder.cn) 账号", wait: "请在浏览器中完成 Qoder 中国版 (qoder.cn) 登录", again: "重新打开", close: "关闭", cancel: "取消", stop: "不再等待这次登录" },
 };
 
 for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium", "webkit"])) {
@@ -159,7 +159,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       await page.locator(".editor .accts").waitFor({ state: "detached" });
       for (let i = 0; i < 40 && ctl.canceled.length < 4; i++) await page.waitForTimeout(25);
       assert.deepEqual(ctl.canceled, ["q1", "q2", "q3", "q4"]);
-      assert.deepEqual(ctl.saved, ["qoder"]);
+      assert.deepEqual(ctl.saved, ["qoder-cn"]);
       await open();
       await page.waitForTimeout(1000);
       assert.equal(await page.locator(".editor .accts .acc.add", { hasText: w.add }).count(), 1, "the editor stays open, with Add another");

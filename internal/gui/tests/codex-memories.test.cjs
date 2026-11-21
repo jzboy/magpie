@@ -73,7 +73,7 @@ function server(lang, sets) {
 // the words as i18n.js has them
 const W = {
   en: { unset: "Codex memories model: Codex's own memory models, or the session's magpie model", def: "Default", set: "Codex memories model: GPT-5.4 mini" },
-  zh: { unset: "Codex 记忆整理模型：Codex 自带的记忆模型，或会话正在用的 magpie 模型", def: "默认", set: "Codex 记忆整理模型：GPT-5.4 mini" },
+  zh: { unset: "Codex 记忆整理模型：Codex 自带的记忆模型，或会话正在用的 浩哥AI 模型", def: "默认", set: "Codex 记忆整理模型：GPT-5.4 mini" },
 };
 
 const codex = '.row.agent[data-id="codex@wsl:Ubuntu-24.04"]';

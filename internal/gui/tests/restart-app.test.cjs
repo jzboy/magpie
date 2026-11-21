@@ -53,10 +53,10 @@ function serve(lang, first, posts) {
 }
 
 const label = {
-  en: "Restart the Codex app when magpie switches its account back",
-  zh: "magpie 切回原账号时自动重启 Codex 应用",
-  ja: "magpie が元のアカウントに戻したら Codex アプリを再起動する",
-  de: "Codex-App neu starten, wenn magpie zum Konto zurückwechselt",
+  en: "Restart the Codex app when 浩哥AI switches its account back",
+  zh: "浩哥AI 切回原账号时自动重启 Codex 应用",
+  ja: "浩哥AI が元のアカウントに戻したら Codex アプリを再起動する",
+  de: "Codex-App neu starten, wenn 浩哥AI zum Konto zurückwechselt",
 };
 const strings = [
   "Restart the {agent} app when magpie switches its account back",

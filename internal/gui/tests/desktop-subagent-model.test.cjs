@@ -35,7 +35,7 @@ const seat = { id: "fake", provider: "fake", name: "Fake", who: "Test key", kind
 const routes = [
   { id: 3, seq: 3, time: at(0), agent: "claude-desktop", model: "fake/m1", provider: "fake", subagentEffort: "high", subagent: { asked: "fake/m1", to: "fake/m2" },
     order: [seat], tries: [{ id: "fake", model: "m2", start: at(0), done: true, status: 200, ms: 900 }], done: true, status: 200, ms: 900, tokens: 1200 },
-  { id: 2, seq: 2, time: at(1), agent: "claude-desktop", model: "fake/m1", provider: "fake", subagentEffort: "high", subagent: { asked: "fake/m1", to: "fake/m2", kept: "it is disabled in magpie" },
+  { id: 2, seq: 2, time: at(1), agent: "claude-desktop", model: "fake/m1", provider: "fake", subagentEffort: "high", subagent: { asked: "fake/m1", to: "fake/m2", kept: "it is disabled in 浩哥AI" },
     order: [{ ...seat, model: "m1" }], tries: [{ id: "fake", model: "m1", start: at(1), done: true, status: 200, ms: 900 }], done: true, status: 200, ms: 900, tokens: 1200 },
   { id: 1, seq: 1, time: at(2), agent: "claude-desktop", model: "fake/m1", provider: "fake", subagentEffort: "high",
     order: [{ ...seat, model: "m1" }], tries: [{ id: "fake", model: "m1", start: at(2), effort: "high", done: true, status: 200, ms: 900 }], done: true, status: 200, ms: 900, tokens: 1200 },
@@ -163,7 +163,7 @@ for (const engine of engines) {
         const first = await page.locator("#pop #list li").first().evaluate((e) => [e.querySelector(".v")?.textContent, e.querySelector(".n")?.textContent]);
         assert.deepEqual(first, [w.def, w.note], "translated Default first with Desktop's lead note");
         const items = await page.locator("#pop #list li").allInnerTexts();
-        for (const model of models) assert(items.some((s) => s.includes(model.label)), `${model.label} offered by magpie`);
+        for (const model of models) assert(items.some((s) => s.includes(model.label)), `${model.label} offered by 浩哥AI`);
         const pop = await page.locator("#pop").boundingBox();
         assert(pop && pop.x >= 0 && pop.x + pop.width <= width, JSON.stringify(pop));
         const left = await page.locator(`${cd} .field.extra[data-key="subagent_model"], #pop #list li`).evaluateAll((es) => es.flatMap((e) => [e, ...e.querySelectorAll("*")]).filter((e) => {
@@ -246,7 +246,7 @@ for (const engine of engines) {
           assert.equal(await page.locator(".rt-steps .aside", { hasText: said }).count(), 1, "one subagent aside without a kind");
           assert.equal(await page.locator(".rt-steps .kind").count(), 0, "Desktop has no Codex purpose tag");
           assert(story.includes(w.effortStory), "the effort pick is explained even without a model replacement");
-          if (i === 1 && lang !== "en") assert(!story.includes("it is disabled in magpie"), "kept reason must be translated");
+          if (i === 1 && lang !== "en") assert(!story.includes("it is disabled in 浩哥AI"), "kept reason must be translated");
         }
         assert.deepEqual(errors, []);
       });

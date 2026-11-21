@@ -133,6 +133,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         // the page's rows: what each request says first (when, who, from
         // where, what was asked and what answered) is told apart from the rest
         const pairs = () => p.locator("#ledReqPane .led-dl").evaluate((d) => [...d.querySelectorAll("dt")].map((dt) => [dt.textContent, dt.nextElementSibling.textContent]));
+        // the page brands what it shows (i18n.js brand): its words too
+        const B = (x) => p.evaluate((y) => brand(y), x);
+        const BL = (arr) => Promise.all(arr.map(B));
         const labels = async () => (await pairs()).filter(([k]) => !w.summary.includes(k)).map(([k]) => k);
         const values = async () => (await pairs()).filter(([k]) => !w.summary.includes(k)).map(([, v]) => v);
         const head = async () => (await pairs()).filter(([k]) => w.summary.includes(k));
@@ -171,7 +174,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         assert.equal(h[w.summary[3]], "sol");
         assert.equal(h[w.summary[4]], "Relay · team");
         assert.equal(h[w.summary[6]], "gpt-6-sol");
-        assert.deepEqual(await labels(), w.labels.fail);
+        assert.deepEqual(await labels(), await BL(w.labels.fail));
         const v = await values();
         assert.equal(v[0], "429");
         assert.equal(v[1], "rate_limit_error");
@@ -183,7 +186,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
 
         // the others: the id and the endpoint it was turned into; a session file's
         await open(1);
-        assert.deepEqual(await labels(), w.labels.ok);
+        assert.deepEqual(await labels(), await BL(w.labels.ok));
         // how it went and how long, which the row says only in its last columns (#799)
         assert.deepEqual((await values()).slice(0, 2).map((v) => v.replace(/[^\d.]/g, "")), ["200", "2.4"]);
         // its tokens, the cache's beside in and out, though none was read (#1839)
@@ -200,7 +203,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         assert(!(await head()).some(([k]) => k === w.summary[2]), "a session file's call has no address to show");
         await back();
         await open(3);
-        assert.deepEqual(await labels(), w.labels.logFail);
+        assert.deepEqual(await labels(), await BL(w.labels.logFail));
         assert.equal((await values())[2], "You've hit your limit · resets 3am");
         await back();
 
@@ -211,8 +214,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         // is told apart (fremontdango on Discord)
         await open(4);
         const all = await pairs();
-        const at = all.findIndex(([k]) => k === w.split[0][0]);
-        assert.deepEqual(all.slice(at, at + w.split.length), w.split);
+        const splitWant = await Promise.all(w.split.map(async ([k, v]) => [await B(k), v]));
+        const at = all.findIndex(([k]) => k === splitWant[0][0]);
+        assert.deepEqual(all.slice(at, at + splitWant.length), splitWant);
 
         // a refresh of the list leaves the request's page as it is
         const n = refreshed.n;

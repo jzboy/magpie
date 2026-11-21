@@ -53,10 +53,10 @@ function serve(lang, posts) {
 const keys = "model_context_window = 128000, [profiles.work] model_auto_compact_token_limit = 120000";
 const words = {
   en: { line: `Codex's config.toml sets ${keys}, read before Long conversations`, drop: "Take it out", at: "Compact at 544K", own: "Codex compacts relay/gpt-6-A at 90% of its 128K window, before Long conversations; set a larger one in its provider's Context window" },
-  zh: { line: `Codex 的 config.toml 设了 ${keys}，Codex 先读它再读「长对话」，所以按它压缩`, drop: "拿掉它", at: "544K 时压缩", own: "magpie 告诉 Codex relay/gpt-6-A 的窗口是 128K，所以 Codex 在它的 90% 处压缩，不等「长对话」；更大的窗口在它服务商的「上下文窗口」里设" },
-  "zh-TW": { line: `Codex 的 config.toml 設了 ${keys}，Codex 先讀它再讀「長對話」，所以按它壓縮`, drop: "拿掉它", at: "544K 時壓縮", own: "magpie 告訴 Codex relay/gpt-6-A 的視窗是 128K，所以 Codex 在它的 90% 處壓縮，不等「長對話」；更大的視窗在它服務商的「上下文視窗」裡設" },
-  ja: { line: `Codex の config.toml に ${keys} があり、Codex は「長い会話」より先にこれを読むため、これで圧縮します`, drop: "取り除く", at: "544K で圧縮", own: "magpie は Codex に relay/gpt-6-A のウィンドウを 128K と伝えているため、Codex は「長い会話」より先にその 90% で圧縮します。より大きいウィンドウはプロバイダの「コンテキストウィンドウ」で設定します" },
-  de: { line: `Codex’ config.toml setzt ${keys}, das Codex vor „Lange Unterhaltungen“ liest, also komprimiert es danach`, drop: "Entfernen", at: "Bei 544K komprimieren", own: "magpie nennt Codex für relay/gpt-6-A ein Fenster von 128K, also komprimiert Codex bei 90 % davon, vor „Lange Unterhaltungen“; ein größeres wird im „Kontextfenster“ seines Anbieters gesetzt" },
+  zh: { line: `Codex 的 config.toml 设了 ${keys}，Codex 先读它再读「长对话」，所以按它压缩`, drop: "拿掉它", at: "544K 时压缩", own: "浩哥AI 告诉 Codex relay/gpt-6-A 的窗口是 128K，所以 Codex 在它的 90% 处压缩，不等「长对话」；更大的窗口在它服务商的「上下文窗口」里设" },
+  "zh-TW": { line: `Codex 的 config.toml 設了 ${keys}，Codex 先讀它再讀「長對話」，所以按它壓縮`, drop: "拿掉它", at: "544K 時壓縮", own: "浩哥AI 告訴 Codex relay/gpt-6-A 的視窗是 128K，所以 Codex 在它的 90% 處壓縮，不等「長對話」；更大的視窗在它服務商的「上下文視窗」裡設" },
+  ja: { line: `Codex の config.toml に ${keys} があり、Codex は「長い会話」より先にこれを読むため、これで圧縮します`, drop: "取り除く", at: "544K で圧縮", own: "浩哥AI は Codex に relay/gpt-6-A のウィンドウを 128K と伝えているため、Codex は「長い会話」より先にその 90% で圧縮します。より大きいウィンドウはプロバイダの「コンテキストウィンドウ」で設定します" },
+  de: { line: `Codex’ config.toml setzt ${keys}, das Codex vor „Lange Unterhaltungen“ liest, also komprimiert es danach`, drop: "Entfernen", at: "Bei 544K komprimieren", own: "浩哥AI nennt Codex für relay/gpt-6-A ein Fenster von 128K, also komprimiert Codex bei 90 % davon, vor „Lange Unterhaltungen“; ein größeres wird im „Kontextfenster“ seines Anbieters gesetzt" },
 };
 
 for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium", "webkit"])) {

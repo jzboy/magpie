@@ -109,7 +109,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         const { page, errors } = await open("stuck");
         await page.locator(".editor").waitFor({ state: "detached" });
         const st = page.locator("#status");
-        await page.waitForFunction((s) => document.querySelector("#status").textContent === s, w.stuck);
+        // the page brands what it shows (i18n.js brand)
+        const stuck = await page.evaluate((s) => brand(s), w.stuck);
+        await page.waitForFunction((s) => document.querySelector("#status").textContent === s, stuck);
         assert(/\bwarn\b/.test(await st.getAttribute("class")), "a warning, not a plain ok");
         const border = await st.evaluate((e) => getComputedStyle(e).borderLeftWidth);
         assert(parseFloat(border) <= 1, "no left-border accent");

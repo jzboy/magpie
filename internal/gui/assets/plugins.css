@@ -345,12 +345,6 @@ body.window .pm-manual { --bleed-l: 16px; }
 .pm-md th, .pm-md td { padding: 5px 9px; border: 1px solid var(--line-2); text-align: left; vertical-align: top; }
 .pm-md th { background: var(--card-2); font-weight: 600; color: var(--fg); }
 
-/* the add sheet's row to Plugins */
-.tile.more-plugins { color: var(--accent); }
-.tile.more-plugins .puzzle { flex: none; width: 18px; height: 18px; display: grid; place-items: center; }
-.tile.more-plugins > svg { flex: none; opacity: .7; }
-.tile.more-plugins:hover { background: var(--accent-soft); }
-
 @media (max-width: 560px) {
   .pm-head { flex-wrap: wrap; }
   .pm-find { width: 100%; order: 3; }

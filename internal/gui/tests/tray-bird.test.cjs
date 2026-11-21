@@ -76,7 +76,7 @@ async function open(browser, lang, posts, platform, over) {
 }
 
 for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium", "webkit"])) {
-  test(engine + ": the menu bar's magpie icon on or off", async (t) => {
+  test(engine + ": the menu bar's 浩哥AI icon on or off", async (t) => {
     assert(["chromium", "webkit"].includes(engine), "BROWSER must be chromium or webkit");
     const browser = await (engine === "webkit" ? webkit.launch() : chromium.launch({ channel: "chromium" }));
     const pages = [];
@@ -90,7 +90,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
 
     for (const [lang, name, off, on] of [
       ["en", "Menu bar magpie icon", "Off", "On"],
-      ["zh", "菜单栏 magpie 图标", "关闭", "开启"],
+      ["zh", "菜单栏 浩哥AI 图标", "关闭", "开启"],
     ]) {
       await t.test(lang, async () => {
         const errors = [], posts = [];

@@ -62,7 +62,8 @@ const row = (id) => `.row.agent[data-id="${id}"]`;
 const said = (page, lang, key, vars = {}) => page.evaluate(([lang, key, vars]) => {
   const s = lang === "en" ? key : I18N[lang]?.[key];
   if (!s) return null;
-  return s.replace(/\{(\w+)\}/g, (_, k) => vars[k]);
+  // the page brands what it shows (i18n.js brand)
+  return brand(s.replace(/\{(\w+)\}/g, (_, k) => vars[k]));
 }, [lang, key, vars]);
 const noSideScroll = (page) => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1);
 

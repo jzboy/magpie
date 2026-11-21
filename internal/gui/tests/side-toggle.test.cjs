@@ -63,6 +63,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       await page.route("**/*", serve(lang));
       // whether the sidebar was ever laid out, from the first frame on
       await page.addInitScript(() => {
+        // 浩哥AI opens on the top bar: this test is the sidebar's button, so
+        // it starts from the sidebar the button was made for
+        if (!sessionStorage.getItem("sideSeeded")) { localStorage.setItem("magpie.navLayout", "side"); sessionStorage.setItem("sideSeeded", "1"); }
         addEventListener("DOMContentLoaded", () => {
           window.sideSeen = document.body.classList.contains("side-nav");
           new MutationObserver(() => { if (document.body.classList.contains("side-nav")) window.sideSeen = true; }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
@@ -160,7 +163,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
           page.on("pageerror", (e) => errors.push(e.message));
           await page.addInitScript(([p, w]) => {
             Object.defineProperty(Navigator.prototype, "platform", { get: () => p });
-            localStorage.setItem("magpie.navLayout", "side");
+            if (!sessionStorage.getItem("sideSeeded")) { localStorage.setItem("magpie.navLayout", "side"); sessionStorage.setItem("sideSeeded", "1"); }
             if (w) localStorage.setItem("magpie.sideWidth", String(w));
           }, [platform, sideW]);
           await page.route("**/*", serve(lang));
@@ -193,6 +196,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
     await t.test("the two trade places as one motion", async () => {
       const context = await browser.newContext({ viewport: { width: 1280, height: 760 } });
       const page = await context.newPage();
+      // from the sidebar, as the morph was made for: the click takes it away
+      await page.addInitScript(() => localStorage.setItem("magpie.navLayout", "side"));
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
       await page.route("**/*", serve("en"));
@@ -211,13 +216,13 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       assert.ok(p.anims.includes("::view-transition-group(nav-usage)"), "each tab flies to the header");
       assert.ok(p.anims.includes("::view-transition-group(page)"), "the page moves over");
       // no tab is left out (#5434, invzhi on X): every tab drawn in the nav
-      // has a name of its own while the morph plays, the masking tab's
+      // has a name of its own while the morph plays, the plugins tab's
       // group animating like the rest
-      assert.ok(p.anims.includes("::view-transition-group(nav-masking)"), `the masking tab flies too: ${p.anims}`);
+      assert.ok(p.anims.includes("::view-transition-group(nav-plugins)"), `the plugins tab flies too: ${p.anims}`);
       const names = await page.evaluate(() => [...document.querySelectorAll("#nav button[data-view]")]
         .filter((b) => b.getClientRects().length)
         .map((b) => [b.dataset.view, getComputedStyle(b).viewTransitionName]));
-      assert.ok(names.some(([v]) => v === "masking"), "the fixture draws the masking tab");
+      assert.ok(names.some(([v]) => v === "plugins"), "the fixture draws the plugins tab");
       for (const [v, n] of names) assert.ok(n && n !== "none", `${v} has a view-transition-name while morphing`);
       assert.equal(new Set(names.map(([, n]) => n)).size, names.length, `each name differs: ${JSON.stringify(names)}`);
       // off from rest and settling, in a third of a second, as a Mac's
@@ -257,6 +262,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
       await page.addInitScript(() => {
+        localStorage.setItem("magpie.navLayout", "side");
         Object.defineProperty(Navigator.prototype, "platform", { get: () => "Linux x86_64" });
         window.morphs = 0;
         const real = Document.prototype.startViewTransition;
@@ -285,6 +291,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
       await page.addInitScript(() => {
+        localStorage.setItem("magpie.navLayout", "side");
         window.skipped = 0;
         Document.prototype.startViewTransition = function (change) {
           let done;
@@ -314,6 +321,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
     await t.test("less motion: at once", async () => {
       const context = await browser.newContext({ viewport: { width: 1280, height: 760 }, reducedMotion: "reduce" });
       const page = await context.newPage();
+      await page.addInitScript(() => localStorage.setItem("magpie.navLayout", "side"));
       await page.route("**/*", serve("en"));
       await page.goto("http://magpie.test/");
       await page.waitForSelector("#nav button.on");

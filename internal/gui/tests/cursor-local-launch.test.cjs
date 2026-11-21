@@ -63,7 +63,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       if (errors.length) console.log(errors);
       await browser.close();
     });
-    const W = { en: { conn: "Connect Cursor Private Inference to magpie", said: "Cursor Private Inference is connected to magpie" }, zh: { conn: "将 Cursor Private Inference 接入 magpie", said: "Cursor Private Inference 已接入 magpie" } };
+    const W = { en: { conn: "Connect Cursor Private Inference to 浩哥AI", said: "Cursor Private Inference is connected to 浩哥AI" }, zh: { conn: "将 Cursor Private Inference 接入 浩哥AI", said: "Cursor Private Inference 已接入 浩哥AI" } };
     for (const lang of ["en", "zh"]) {
       await t.test(lang + ": the switch connects it, no command to run", async () => {
         const copies = [], asked = [];

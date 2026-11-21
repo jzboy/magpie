@@ -14,9 +14,9 @@ const { chromium, webkit } = require("playwright");
 const assets = path.resolve(__dirname, "../assets");
 const base = { icon: "generic", catalog: "", models: [{ id: "glm-5", name: "GLM-5", on: true }], agents: [], fallback: [], headers: {}, routing: "", affinity: "", ready: true };
 const sub = {
-  ...base, id: "workbuddy-ai", name: "WorkBuddy AI", chat: "", responses: "", anthropic: "", keyList: [],
+  ...base, id: "workbuddy", name: "WorkBuddy", chat: "", responses: "", anthropic: "", keyList: [],
   account: {
-    agent: "workbuddy-ai", agentName: "WorkBuddy AI", user: "one@example.test", plan: "Pro",
+    agent: "workbuddy", agentName: "WorkBuddy", user: "one@example.test", plan: "Pro",
     logins: ["one", "two"].map((n, i) => ({ user: `${n}@example.test`, plan: "Pro", active: i === 0, on: true })),
   },
 };

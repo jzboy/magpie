@@ -42,11 +42,11 @@ function serve(lang, calls) {
 }
 
 const words = {
-  en: { why: "Codex reaches magpie through a proxy that doesn't pass its requests on", fix: "How to fix", off: "Disconnect from magpie", ask: "Disconnect Codex from magpie?" },
-  zh: { why: "Codex 经代理连 magpie，但这个代理没把它的请求转给 magpie", fix: "如何修复", off: "断开 magpie（还原配置）", ask: null },
-  "zh-TW": { why: "Codex 經代理連 magpie，但這個代理沒把它的請求轉給 magpie", fix: "如何修復", off: "斷開 magpie（還原設定）", ask: null },
-  ja: { why: "Codex はプロキシ経由で magpie につなぎますが、そのプロキシがリクエストを magpie に渡していません", fix: "直し方", off: "magpie から切断", ask: null },
-  de: { why: "Codex erreicht magpie über einen Proxy, der seine Anfragen nicht an magpie weitergibt", fix: "So beheben", off: "Von magpie trennen", ask: null },
+  en: { why: "Codex reaches 浩哥AI through a proxy that doesn't pass its requests on", fix: "How to fix", off: "Disconnect from 浩哥AI", ask: "Disconnect Codex from 浩哥AI?" },
+  zh: { why: "Codex 经代理连 浩哥AI，但这个代理没把它的请求转给 浩哥AI", fix: "如何修复", off: "断开 浩哥AI（还原配置）", ask: null },
+  "zh-TW": { why: "Codex 經代理連 浩哥AI，但這個代理沒把它的請求轉給 浩哥AI", fix: "如何修復", off: "斷開 浩哥AI（還原設定）", ask: null },
+  ja: { why: "Codex はプロキシ経由で 浩哥AI につなぎますが、そのプロキシがリクエストを 浩哥AI に渡していません", fix: "直し方", off: "浩哥AI から切断", ask: null },
+  de: { why: "Codex erreicht 浩哥AI über einen Proxy, der seine Anfragen nicht an 浩哥AI weitergibt", fix: "So beheben", off: "Von 浩哥AI trennen", ask: null },
 };
 const row = `.row.agent[data-id="codex"]`;
 const noSideScroll = (page) => page.evaluate(() => document.scrollingElement.scrollWidth <= innerWidth);

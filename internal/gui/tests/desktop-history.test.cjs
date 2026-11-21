@@ -66,7 +66,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         page.setDefaultNavigationTimeout(60000);
         const errors = [];
         page.on("pageerror", (e) => errors.push(e.message));
-        const tr = (k) => page.evaluate(([k, lang]) => (lang === "en" ? k : I18N[lang]?.[k]), [k, lang]);
+        // the page brands what it shows (i18n.js brand): its words too
+        const tr = (k) => page.evaluate(([k, lang]) => (lang === "en" ? k : I18N[lang]?.[k]), [k, lang])
+          .then((x) => x && page.evaluate((y) => brand(y), x));
 
         // not connected: said on its row before the switch is touched
         await page.route("**/*", fixture(lang, false));

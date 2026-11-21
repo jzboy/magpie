@@ -81,7 +81,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
           const r = b.getBoundingClientRect(), w = v.getBoundingClientRect();
           return { top: v.scrollTop, height: v.scrollHeight, client: v.clientHeight, inSight: r.top >= w.top && r.top < w.bottom };
         });
-        assert(at.height > 1.5 * at.client, `the sheet is taller than the window (${at.height} over ${at.client})`);
+        // taller than the window is what the click has to scroll past;
+        // 浩哥AI's sheet is shorter than upstream's was (no More in Plugins)
+        assert(at.height > at.client, `the sheet is taller than the window (${at.height} over ${at.client})`);
         assert(at.top > 0, "the page went down to the sign-in");
         assert(at.inSight, "the sign-in is in sight");
         assert.match(await box.innerText(), /Last One/);

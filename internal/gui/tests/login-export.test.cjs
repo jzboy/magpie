@@ -1,5 +1,5 @@
 // Run with Node's test runner and Playwright on the module path; see README.md.
-// ChatGPT and Claude accounts go out as a file Sub2API, CLIProxyAPI or
+// ChatGPT accounts go out as a file Sub2API, CLIProxyAPI or
 // magpie takes (heyiwei5 and Rk1ngggg on X): the accounts list offers it,
 // the sheet warns that the file holds live sign-ins, lists each account to
 // tick, posts the chosen ones and format, and says where the file went; in
@@ -92,38 +92,6 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "page scrolls sideways");
       await box.locator("button.primary").click();
       await box.waitFor({ state: "detached" });
-      assert.deepEqual(errors, []);
-    });
-  }
-}
-
-const claude = {
-  ...account, id: "claude", name: "Claude", icon: "claude-color", models: [{ id: "claude-opus-5-5", name: "Claude Opus 5.5", on: true }],
-  account: { agent: "claude", agentName: "Claude Code", user: "live@example.com", plan: "max", logins },
-};
-for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium", "webkit"])) {
-  for (const lang of ["en", "zh", "zh-TW", "ja", "de"]) {
-    test(`${engine} ${lang}: Export is the last of the account rows, without a plus`, async (t) => {
-      const browser = await (engine === "webkit" ? webkit.launch() : chromium.launch({ channel: "chromium" }));
-      t.after(() => browser.close());
-      const page = await browser.newPage({ viewport: { width: 900, height: 760 } });
-      page.setDefaultTimeout(5000);
-      page.setDefaultNavigationTimeout(60000);
-      const errors = [];
-      page.on("pageerror", (e) => errors.push(e.message));
-      await page.route("**/*", serve(lang, [], claude));
-      await page.goto("http://magpie.test/?view=providers");
-      await page.locator(".row.provider", { hasText: "Claude" }).first().click();
-      const T = async (s, v) => page.evaluate(([s, v]) => t(s, v), [s, v || {}]);
-      const rows = page.locator(".editor .accts .acc.add");
-      await rows.filter({ hasText: await T("Export accounts to a file…") }).waitFor();
-      const said = (await rows.allInnerTexts()).map((s) => s.trim());
-      assert.equal(said.length, 4, JSON.stringify(said));
-      assert.equal(said[2], await T("Add an account by setup-token…"));
-      assert.equal(said[3], await T("Export accounts to a file…"));
-      const glyphs = await rows.evaluateAll((rs) => rs.map((r) => r.querySelector(".dot svg path")?.getAttribute("d")));
-      assert.equal(new Set(glyphs.slice(0, 3)).size, 1, "the adding rows share the plus");
-      assert.notEqual(glyphs[3], glyphs[0], "Export has the plus");
       assert.deepEqual(errors, []);
     });
   }

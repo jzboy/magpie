@@ -32,10 +32,10 @@ const fresh = () => ({
     },
     accountModels: { "spare@example.com": ["gpt-6-mini"] },
   },
-  claude: {
-    id: "claude", name: "Claude", icon: "claude-color", chat: "", responses: "", anthropic: "", catalog: "",
+  wb: {
+    id: "workbuddy", name: "WorkBuddy", icon: "workbuddy-color", chat: "", responses: "", anthropic: "", catalog: "",
     models: [{ id: "claude-opus-5", name: "", on: true }], agents: [], fallback: [], headers: {}, keyList: [], proxy: "",
-    account: { agent: "claude", agentName: "Claude Code", user: "solo@example.com", plan: "MAX", logins: [{ user: "solo@example.com", plan: "MAX", active: true, on: true }] },
+    account: { agent: "workbuddy", agentName: "WorkBuddy", user: "solo@example.com", plan: "MAX", logins: [{ user: "solo@example.com", plan: "MAX", active: true, on: true }] },
   },
   relay: {
     id: "relay", name: "Relay", icon: "generic", chat: "https://relay.example.com/v1", responses: "", anthropic: "", catalog: "",
@@ -47,7 +47,7 @@ const fresh = () => ({
 
 function serve(lang, posts) {
   const ps = fresh();
-  const providers = { providers: [ps.codex, ps.claude, ps.relay], presets: [], excluded: [], gateway: { running: true, window: true } };
+  const providers = { providers: [ps.codex, ps.wb, ps.relay], presets: [], excluded: [], gateway: { running: true, window: true } };
   const state = { agents: [], profiles: [], settings: { lang, theme: "light" } };
   return async (route) => {
     const url = new URL(route.request().url());
@@ -263,7 +263,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
     });
 
     test(`${engine} ${lang}: a subscription with one account has no models badge`, async (t) => {
-      const { page, errors } = await open(t, "Claude", ".editor .accts .acc");
+      const { page, errors } = await open(t, "WorkBuddy", ".editor .accts .acc");
       assert.equal(await page.locator(".editor .accts .amodels").count(), 0);
       assert.deepEqual(errors, []);
     });

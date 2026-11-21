@@ -91,7 +91,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
     const w = W[lang];
     test(`${engine} ${lang}: opened from another computer, ChatGPT signs in by a device code`, async (t) => {
       const { page, box, errors, started } = await open(t, engine, lang, "vps.example", "signin-codex-device");
-      await box.getByText(w.say).waitFor();
+      await box.getByText(await box.page().evaluate((x) => brand(x), w.say)).waitFor();
       assert.deepEqual(started, [{ agent: "codex", site: "device" }]);
       assert(await box.getByText("WG0E-J29UL", { exact: true }).isVisible(), "the code is shown");
       assert(await box.getByText(DEVICE, { exact: true }).isVisible(), "the device page is shown");
@@ -111,7 +111,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
 
     test(`${engine} ${lang}: the browser's way, from the device code's box`, async (t) => {
       const { box, errors, started } = await open(t, engine, lang, "vps.example", "signin-codex-device-back");
-      await box.getByText(w.say).waitFor();
+      await box.getByText(await box.page().evaluate((x) => brand(x), w.say)).waitFor();
       await box.getByRole("button", { name: w.browser }).click();
       await box.getByRole("textbox", { name: w.field }).waitFor();
       assert.deepEqual(started.map((s) => s.site), ["device", "browser"]);
@@ -124,7 +124,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       await box.getByRole("textbox", { name: w.field }).waitFor();
       assert.deepEqual(started, [{ agent: "codex" }]);
       await box.getByRole("button", { name: w.code }).click();
-      await box.getByText(w.say).waitFor();
+      await box.getByText(await box.page().evaluate((x) => brand(x), w.say)).waitFor();
       assert.deepEqual(started.map((s) => s.site), [undefined, "device"]);
       assert.deepEqual(errors, []);
     });

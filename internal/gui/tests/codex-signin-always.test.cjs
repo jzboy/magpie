@@ -85,7 +85,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         await page.route("**/*", server(lang, sets));
         await page.goto("http://magpie.test/");
         await page.locator(codex).waitFor();
-        const words = await page.evaluate(([ways, lang]) => ways.map((w) => lang === "en" ? [w.label, w.note] : [I18N[lang][w.label] || w.label, I18N[lang][w.note]]), [ways, lang]);
+        // the page brands what it shows (i18n.js brand): its words too
+        const words = await page.evaluate(([ways, lang]) => ways.map((w) => (lang === "en" ? [w.label, w.note] : [I18N[lang][w.label] || w.label, I18N[lang][w.note]]).map((s) => brand(s))), [ways, lang]);
         assert(words.every(([, n]) => n), `every sentence has its ${lang}`);
         assert.match(words[2][1], /ChatGPT.*Chrome/, `magpie API says the app keeps its ChatGPT account, Chrome control too, in ${lang}`);
         assert.equal(words[1][0] === "Always ChatGPT", lang === "en", `"Always ChatGPT" has its ${lang}`);

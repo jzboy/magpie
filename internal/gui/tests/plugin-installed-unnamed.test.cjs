@@ -97,7 +97,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         assert((await old.innerText()).includes(w.signsIn), "the known plugin still names its subscriptions:\n" + (await old.innerText()));
         // one that has been asked about and has none says so
         const empty = await v.locator(".pm-row", { hasText: EMPTY }).innerText();
-        assert(empty.includes(w.nothing), "a plugin asked about with no subscriptions says so:\n" + empty);
+        assert(empty.includes(await page.evaluate((x) => brand(x), w.nothing)), "a plugin asked about with no subscriptions says so:\n" + empty);
         await ctx.close();
       });
     }

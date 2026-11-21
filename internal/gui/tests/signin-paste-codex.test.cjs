@@ -80,7 +80,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const sheet = page.locator("#addSheet");
       await sheet.locator('.tile[data-pick="ChatGPT"]').click();
       const box = sheet.locator(".signing");
-      await box.getByText(w.say).waitFor();
+      await box.getByText(await box.page().evaluate((x) => brand(x), w.say)).waitFor();
       const field = box.getByRole("textbox", { name: w.field });
       const finish = box.getByRole("button", { name: w.finish });
       assert(await field.isVisible());

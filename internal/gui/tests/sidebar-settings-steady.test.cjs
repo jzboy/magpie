@@ -46,8 +46,8 @@ const sizes = [
   { name: "wide", width: 1200, height: 760 },
   { name: "narrow", width: 760, height: 760, side: true },
   { name: "short", width: 1200, height: 460 },
-  // too short for the whole list: the foot scrolls, its end in sight
-  { name: "tiny", width: 1200, height: 340, over: true },
+  // 浩哥AI lists three Settings tabs: a short window fits them, and the
+  // upstream "tiny" case (eight tabs at 340px) has nothing left to scroll
 ];
 const langs = ["en", "zh", "zh-TW", "ja", "de"];
 
@@ -57,7 +57,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
     t.after(() => browser.close());
     for (const size of sizes) for (const lang of langs) await t.test(`${size.name} ${lang}`, async () => {
       const context = await browser.newContext({ viewport: { width: size.width, height: size.height } });
-      if (size.side) await context.addInitScript(() => { try { localStorage.setItem("magpie.navLayout", "side"); } catch {} });
+      // this file is the sidebar's layout: 浩哥AI opens on the top bar
+      await context.addInitScript(() => { try { localStorage.setItem("magpie.navLayout", "side"); } catch {} });
       const page = await context.newPage();
       page.setDefaultTimeout(5000);
       page.setDefaultNavigationTimeout(60000);
@@ -75,7 +76,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const opening = await drift(page, 700);
       const subs = page.locator("#side .nav-sub:not(.leaving) .nav-s");
       await subs.first().waitFor();
-      assert.equal(await subs.count(), 8, "Settings' tabs are listed");
+      assert.equal(await subs.count(), 3, "Settings' tabs are listed");
       const after = await prefs.boundingBox();
       assert.ok(opening < 1, `the button moved ${opening}px while the list opened`);
       assert.ok(Math.abs(after.y - before.y) < 1 && Math.abs(after.x - before.x) < 1, `the button stays put: ${JSON.stringify(before)} then ${JSON.stringify(after)}`);
@@ -95,8 +96,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       if (!size.over) assert.ok(await inSight(".nav-s.cur"), "the open tab is in sight");
 
       // a tab picked there: the button still where it was
-      await page.locator(".nav-s[data-of=setTab-network]").click();
-      await page.waitForFunction(() => document.querySelector("#setTab-network").classList.contains("on"));
+      await page.locator(".nav-s[data-of=setTab-usage]").click();
+      await page.waitForFunction(() => document.querySelector("#setTab-usage").classList.contains("on"));
       assert.ok((await drift(page, 300)) < 1, "picking a tab leaves the button put");
       assert.ok(Math.abs((await prefs.boundingBox()).y - before.y) < 1);
 

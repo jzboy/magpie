@@ -102,10 +102,11 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const home = page.locator(".subscription-card", { hasText: "Home" });
       assert.equal((await home.locator(".subscription-error").textContent()).trim(), w.none);
       const attic = page.locator(".subscription-card", { hasText: "Attic" });
-      assert.equal((await attic.locator(".subscription-error").textContent()).trim(), w.old);
+      // the page brands what it shows (i18n.js brand)
+      assert.equal((await attic.locator(".subscription-error").textContent()).trim(), await page.evaluate((x) => brand(x), w.old));
       for (const [k, name] of [["shed", "Kestrel"], ["den", "Osprey"], ["held", "Egret"], ["barn", "Heron"]]) {
         const card = page.locator(".subscription-card", { hasText: name });
-        assert.equal((await card.locator(".subscription-error").textContent()).trim(), w[k], k);
+        assert.equal((await card.locator(".subscription-error").textContent()).trim(), await page.evaluate((x) => brand(x), w[k]), k);
       }
 
       // the remote's card reads again over there, by its own id

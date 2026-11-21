@@ -16,10 +16,10 @@ const { chromium, webkit } = require("playwright");
 
 const assets = path.resolve(process.env.MAGPIE_GUI_ASSETS || path.resolve(__dirname, "../assets"));
 const claude = () => ({
-  id: "claude", name: "Claude Code", icon: "claude-color", chat: "", responses: "", anthropic: "", catalog: "", routing: "",
+  id: "codex", name: "ChatGPT", icon: "openai", chat: "", responses: "", anthropic: "", catalog: "", routing: "",
   models: [{ id: "claude-opus-5-5", name: "Claude Opus 5.5", on: true }], agents: [], fallback: [], headers: {}, keyList: [],
   account: {
-    agent: "claude", agentName: "Claude Code", user: "first@example.com", plan: "team",
+    agent: "codex", agentName: "ChatGPT", user: "first@example.com", plan: "team",
     logins: [
       { user: "first@example.com", plan: "team", active: true, on: true },
       { user: "spare@example.com", plan: "max", on: true },
@@ -43,7 +43,7 @@ const serve = (lang, web, ctl) => async (route) => {
   if (url.pathname === "/api/usage/quotas/refresh") {
     ctl.asked.push(url.searchParams.get("provider") + " " + url.searchParams.get("user"));
     ctl.used = 64;
-    return json([{ provider: "claude", user: "first@example.com", windows: [{ name: "5h", used: 64, limit: 100 }] }]);
+    return json([{ provider: "codex", user: "first@example.com", windows: [{ name: "5h", used: 64, limit: 100 }] }]);
   }
   if (url.pathname.startsWith("/api/")) return json({});
   const file = path.join(assets, url.pathname === "/" ? "index.html" : url.pathname);
@@ -66,7 +66,7 @@ for (const [engine, browserType] of [["chromium", chromium], ["webkit", webkit]]
       page.on("pageerror", (e) => errors.push(e.message));
       await page.route("**/*", serve(lang, web, ctl));
       await page.goto("http://magpie.test/?view=providers");
-      await page.locator(".row.provider", { hasText: "Claude Code" }).first().click();
+      await page.locator(".row.provider", { hasText: "ChatGPT" }).first().click();
       const row = (u) => page.locator(`.editor .accts .acc[data-account-id="${u}"]`);
       await row("first@example.com").locator(".aq-w").waitFor();
       await page.mouse.move(1, 1);
@@ -91,7 +91,7 @@ for (const [engine, browserType] of [["chromium", chromium], ["webkit", webkit]]
       // it reads that account's card again, and the line shows the new reading
       await row("first@example.com").locator(".quota-refresh").click();
       await page.waitForFunction(() => document.querySelector('.editor .acc[data-account-id="first@example.com"] .aq-w b')?.textContent.includes("64"));
-      assert.deepEqual(ctl.asked, ["claude first@example.com"]);
+      assert.deepEqual(ctl.asked, ["codex first@example.com"]);
       await page.waitForFunction(() => !document.querySelector(".editor .quota-refresh.busy"));
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), true, `${at}: the page scrolls sideways`);
       await page.screenshot({ path: path.join(process.env.SHOTS || "/tmp", `account-refresh-${engine}-${lang}-${width}.png`) }).catch(() => {});

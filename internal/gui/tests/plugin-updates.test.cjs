@@ -64,6 +64,10 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         page.on("pageerror", (e) => errors.push(e.message));
         await page.route("**/*", server(lang));
 
+        // 浩哥AI opens on the top bar at every width: the wide window here
+        // picks the sidebar, whose Plugins row this test is about
+        if (width >= 1024) await page.addInitScript(() => localStorage.setItem("magpie.navLayout", "side"));
+
         await page.goto("http://magpie.test/?view=providers");
         const nav = page.locator('#nav button[data-view="plugins"]');
         await page.waitForFunction(() => document.querySelector('#nav button[data-view="plugins"]')?.classList.contains("has-dot"));

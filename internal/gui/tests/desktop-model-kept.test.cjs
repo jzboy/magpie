@@ -1,5 +1,5 @@
 // Run with Node's test runner and Playwright on the module path; see README.md.
-// whysugarsweet on X: Claude Desktop narrowed to some providers (magpie
+// whysugarsweet on X: Claude Desktop narrowed to some providers (浩哥AI
 // visible, from the terminal) never listed OpenCode Go, added after, while
 // Pi listed it, and Desktop's model list had no way to it. The models its
 // visibility keeps come in the list, off, under their provider; ticking one

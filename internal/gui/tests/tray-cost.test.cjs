@@ -89,11 +89,11 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
     });
 
     for (const [lang, name, sub] of [
-      ["en", "Menu bar cost", "What magpie's requests cost, beside their tokens in the menu bar and its tooltip; off, the tokens alone"],
-      ["zh", "菜单栏金额", "magpie 请求的花费，显示在菜单栏和提示中的 token 数旁；关闭则只显示 token 数"],
-      ["zh-TW", "選單列金額", "magpie 請求的花費，顯示在選單列與提示中的 token 數旁；關閉則只顯示 token 數"],
-      ["ja", "メニューバーの金額", "magpie のリクエストの費用を、メニューバーとツールチップのトークン数の横に表示します。オフにするとトークン数だけになります"],
-      ["de", "Kosten in der Menüleiste", "Was die Anfragen über magpie kosten, neben ihren Tokens in der Menüleiste und ihrem Tooltip; aus, nur die Tokens"],
+      ["en", "Menu bar cost", "What 浩哥AI's requests cost, beside their tokens in the menu bar and its tooltip; off, the tokens alone"],
+      ["zh", "菜单栏金额", "浩哥AI 请求的花费，显示在菜单栏和提示中的 token 数旁；关闭则只显示 token 数"],
+      ["zh-TW", "選單列金額", "浩哥AI 請求的花費，顯示在選單列與提示中的 token 數旁；關閉則只顯示 token 數"],
+      ["ja", "メニューバーの金額", "浩哥AI のリクエストの費用を、メニューバーとツールチップのトークン数の横に表示します。オフにするとトークン数だけになります"],
+      ["de", "Kosten in der Menüleiste", "Was die Anfragen über 浩哥AI kosten, neben ihren Tokens in der Menüleiste und ihrem Tooltip; aus, nur die Tokens"],
     ]) {
       for (const width of [1100, 420]) {
         await t.test(lang + " at " + width, async () => {

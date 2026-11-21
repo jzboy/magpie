@@ -7257,7 +7257,6 @@ function renderAdd() {
     // (ARNO on Discord: Qoder CN twice), and one with no account isn't
     const named = (x) => !f || x.name.toLowerCase().includes(f) || x.agent.includes(f) || "subscription".includes(f);
     const subs = SUBS.filter((x) => !(replacedSub(x.agent) || unusedSub(x.agent)) || signing?.agent === x.agent).map((x) => subOf(x.agent)).filter(named);
-    const inPlugins = f && SUBS.some((x) => unusedSub(x.agent) && signing?.agent !== x.agent && named(subOf(x.agent)));
     // partners pay to be listed first, under a heading that says so; who
     // they are comes from usemagpie.ai (internal/provider/partners.go), and
     // each may name the languages it is shown in
@@ -7288,11 +7287,13 @@ function renderAdd() {
       for (const p of partners) p.new = false;
       markNewPartners();
     }
-    if (subs.length || inPlugins) {
+    // 浩哥AI lists no "More in Plugins" tile here: with the subscription set
+    // closed, a search that finds nothing points to the Plugins tab below
+    // ("look for a plugin"), which is the one place a plugin is installed.
+    if (subs.length) {
       any = true;
       const grid = section("Subscriptions", "sign in, no key");
       for (const x of subs) grid.append(subTile(x));
-      if (!f || inPlugins) grid.append(morePluginsTile(f));
       const w = subs.find((x) => signing?.agent === x.agent);
       if (w) tiles.append(renderSigning(w));
     }
@@ -7370,21 +7371,6 @@ function pickRow(ic, name, cls = "") {
   const nm = el("span", "nm");
   nm.append(el("span", "n", name));
   b.append(icon(ic), nm);
-  return b;
-}
-
-// morePluginsTile: the add sheet's way to the Plugins tab, where more
-// subscriptions are, each signed in to by a plugin
-function morePluginsTile(q) {
-  const b = el("button", "tile more-plugins");
-  b.dataset.pick = "plugins";
-  const nm = el("span", "nm");
-  nm.append(el("span", "n", t("More in Plugins")));
-  const ic = el("span", "puzzle");
-  ic.append(svg(PUZZLE, 15, 1.4));
-  b.append(ic, nm, svg(CHEV_R, 11, 1.6));
-  b.title = t("Subscriptions magpie doesn't sign in to itself: install a plugin for one in the Plugins tab");
-  b.onclick = () => openPlugins(q);
   return b;
 }
 
@@ -18922,7 +18908,10 @@ const ledFormatLong = (m, v, p) => m === "speed" ? (v > 0 ? t("{n} tok/s", { n: 
 // provider, or a model at one), or a model's when every provider that
 // served it sells in one currency; "" (a sum: Totals in) otherwise
 function ledProv(l, s, id) {
-  const at = (x) => x.split("/")[0], ps = s == "model" ? ((l.chartBy || l.by)?.modelAt || []).filter((x) => x.id.slice(at(x.id).length + 1) == id).map((x) => at(x.id)) : [s == "provider" ? id : s == "modelAt" && at(id)];
+  // a series key can come without an id (a chart built from partial rows):
+  // it has no provider of its own, and reads as one rather than throwing
+  const at = (x) => String(x ?? "").split("/")[0];
+  const ps = s == "model" ? ((l.chartBy || l.by)?.modelAt || []).filter((x) => x?.id && x.id.slice(at(x.id).length + 1) == id).map((x) => at(x.id)) : [s == "provider" ? id : s == "modelAt" && at(id)];
   return l.provider || (id?.[0] > "\0" && ps[0] && ps.every((p) => costInYuan(p) == costInYuan(ps[0])) ? ps[0] : "");
 }
 
@@ -18944,8 +18933,13 @@ function ledCategories(l, split, metric, chart) {
   return { top, rest: list.slice(LED_SHOWN), list };
 }
 // a speed point's timed ones past the colours, faint
-const ledOthers = (by, top, list) => Object.keys(by).filter((k) => ledSpeed(by[k]) > 0 && !top.some((c) => c.id === k))
-  .map((id) => ({ id, name: list.find((x) => x.id === id)?.name, color: "var(--faint)" }));
+// list is the ranking the chart was drawn from; a caller whose series came
+// shaped otherwise still gets the marks, named by their ids
+const ledOthers = (by, top, list) => {
+  const rows = Array.isArray(list) ? list : [];
+  return Object.keys(by || {}).filter((k) => ledSpeed(by[k]) > 0 && !top.some((c) => c.id === k))
+    .map((id) => ({ id, name: rows.find((x) => x.id === id)?.name, color: "var(--faint)" }));
+};
 
 // when a point is: the hour, the day or the week it stands for
 function ledWhen(p, bucket) {
@@ -19718,6 +19712,11 @@ const PROV_PREFS = {
   "minimax-code": ["minimaxList"], "minimax-code-global": ["minimaxList"],
   qoder: ["qoderList"], "qoder-cn": ["qoderList"],
 };
+// provPluginOf: the id a provider's plugin is listed under. Qoder's plugin
+// serves both qoder and qoder-cn (浩哥AI keeps the China one), and its
+// check-in group is drawn once, under qoder: without this, Qoder CN's
+// editor had the vendor's own list but never the plugin's.
+const provPluginOf = (agent) => (agent === "qoder-cn" ? "qoder" : agent);
 // each list's label in the editor's Advanced, the plugins' check-ins
 // under Check in
 const PROV_PREF_LABEL = { codexResetList: "Resets", codexWarmList: "Warm up", claudeWarmList: "Warm up" };
@@ -19731,7 +19730,7 @@ function homeProvPrefRows() {
 }
 function provPrefsOf(agent) {
   const lists = (PROV_PREFS[agent] || []).map((id) => $("#" + id));
-  const g = [...$("#pluginCheckinList").children].find((x) => x.dataset.provider === agent);
+  const g = [...$("#pluginCheckinList").children].find((x) => x.dataset.provider === provPluginOf(agent));
   return g ? [...lists, g] : lists;
 }
 const provPrefKey = (x) => x.classList.contains("ci-plugin") ? "ci-plugin" : x.id;
@@ -19762,7 +19761,7 @@ function remountProvPrefs() {
 // under Routing took most of the editor)
 function provPrefsField(agent) {
   // a gateway keeps them: they run on its own accounts (#1065)
-  if (!PROV_PREFS[agent] && !(prefs?.checkinPlugins || []).some((x) => x.id === agent) && prefs) return [];
+  if (!PROV_PREFS[agent] && !(prefs?.checkinPlugins || []).some((x) => x.id === provPluginOf(agent)) && prefs) return [];
   const keys = [...(PROV_PREFS[agent] || []), "ci-plugin"];
   const slots = keys.map((k) => {
     const slot = el("div", "prov-prefs");
@@ -23313,8 +23312,10 @@ function applyFeatures(list) {
   navSubs();
 }
 function renderBuiltins(box, list, done) {
-  const broken = list.find((f) => f.broken)?.broken;
-  const rows = list.flatMap((f) => {
+  // a reader whose features came keyed instead of listed still gets its rows
+  const feats = Array.isArray(list) ? list : Object.values(list || {});
+  const broken = feats.find((f) => f.broken)?.broken;
+  const rows = feats.flatMap((f) => {
     const r = el("div", "row pref feat-row");
     r.dataset.id = f.id;
     const who = el("div", "who");

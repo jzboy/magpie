@@ -45,10 +45,10 @@ function serve(lang, move, calls) {
 }
 
 const words = {
-  en: { why: "Codex is set up, but nothing answers at the address it reaches magpie by", fix: "How to fix", use: "Use 172.29.0.1:3425" },
-  zh: { why: "Codex 已设好，但它连 magpie 用的地址没有回应", fix: "如何修复", use: "改用 172.29.0.1:3425" },
-  ja: { why: "Codex は設定済みですが、magpie につなぐアドレスから応答がありません", fix: "直し方", use: "172.29.0.1:3425 を使う" },
-  de: { why: "Codex ist eingerichtet, aber unter der Adresse, über die es magpie erreicht, antwortet nichts", fix: "So beheben", use: "172.29.0.1:3425 verwenden" },
+  en: { why: "Codex is set up, but nothing answers at the address it reaches 浩哥AI by", fix: "How to fix", use: "Use 172.29.0.1:3425" },
+  zh: { why: "Codex 已设好，但它连 浩哥AI 用的地址没有回应", fix: "如何修复", use: "改用 172.29.0.1:3425" },
+  ja: { why: "Codex は設定済みですが、浩哥AI につなぐアドレスから応答がありません", fix: "直し方", use: "172.29.0.1:3425 を使う" },
+  de: { why: "Codex ist eingerichtet, aber unter der Adresse, über die es 浩哥AI erreicht, antwortet nichts", fix: "So beheben", use: "172.29.0.1:3425 verwenden" },
 };
 const row = `.row.agent[data-id="codex"]`;
 const noSideScroll = (page) => page.evaluate(() => document.scrollingElement.scrollWidth <= innerWidth);

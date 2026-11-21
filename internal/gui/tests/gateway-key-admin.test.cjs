@@ -9,11 +9,11 @@ const { chromium, webkit } = require("playwright");
 const { fixture } = require("./fixtures/caller-keys.cjs");
 
 const words = {
-  en: { more: "Key actions", adv: "Advanced", head: "Management API", off: "Off", local: "From this computer", any: "From any computer", tag: "Manages magpie", madeLocal: "Server can manage magpie from this computer", madeOff: "Server can't manage magpie" },
-  zh: { more: "密钥操作", adv: "高级", head: "管理 API", off: "关闭", local: "仅限本机", any: "任何电脑均可", tag: "可管理 magpie", madeLocal: "Server 现在可在本机管理 magpie", madeOff: "Server 不再能管理 magpie" },
-  "zh-TW": { more: "金鑰操作", adv: "進階", head: "管理 API", off: "關閉", local: "僅限本機", any: "任何電腦均可", tag: "可管理 magpie", madeLocal: "Server 現在可在本機管理 magpie", madeOff: "Server 不再能管理 magpie" },
-  ja: { more: "キーの操作", adv: "詳細設定", head: "管理 API", off: "オフ", local: "このコンピュータから", any: "どのコンピュータからでも", tag: "magpie を管理", madeLocal: "Server はこのコンピュータから magpie を管理できます", madeOff: "Server は magpie を管理できなくなりました" },
-  de: { more: "Schlüsselaktionen", adv: "Erweitert", head: "Verwaltungs-API", off: "Aus", local: "Von diesem Computer", any: "Von jedem Computer", tag: "Verwaltet magpie", madeLocal: "Server kann magpie von diesem Computer aus verwalten", madeOff: "Server kann magpie nicht mehr verwalten" },
+  en: { more: "Key actions", adv: "Advanced", head: "Management API", off: "Off", local: "From this computer", any: "From any computer", tag: "Manages 浩哥AI", madeLocal: "Server can manage 浩哥AI from this computer", madeOff: "Server can't manage 浩哥AI" },
+  zh: { more: "密钥操作", adv: "高级", head: "管理 API", off: "关闭", local: "仅限本机", any: "任何电脑均可", tag: "可管理 浩哥AI", madeLocal: "Server 现在可在本机管理 浩哥AI", madeOff: "Server 不再能管理 浩哥AI" },
+  "zh-TW": { more: "金鑰操作", adv: "進階", head: "管理 API", off: "關閉", local: "僅限本機", any: "任何電腦均可", tag: "可管理 浩哥AI", madeLocal: "Server 現在可在本機管理 浩哥AI", madeOff: "Server 不再能管理 浩哥AI" },
+  ja: { more: "キーの操作", adv: "詳細設定", head: "管理 API", off: "オフ", local: "このコンピュータから", any: "どのコンピュータからでも", tag: "浩哥AI を管理", madeLocal: "Server はこのコンピュータから 浩哥AI を管理できます", madeOff: "Server は 浩哥AI を管理できなくなりました" },
+  de: { more: "Schlüsselaktionen", adv: "Erweitert", head: "Verwaltungs-API", off: "Aus", local: "Von diesem Computer", any: "Von jedem Computer", tag: "Verwaltet 浩哥AI", madeLocal: "Server kann 浩哥AI von diesem Computer aus verwalten", madeOff: "Server kann 浩哥AI nicht mehr verwalten" },
 };
 
 const keys = () => [

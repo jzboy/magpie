@@ -30,11 +30,11 @@ const codex = (appOut) => ({
 });
 
 const words = {
-  en: { until: "On magpie until", reset: "On magpie until the reset", stuck: "quit and reopen the Codex app", off: "cloud tasks", browser: "browser use", phone: "its phone connection", keep: "Keep on ChatGPT" },
-  zh: { until: "由 magpie 接管至", reset: "由 magpie 接管至额度重置", stuck: "退出并重新打开 Codex 应用", off: "云端任务", browser: "浏览器操作", phone: "手机连接", keep: "保持 ChatGPT" },
-  "zh-TW": { until: "由 magpie 接管至", reset: "由 magpie 接管至額度重設", stuck: "結束並重新開啟 Codex 應用", off: "雲端任務", browser: "瀏覽器操作", phone: "手機連線", keep: "保持 ChatGPT" },
-  ja: { until: "まで magpie が処理", reset: "リセットまで magpie が処理", stuck: "Codex アプリを終了して開き直して", off: "クラウドタスク", browser: "ブラウザ操作", phone: "スマートフォンとの接続", keep: "ChatGPT のまま" },
-  de: { until: "Über magpie bis", reset: "Über magpie bis zum Zurücksetzen", stuck: "beende die Codex-App", off: "Cloud-Aufgaben", browser: "Browser-Nutzung", phone: "Verbindung zum Handy", keep: "Bei ChatGPT bleiben" },
+  en: { until: "On 浩哥AI until", reset: "On 浩哥AI until the reset", stuck: "quit and reopen the Codex app", off: "cloud tasks", browser: "browser use", phone: "its phone connection", keep: "Keep on ChatGPT" },
+  zh: { until: "由 浩哥AI 接管至", reset: "由 浩哥AI 接管至额度重置", stuck: "退出并重新打开 Codex 应用", off: "云端任务", browser: "浏览器操作", phone: "手机连接", keep: "保持 ChatGPT" },
+  "zh-TW": { until: "由 浩哥AI 接管至", reset: "由 浩哥AI 接管至額度重設", stuck: "結束並重新開啟 Codex 應用", off: "雲端任務", browser: "瀏覽器操作", phone: "手機連線", keep: "保持 ChatGPT" },
+  ja: { until: "まで 浩哥AI が処理", reset: "リセットまで 浩哥AI が処理", stuck: "Codex アプリを終了して開き直して", off: "クラウドタスク", browser: "ブラウザ操作", phone: "スマートフォンとの接続", keep: "ChatGPT のまま" },
+  de: { until: "Über 浩哥AI bis", reset: "Über 浩哥AI bis zum Zurücksetzen", stuck: "beende die Codex-App", off: "Cloud-Aufgaben", browser: "Browser-Nutzung", phone: "Verbindung zum Handy", keep: "Bei ChatGPT bleiben" },
 };
 
 function serve(lang, agents, sets = []) {
@@ -130,7 +130,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
     await page.route("**/*", serve("en", [codex(undefined)]));
     await page.goto("http://magpie.test/?view=agents");
     await page.locator(`${row} .ag-st-t`).waitFor();
-    assert.doesNotMatch(await page.locator(`${row} .ag-st-t`).textContent(), /On magpie until|ChatGPT allowance/);
+    assert.doesNotMatch(await page.locator(`${row} .ag-st-t`).textContent(), /On (magpie|浩哥AI) until|ChatGPT allowance/);
     await page.locator(`${row} .ag-link`).click();
     await page.locator(`${row} .ag-exp`).waitFor();
     assert.equal(await page.locator(`${row} .ag-app-out`).count(), 0);

@@ -1,7 +1,7 @@
 // Run with Node's test runner and Playwright on the module path; see README.md.
 // Hide accounts hides accounts, not the labels around them (#3656,
 // faketrader): the name a user gave an account (#1515) stayed blurred,
-// so several accounts couldn't be told apart, and an Antigravity account
+// so several accounts couldn't be told apart, and an WorkBuddy account
 // whose value is "Google" blurred "Google" of its plan "Google AI Pro" on
 // Usage and Providers. Now the user's own name stays in sight while the
 // account beside it is hidden; a plugin's name for an account (a masked
@@ -20,16 +20,16 @@ const RAW = "raw@example.com", ALIAS = "Work laptop", IAM = "iam::42:user:ops", 
 const PLAN = "Google AI Pro";
 const base = { icon: "generic", chat: "", responses: "", anthropic: "", catalog: "", agents: [], fallback: [], headers: {}, keyList: [], proxy: "", models: [{ id: "gemini-3-pro", name: "", on: true }] };
 const providers = () => ({ providers: [
-  { ...base, id: "antigravity", name: "Antigravity", icon: "antigravity-color",
-    account: { agent: "antigravity", agentName: "Antigravity", user: "Google", plan: PLAN,
+  { ...base, id: "workbuddy", name: "WorkBuddy", icon: "workbuddy-color",
+    account: { agent: "workbuddy", agentName: "WorkBuddy", user: "Google", plan: PLAN,
       logins: [{ user: "Google", plan: PLAN, active: true, on: true }, { user: RAW, plan: PLAN, on: true }] },
     accountNames: { [RAW]: ALIAS } },
   { ...base, id: "fakeco", name: "FakeCo", account: { agent: "fakeco", agentName: "FakeCo", user: IAM, plan: "Team", logins: [{ user: IAM, plan: "Team", active: true, on: true }] },
     accountUsers: { [IAM]: PHONE } },
 ], presets: [], excluded: [], gateway: { running: true, window: true } });
 const quotas = () => [
-  { provider: "antigravity", name: "Antigravity", icon: "antigravity-color", plan: PLAN, user: "Google", windows: [{ name: "Gemini", used: 5 }] },
-  { provider: "antigravity", name: "Antigravity", icon: "antigravity-color", plan: PLAN, user: RAW, alias: ALIAS, named: true, windows: [{ name: "Gemini", used: 30 }] },
+  { provider: "workbuddy", name: "WorkBuddy", icon: "workbuddy-color", plan: PLAN, user: "Google", windows: [{ name: "Gemini", used: 5 }] },
+  { provider: "workbuddy", name: "WorkBuddy", icon: "workbuddy-color", plan: PLAN, user: RAW, alias: ALIAS, named: true, windows: [{ name: "Gemini", used: 30 }] },
   // the plugin's name for its account: the account's, not the user's own
   { provider: "fakeco", name: "FakeCo", plan: "Team of " + BOSS, user: IAM, alias: PHONE, windows: [{ name: "Credits", used: 10 }] },
 ];
@@ -124,7 +124,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
 
         // Providers: the row's plan in sight, its account hidden
         await page.evaluate(() => show("providers"));
-        const row = page.locator(".row.provider", { hasText: "Antigravity" }).first();
+        const row = page.locator(".row.provider", { hasText: "WorkBuddy" }).first();
         await row.waitFor();
         await page.waitForFunction(() => document.querySelector("#view-providers .pii"));
         assert.equal(await row.locator(".acct-plan").textContent(), PLAN);

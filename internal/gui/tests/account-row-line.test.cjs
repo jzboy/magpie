@@ -19,10 +19,10 @@ const { chromium, webkit } = require("playwright");
 
 const assets = path.resolve(process.env.MAGPIE_ACC_ASSETS || path.resolve(__dirname, "../assets"));
 const claude = () => ({
-  id: "claude", name: "Claude Code", icon: "claude-color", chat: "", responses: "", anthropic: "", catalog: "", routing: "",
+  id: "codex", name: "ChatGPT", icon: "openai", chat: "", responses: "", anthropic: "", catalog: "", routing: "",
   models: [{ id: "claude-opus-5-5", name: "Claude Opus 5.5", on: true }], agents: [], fallback: [], headers: {}, keyList: [],
   account: {
-    agent: "claude", agentName: "Claude Code", user: "first@example.com", plan: "team",
+    agent: "codex", agentName: "ChatGPT", user: "first@example.com", plan: "team",
     logins: [
       { user: "first@example.com", org: "Example", plan: "team", active: true, on: true },
       { user: "spare@example.com", plan: "max", on: true },
@@ -73,7 +73,7 @@ for (const [engine, browserType] of [["chromium", chromium], ["webkit", webkit]]
       const page = await context.newPage();
       await page.route("**/*", serve(lang, web));
       await page.goto("http://magpie.test/?view=providers");
-      await page.locator(".row.provider", { hasText: "Claude Code" }).first().click();
+      await page.locator(".row.provider", { hasText: "ChatGPT" }).first().click();
       const rows = page.locator(".editor .accts .acc[data-account-id]");
       await rows.nth(2).waitFor();
       await page.mouse.move(1, 1);

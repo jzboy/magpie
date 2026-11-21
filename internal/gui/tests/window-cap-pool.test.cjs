@@ -1,5 +1,5 @@
 // Run with Node's test runner and Playwright on the module path; see README.md.
-// An Antigravity account's meters set their own caps too (pluviophile714 on
+// An WorkBuddy account's meters set their own caps too (pluviophile714 on
 // Discord: the row's 上限 90% said 每个窗口可单独设上限：点击下方它的用量条,
 // and a click on 剩余 97.8% · 7d did nothing). Each pool's 5 hours and 7
 // days is a button that posts its pool's window ("gemini · 7 days": both
@@ -30,9 +30,9 @@ const pooled = () => [...models(true), own("Gemini", "5 hours", 1, 3), own("Gemi
 function serve(lang, posts, windows) {
   const settings = { lang, theme: "light", quotaLeft: true };
   const antigravity = {
-    id: "antigravity", name: "Antigravity", icon: "antigravity-color", chat: "", responses: "", anthropic: "", catalog: "",
+    id: "workbuddy", name: "WorkBuddy", icon: "workbuddy-color", chat: "", responses: "", anthropic: "", catalog: "",
     models: [{ id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro (High)", on: true }], agents: [], fallback: [], headers: {}, keyList: [],
-    account: { agent: "antigravity", agentName: "Antigravity", user: USER, plan: "Google AI Pro", logins: [{ user: USER, plan: "Google AI Pro", active: true, on: true }] },
+    account: { agent: "workbuddy", agentName: "WorkBuddy", user: USER, plan: "Google AI Pro", logins: [{ user: USER, plan: "Google AI Pro", active: true, on: true }] },
     accountCaps: { [USER]: 90 },
   };
   const providers = { providers: [antigravity], presets: [], excluded: [], gateway: { running: true, window: true } };
@@ -46,7 +46,7 @@ function serve(lang, posts, windows) {
     if (url.pathname === "/api/providers") return json(providers);
     if (url.pathname === "/api/groups") return json({ groups: [] });
     if (url.pathname === "/api/plugins") return json({ plugins: [] });
-    if (url.pathname === "/api/login/usage") return json(url.searchParams.get("agent") === "antigravity" ? { [USER]: { provider: "antigravity", plan: "Google AI Pro", windows: windows() } } : {});
+    if (url.pathname === "/api/login/usage") return json(url.searchParams.get("agent") === "workbuddy" ? { [USER]: { provider: "workbuddy", plan: "Google AI Pro", windows: windows() } } : {});
     if (url.pathname === "/api/provider/windowcap" && route.request().method() === "POST") {
       const body = route.request().postDataJSON();
       posts.push(body);
@@ -93,7 +93,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         page.on("pageerror", (e) => errors.push(e.message));
         await page.route("**/*", serve(lang, posts, windows));
         await page.goto("http://magpie.test/?view=providers");
-        await page.locator(".row.provider", { hasText: "Antigravity" }).first().click();
+        await page.locator(".row.provider", { hasText: "WorkBuddy" }).first().click();
         await page.locator(".editor .accts .acc .aq-w").first().waitFor();
         return { page, errors, posts };
       };
@@ -130,7 +130,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         assert.equal(await page.locator("select").count(), 0, "no native select");
         const n = posts.length;
         await pick(page, "50%");
-        assert.deepEqual(await posted(posts, n), { id: "antigravity", account: USER, window: "gemini · 7 days", cap: 50 });
+        assert.deepEqual(await posted(posts, n), { id: "workbuddy", account: USER, window: "gemini · 7 days", cap: 50 });
         await row(page).locator(".aq-own").first().waitFor();
         assert.equal(await row(page).locator(".aq-own").count(), 1);
         if (w.cap) assert.equal(await meters(page).nth(1).locator(".aq-own").textContent(), w.cap);
@@ -147,7 +147,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         const n = posts.length;
         await pick(page, "60%");
         const body = await posted(posts, n);
-        assert.deepEqual({ ...body, windows: [...body.windows].sort() }, { id: "antigravity", account: USER, window: body.window, windows: ["gemini 3.1 pro (high)", "gemini 3.1 pro (low)"], cap: 60 });
+        assert.deepEqual({ ...body, windows: [...body.windows].sort() }, { id: "workbuddy", account: USER, window: body.window, windows: ["gemini 3.1 pro (high)", "gemini 3.1 pro (low)"], cap: 60 });
         await row(page).locator(".aq-own").first().waitFor();
         assert.equal(await row(page).locator(".aq-own").count(), 1);
         assert.deepEqual(errors, []);

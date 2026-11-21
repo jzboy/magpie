@@ -84,7 +84,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       assert.equal(await row("model-1").locator("select").count(), 0);
       // whose list price it is: models.dev's, or the other magpie's
       assert.match(await row("model-1").locator(".mprice").getAttribute("title"), zh ? /留空即官方价格/ : /empty: its list price/);
-      assert.match(await row("model-4").locator(".mprice").getAttribute("title"), zh ? /留空即另一台 magpie 计费用的价格/ : /empty: what the other magpie counts it at/);
+      assert.match(await row("model-4").locator(".mprice").getAttribute("title"), zh ? /留空即另一台 (magpie|浩哥AI) 计费用的价格/ : /empty: what the other (magpie|浩哥AI) counts it at/);
       // an off-peak list price says when it counts double, and that a
       // price set here does too; DeepSeek's own but for China's public
       // holidays

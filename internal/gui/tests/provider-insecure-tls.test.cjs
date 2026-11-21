@@ -108,7 +108,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         await box(page, w).scrollIntoViewIfNeeded();
         const r = await row(page, w).boundingBox();
         assert.ok(r.width > 60 && r.x >= 0 && r.x + r.width <= width, `the row fits: ${JSON.stringify(r)}`);
-        assert.ok(await page.locator(".editor", { hasText: w[strings[2]] }).count() > 0, "the note of the risk is shown");
+        assert.ok(await page.locator(".editor", { hasText: await page.evaluate((x) => brand(x), w[strings[2]]) }).count() > 0, "the note of the risk is shown");
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, "no sideways scroll");
         await box(page, w).check();
         // asked before a Save as it would be saved

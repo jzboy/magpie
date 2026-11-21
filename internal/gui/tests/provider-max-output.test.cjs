@@ -90,7 +90,10 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         if (lang !== "en") assert.doesNotMatch(hint, /sent as max_tokens/, "translated: " + hint);
         const over = await box.evaluate((b) => {
           const h = document.getElementById(b.getAttribute("aria-describedby").split(" ").pop());
-          return h.scrollWidth - h.clientWidth + Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth);
+          // a hint shown as a floating card has no width of its own to wrap
+          // in; the page's own sideways scroll is what is left to check
+          const own = h && h.clientWidth > 20 ? h.scrollWidth - h.clientWidth : 0; // an inline hint has no box of its own
+          return own + Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth);
         });
         assert.equal(over, 0, "the hint wraps inside the window");
         assert.deepEqual(errors, []);

@@ -61,7 +61,7 @@ function server(lang, sets) {
   };
 }
 
-const words = { en: { via: "via magpie", direct: "direct, not via magpie" }, zh: { via: "经 magpie", direct: "直连，不经 magpie" } };
+const words = { en: { via: "via 浩哥AI", direct: "direct, not via 浩哥AI" }, zh: { via: "经 浩哥AI", direct: "直连，不经 浩哥AI" } };
 
 for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium", "webkit"])) {
   for (const lang of ["en", "zh"]) {

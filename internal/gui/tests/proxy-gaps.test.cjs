@@ -14,11 +14,11 @@ const { test } = require("node:test");
 const { chromium, webkit } = require("playwright");
 
 const assets = path.resolve(__dirname, "../assets");
-const claude = {
-  id: "claude", name: "Claude", icon: "claude-color", chat: "", responses: "", anthropic: "", catalog: "",
-  models: [{ id: "claude-opus-5", name: "Claude Opus 5", on: true }], agents: [], fallback: [], headers: {}, keyList: [],
+const sub = {
+  id: "codex", name: "ChatGPT", icon: "openai", chat: "", responses: "", anthropic: "", catalog: "",
+  models: [{ id: "gpt-5", name: "GPT-5", on: true }], agents: [], fallback: [], headers: {}, keyList: [],
   account: {
-    agent: "claude", agentName: "Claude Code", user: "one@example.com", plan: "MAX",
+    agent: "codex", agentName: "ChatGPT", user: "one@example.com", plan: "MAX",
     logins: [
       { user: "one@example.com", plan: "MAX", active: true, on: true },
       { user: "two@example.com", plan: "MAX", on: true },
@@ -31,7 +31,7 @@ const claude = {
 };
 
 function serve(lang) {
-  const providers = { providers: [claude], presets: [], excluded: [], gateway: { running: true, window: true } };
+  const providers = { providers: [sub], presets: [], excluded: [], gateway: { running: true, window: true } };
   const state = { agents: [], profiles: [], settings: { lang, theme: "light" } };
   return async (route) => {
     const url = new URL(route.request().url());
@@ -89,7 +89,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         page.on("pageerror", (e) => errors.push(e.message));
         await page.route("**/*", serve(lang));
         await page.goto("http://magpie.test/?view=providers");
-        await page.locator(".row.provider", { hasText: "Claude" }).first().click();
+        await page.locator(".row.provider", { hasText: "ChatGPT" }).first().click();
         const adv = page.locator(".editor details.advanced");
         await adv.waitFor({ state: "attached" });
         if (!(await adv.evaluate((d) => d.open))) await adv.locator(":scope > summary").click();

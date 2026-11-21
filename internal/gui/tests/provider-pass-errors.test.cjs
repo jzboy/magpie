@@ -93,7 +93,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const choose = async (page, w, name) => {
         await pick(page).scrollIntoViewIfNeeded();
         await pick(page).click();
-        const item = page.locator(".proto-menu .pm-item", { hasText: w[name] });
+        // the page brands what it shows: its words are branded too
+        const said = await page.evaluate((x) => brand(x), w[name]);
+        const item = page.locator(".proto-menu .pm-item", { hasText: said });
         assert.equal(await page.locator(".proto-menu .pm-item").count(), 2);
         const r = await page.locator(".proto-menu").boundingBox();
         assert.ok(r.x >= 0 && r.x + r.width <= width + 1, `the menu fits: ${JSON.stringify(r)}`);
@@ -115,7 +117,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         }
         assert.equal(await adv(page).evaluate((d) => d.open), false, "Advanced stays folded while it is as by default");
         await unfold(page);
-        assert.equal(await pick(page).innerText(), w["magpie handles"]);
+        assert.equal(await pick(page).innerText(), await page.evaluate((x) => brand(x), w["magpie handles"]));
         assert.equal(await page.locator(".editor select").count(), 0, "no native select");
         await pick(page).scrollIntoViewIfNeeded();
         const r = await pick(page).boundingBox();

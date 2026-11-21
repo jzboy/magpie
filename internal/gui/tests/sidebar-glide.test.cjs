@@ -75,6 +75,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
       await page.route("**/*", serve(lang));
+      // 浩哥AI opens on the top bar: this file is the sidebar's
+      await page.addInitScript(() => { try { localStorage.setItem("magpie.navLayout", "side"); } catch {} });
       await page.goto("http://magpie.test/?view=providers");
       await page.waitForSelector("#nav > .nav-top-hl:not([hidden])");
       assert.ok(await page.evaluate(() => document.body.classList.contains("side-nav")), "a sidebar at " + width);
@@ -106,8 +108,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       // to Usage, then up to Agents while Usage's tabs fold away under it,
       // then the Library and down to Providers while the Library's fold away
       // above it: it moves by frames, never at once, and lands on its row
-      for (const v of ["usage", "agents", "library", "providers"]) {
-        if (v === "providers") assert(await page.locator("#nav .nav-sub:not(.leaving)").count(), "the Library's list is open above Providers");
+      for (const v of ["usage", "agents", "plugins", "providers"]) {
+        if (v === "providers") assert(await page.locator("#nav .nav-sub:not(.leaving)").count(), "the Plugins list is open above Providers");
         const from = (await shape(page)).top, to = (await rowOf(page, v)).top;
         await watch(page);
         await page.locator(`#nav button[data-view="${v}"]`).click();

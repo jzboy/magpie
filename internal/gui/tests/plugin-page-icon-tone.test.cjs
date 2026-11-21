@@ -84,6 +84,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         const errors = [];
         page.on("pageerror", (e) => errors.push(e.message));
         await page.route("**/*", server(lang, theme, web));
+        // the sidebar, whose ink these marks take: 浩哥AI opens on the top bar
+        await page.addInitScript(() => { try { localStorage.setItem("magpie.navLayout", "side"); } catch {} });
         await page.goto("http://magpie.test/");
         assert.ok(await page.evaluate(() => document.body.classList.contains("side-nav")), "the sidebar");
         const tab = (k) => page.locator(`#nav button[data-view="plugin-${k}"]`);

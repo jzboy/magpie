@@ -48,7 +48,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         assert.deepEqual(sent, { name: "Family", secret: "cpa-family-key-0042" });
         assert.match(await row.textContent(), /…0042/);
         assert.doesNotMatch(await page.locator("#gatewayKeys").textContent(), /cpa-family/);
-        await page.waitForFunction((m) => document.body.textContent.includes(m), w.made);
+        // the page brands what it shows (i18n.js brand)
+        await page.waitForFunction((m) => document.body.textContent.includes(m), await page.evaluate((x) => brand(x), w.made));
         // the next key starts empty: magpie makes it
         await page.locator("#addGatewayKey").click();
         assert.equal(await page.getByRole("textbox", { name: w.own, exact: true }).inputValue(), "");

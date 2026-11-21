@@ -74,7 +74,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
     for (const lang of ["en", "zh", "zh-TW", "ja", "de"]) {
       await t.test(lang, async () => {
         const { page, errors, posts, tr } = await open(lang, true);
-        assert.equal(await page.title(), "nas · magpie", "MAGPIE_NAME's name from the first paint");
+        assert.equal(await page.title(), "nas · 浩哥AI", "MAGPIE_NAME's name from the first paint");
         const more = page.locator("#netMore");
         const field = page.locator("#netMoreList input.instance-name");
         await field.waitFor({ state: "attached" });
@@ -95,7 +95,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         // cleared: the variable's name again
         await page.locator("#netMoreList input.instance-name").fill("");
         await page.locator("#netMoreList input.instance-name").press("Enter");
-        await page.waitForFunction(() => document.title === "nas · magpie");
+        await page.waitForFunction(() => document.title === "nas · 浩哥AI");
         assert.equal(posts.at(-1).name, "");
         assert.deepEqual(errors, []);
       });

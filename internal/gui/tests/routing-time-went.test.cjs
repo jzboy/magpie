@@ -65,7 +65,7 @@ function serve(lang) {
 }
 
 const want = {
-  en: { head: "Where the time went", vendor: "Vendor (first byte)", slot: "Waiting for a slot", plugin: "Its plugin sent this request itself, so magpie can't split its time" },
+  en: { head: "Where the time went", vendor: "Vendor (first byte)", slot: "Waiting for a slot", plugin: "Its plugin sent this request itself, so 浩哥AI can't split its time" },
   zh: { head: "时间花在哪里", vendor: "供应商（首字节）", slot: "排队等空位", plugin: "此请求由插件自行发出，magpie 无法拆分它的耗时" },
   "zh-TW": { head: "時間花在哪裡", vendor: "供應商（首位元組）", slot: "排隊等空位", plugin: "此請求由外掛自行發出，magpie 無法拆分它的耗時" },
   ja: { head: "時間の内訳", vendor: "ベンダー（最初のバイト）", slot: "空き枠待ち", plugin: "このリクエストはプラグインが自ら送信したため、magpie では時間の内訳を出せません" },

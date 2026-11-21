@@ -4,7 +4,7 @@
 // the editor is; Cancel drops them. A click used to post provider/route and
 // redraw the editor at once, so looking through what each option says
 // lagged, and saved a pick only looked at (01huadalang on Discord, on a
-// WorkBuddy AI subscription with several accounts). Stays, which a
+// WorkBuddy subscription with several accounts). Stays, which a
 // provider's Routing page row had alone, is beside Routing in the editor
 // too. Accounts and keys alike; nothing is sent, redrawn or scrolled before
 // the Save. In English and Chinese, Chromium and WebKit.
@@ -21,9 +21,9 @@ const { chromium, webkit } = require("playwright");
 const assets = path.resolve(__dirname, "../assets");
 const base = { icon: "generic", catalog: "", models: [{ id: "glm-5", name: "GLM-5", on: true }], agents: [], fallback: [], headers: {}, routing: "", affinity: "", ready: true };
 const sub = {
-  ...base, id: "workbuddy-ai", name: "WorkBuddy AI", chat: "", responses: "", anthropic: "", keyList: [],
+  ...base, id: "workbuddy", name: "WorkBuddy", chat: "", responses: "", anthropic: "", keyList: [],
   account: {
-    agent: "workbuddy-ai", agentName: "WorkBuddy AI", user: "one@example.test", plan: "Pro",
+    agent: "workbuddy", agentName: "WorkBuddy", user: "one@example.test", plan: "Pro",
     logins: ["one", "two", "three"].map((n, i) => ({ user: `${n}@example.test`, plan: "Pro", active: i === 0, on: true })),
   },
 };

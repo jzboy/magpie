@@ -97,7 +97,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       for (const width of [1180, 420]) {
         await t.test(`${lang} at ${width}`, async () => {
           const { p, errors, asked } = await open(lang, { width, theme: width < 600 ? "dark" : "light" });
-          assert.deepEqual(await labels(p), w.cells);
+          // the page brands what it shows (i18n.js brand)
+          const cellsWant = await Promise.all(w.cells.map((x) => p.evaluate((y) => brand(y), x)));
+          assert.deepEqual(await labels(p), cellsWant);
           // the total is the three sources together
           const counts = await p.locator("#ledVia .blk .v").evaluateAll((vs) => vs.map((v) => parseInt(v.firstChild.textContent.replace(/\D/g, ""), 10)));
           assert.deepEqual(counts, [25, 8, 12, 5]);
@@ -135,7 +137,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
               parseFloat(bar.left) >= parseFloat(c.borderBottomLeftRadius) && parseFloat(bar.right) >= parseFloat(c.borderBottomRightRadius);
           });
           assert(await barClear(3), "the last cell's bar clears its corner");
-          assert.deepEqual(await labels(p), w.cells, "the cells stay while one is picked");
+          assert.deepEqual(await labels(p), cellsWant, "the cells stay while one is picked");
           await reach(p, p.locator("#ledVia .blk").nth(0));
           await p.locator("#ledVia .blk").nth(0).click();
           await lastAsked(asked, (q) => !q.has("via"));
@@ -149,7 +151,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
 
     await t.test("none reported: three cells, as before", async () => {
       const { p, errors } = await open("en", { reported: false });
-      assert.deepEqual(await labels(p), L.en.cells.slice(0, 3));
+      const threeWant = await Promise.all(L.en.cells.slice(0, 3).map((x) => p.evaluate((y) => brand(y), x)));
+      assert.deepEqual(await labels(p), threeWant);
       assert.equal(await p.locator("#ledVia").evaluate((v) => getComputedStyle(v).gridTemplateColumns.split(" ").length), 3);
       assert.equal(await p.locator(".led .src.reported").count(), 0);
       assert.deepEqual(errors, []);

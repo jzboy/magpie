@@ -36,7 +36,7 @@ function serve(lang, textSize, posts) {
     const req = route.request(), url = new URL(req.url());
     const json = (data) => route.fulfill({ json: data });
     // the window saying it is in use (update/using), or that it went from view (page-away), is not the page's doing
-    if (req.method() === "POST" && url.pathname !== "/api/update/using" && url.pathname !== "/api/page-away") posts.push(url.pathname);
+    if (req.method() === "POST" && url.pathname !== "/api/update/using" && url.pathname !== "/api/page-away" && url.pathname !== "/api/window/titlebar") posts.push(url.pathname);
     if (url.pathname === "/boot.js") return route.fulfill({ contentType: "text/javascript", body: `window.bootPrefs = ${JSON.stringify({ lang, theme: "light", textSize, web: false })};` });
     if (url.pathname === "/wails/runtime.js") return route.fulfill({ contentType: "text/javascript", body: "export const Window = {};" });
     if (url.pathname === "/api/state") return json(state);
@@ -76,7 +76,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
         await page.route("**/*", serve(lang, textSize, posts));
         await page.goto("http://magpie.test/?view=agents");
-        assert.equal(await page.title(), "magpie");
+        assert.equal(await page.title(), "浩哥AI");
         assert.equal(new URL(page.url()).searchParams.get("view"), "agents");
         for (const id of ["omp", "codex"]) {
           await page.locator(`.row.agent[data-id="${id}"] .ag-conn`).click();

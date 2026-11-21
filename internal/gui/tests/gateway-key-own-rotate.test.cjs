@@ -15,7 +15,9 @@ const words = {
   de: { rotate: "Schlüssel erneuern", own: "Wert des Zugangsschlüssels", placeholder: "Eigener Schlüssel (optional)", label: "Zugangsschlüssel", changed: "Zugangsschlüssel geändert. Clients, die diesen Schlüssel senden, erreichen magpie jetzt.", rotated: "Zugangsschlüssel erneuert. Aktualisieren Sie die Clients auf anderen Computern.", short: "Der Schlüssel muss 8 bis 256 Zeichen lang sein" },
 };
 
-const said = (page, m) => page.waitForFunction((m) => document.body.textContent.includes(m), m);
+// the page brands what it shows (i18n.js brand): its words too
+const said = (page, m) => page.evaluate((x) => brand(x), m)
+  .then((b) => page.waitForFunction((m) => document.body.textContent.includes(m), b));
 
 for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium", "webkit"])) {
   for (const lang of Object.keys(words)) {

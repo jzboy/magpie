@@ -71,7 +71,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
           const [line, copyWord, openWord] = said[lang];
           const li = page.locator(".rt-steps li.held");
           await li.waitFor();
-          assert.ok((await li.textContent()).startsWith(line), await li.textContent());
+          // the page brands what it shows (i18n.js brand)
+          assert.ok((await li.textContent()).startsWith(await page.evaluate((x) => brand(x), line)), await li.textContent());
           const buttons = li.locator("button.link");
           assert.deepEqual((await buttons.allTextContents()).map((s) => s.trim()), web ? [copyWord] : [copyWord, openWord]);
           // the buttons are on the page, not cut off at its edge, and the

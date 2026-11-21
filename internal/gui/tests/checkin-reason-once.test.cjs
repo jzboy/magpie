@@ -39,7 +39,7 @@ function serve(lang) {
       return json({ agents: [], profiles: [], settings: saved });
     }
     if (url.pathname === "/api/settings") return json(settings);
-    if (url.pathname === "/api/providers") return json(provPrefsProviders(["qoder"], { qoder: "Qoder" }));
+    if (url.pathname === "/api/providers") return json(provPrefsProviders(["qoder-cn"], { "qoder-cn": "Qoder CN" }));
     if (url.pathname === "/api/usage/quotas") return json(quotas());
     if (url.pathname === "/api/groups") return json({ groups: [], models: [] });
     if (url.pathname === "/api/plugins") return json({ plugins: [] });
@@ -81,7 +81,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "no sideways scroll on Usage");
 
         // the editor's line: the accounts, then the reason once
-        await openProvPrefs(page, "qoder");
+        await openProvPrefs(page, "qoder-cn");
         await settingsDrawn(page);
         const sub = page.locator('.editor .prov-prefs .ci-plugin[data-provider="qoder"] > .row.pref:first-child .sub');
         await sub.waitFor();

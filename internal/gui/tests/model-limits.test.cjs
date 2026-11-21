@@ -65,6 +65,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
           "Max output: {v} is not a number of tokens like 32k"]) {
           L[k] = await say(page, lang, k);
           assert.ok(L[k], `${k} has its ${lang}`);
+          // the page brands what it shows (i18n.js brand): its words too
+          L[k] = await page.evaluate((x) => brand(x), L[k]);
         }
         await page.locator(".row.provider", { hasText: "Relay" }).click();
         const editor = page.locator("#modal:not([hidden]) .editor");

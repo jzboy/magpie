@@ -120,13 +120,17 @@ for (const engine of engines) {
           const k = r.querySelectorAll(".kind");
           return k.length > 1 ? "two tags" : k[0] ? [k[0].textContent, k[0].title] : ["", ""];
         }));
-        const want = [[w.memory], ["", ""], [w.check], [w.stood, w.privacy], [w.review], [w.title, w.titleWhy]];
+        let want = [[w.memory], ["", ""], [w.check], [w.stood, w.privacy], [w.review], [w.title, w.titleWhy]];
         const same = (got, msg) => assert.deepEqual(got.map((x, i) => want[i].length === 1 ? [x[0]] : x), want, msg);
-        const said = [w.follow, null, null, w.privacy, w.codex, w.titleWhy];
+        let said = [w.follow, null, null, w.privacy, w.codex, w.titleWhy];
 
         // the list, by request: the tag beside the model, the reason under
         // the pointer and in the row's title, nothing pushed out of the row
         let page = await open("http://magpie.test/?view=routing", { width, height: 760 });
+        // the page brands what it shows (i18n.js brand): its words too
+        const B = (x) => (x ? page.evaluate((y) => brand(y), x) : x);
+        want = await Promise.all(want.map((row) => Promise.all(row.map(B))));
+        said = await Promise.all(said.map(B));
         await page.locator(".rt-req").nth(routes.length - 1).waitFor();
         same(await tags(page, ".rt-req"), "by request");
         const titles = await page.locator(".rt-req").evaluateAll((rows) => rows.map((r) => r.title));
@@ -167,7 +171,7 @@ for (const engine of engines) {
           const e = document.querySelector(".rp-what .rp-req");
           return e && e.querySelector(".mdl") && { tag: e.querySelector(".kind")?.textContent || "", title: e.querySelector(".kind")?.title || "" };
         }).then((h) => h.jsonValue());
-        assert.deepEqual(played, { tag: w.title, title: w.titleWhy });
+        assert.deepEqual(played, { tag: await B(w.title), title: await B(w.titleWhy) });
         await page.getByRole("button", { name: await page.evaluate(() => t("Stop replay")), exact: true }).evaluate((e) => e.click());
         await page.waitForFunction(() => document.querySelector(".rt-replay").hidden);
 
@@ -185,7 +189,7 @@ for (const engine of engines) {
         const pr = await panel.locator(".pr-req").evaluateAll((rows) => rows.map((r) => [r.querySelector(".pr-a .kind")?.textContent || "", r.querySelector(".pr-a .kind")?.title || ""]));
         same(pr, "panel");
         const pt = await panel.locator(".pr-req").evaluateAll((rows) => rows.map((r) => r.title));
-        assert(pt[5].includes(w.titleWhy), `panel title: ${pt[5]}`);
+        assert(pt[5].includes(await panel.evaluate((x) => brand(x), w.titleWhy)), `panel title: ${pt[5]}`);
         assert.deepEqual(errors, []);
       });
     }

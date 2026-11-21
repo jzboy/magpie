@@ -46,6 +46,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
       await page.route("**/*", serve(lang));
+      await page.addInitScript(() => localStorage.setItem("magpie.navLayout", "side"));
       await page.goto("http://magpie.test/");
       await page.waitForSelector("#nav button.on");
       assert.ok(await page.evaluate(() => document.body.classList.contains("side-nav")), "the sidebar shows");
@@ -56,12 +57,12 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
 
       await prefs.click();
       await open(page).first().waitFor();
-      assert.equal(await open(page).count(), 8, "Settings' tabs are listed");
+      assert.equal(await open(page).count(), 3, "Settings' tabs are listed");
       assert.ok(await chev.isVisible(), "Settings' row shows a disclosure chevron");
       assert.equal(await prefs.getAttribute("aria-expanded"), "true");
       // a tab picked, so the page has something to keep
-      await page.locator(".nav-s[data-of=setTab-network]").click();
-      await page.waitForFunction(() => document.querySelector("#setTab-network").classList.contains("on"));
+      await page.locator(".nav-s[data-of=setTab-usage]").click();
+      await page.waitForFunction(() => document.querySelector("#setTab-usage").classList.contains("on"));
 
       // Settings' row clicked again folds its list; Settings stays open on its tab
       await prefs.click();
@@ -70,7 +71,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       assert.ok(await chev.isVisible(), "the chevron stays, to unfold it again");
       assert.ok(await prefs.evaluate((b) => b.classList.contains("on")), "Settings is still the page open");
       assert.ok(await page.locator("#view-settings").isVisible());
-      assert.ok(await page.evaluate(() => document.querySelector("#setTab-network").classList.contains("on")), "on the tab it was on");
+      assert.ok(await page.evaluate(() => document.querySelector("#setTab-usage").classList.contains("on")), "on the tab it was on");
       const [a, b] = await page.evaluate(() => {
         const r = document.querySelector("#prefs .nav-fold").getBoundingClientRect(), p = document.querySelector("#prefs").getBoundingClientRect();
         return [r.right <= p.right + 0.5 && r.left >= p.left - 0.5, getComputedStyle(document.querySelector("#prefs .nav-fold")).color];
@@ -81,7 +82,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       // and again unfolds it
       await prefs.click();
       await open(page).first().waitFor();
-      assert.equal(await open(page).count(), 8);
+      assert.equal(await open(page).count(), 3);
       assert.equal(await prefs.getAttribute("aria-expanded"), "true");
 
       // folded, away and back: it stays folded, its chevron there to open it

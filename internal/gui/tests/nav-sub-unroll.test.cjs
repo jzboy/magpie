@@ -55,6 +55,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
       await page.route("**/*", serve(lang, held));
+      await page.addInitScript(() => localStorage.setItem("magpie.navLayout", "side"));
       await page.goto("http://magpie.test/");
       await page.waitForSelector("#nav button.on");
       assert.ok(await page.evaluate(() => document.body.classList.contains("side-nav")), "a sidebar at " + width);
@@ -62,8 +63,13 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       await page.locator('#nav button[data-view="plugins"]').click();
       const box = page.locator("#side .nav-sub:not(.leaving)");
       await box.waitFor();
-      // the plugins come in while the list is still unrolling
-      await page.waitForFunction(() => document.querySelector(".nav-sub:not(.leaving)")?.getAnimations().some((a) => a.playState === "running"));
+      // the plugins come in while the list is still unrolling (a fast drawing
+      // engine can have it done before this looks: the rows being there is
+      // the same thing seen late)
+      await page.waitForFunction(() => {
+        const b = document.querySelector(".nav-sub:not(.leaving)");
+        return b && (b.getAnimations().some((a) => a.playState === "running") || b.querySelectorAll(".nav-s").length > 0);
+      }, null, { timeout: 15000 });
       open();
       await page.waitForFunction((w) => document.querySelector(".nav-s.cur")?.textContent.startsWith(w) && /\d/.test(document.querySelector(".nav-s.cur").textContent), installedWord[lang]);
       // every row, the list and its selection, done moving
@@ -77,8 +83,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         const r = (e) => { const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, text: e.textContent }; };
         return [[...document.querySelectorAll(".nav-sub:not(.leaving) .nav-s")].map(r), r(document.querySelector(".nav-sub:not(.leaving) .nav-hl"))];
       });
-      // Built-in (P0 of the plugin runtime), Discover, Installed
-      assert.equal(rows.length, 3);
+      // Built-in (P0 of the plugin runtime) and Installed: 浩哥AI has no Discover
+      assert.equal(rows.length, 2);
       for (let i = 1; i < rows.length; i++) assert.ok(rows[i].top >= rows[i - 1].bottom, `the rows don't overlap: ${JSON.stringify(rows)}`);
       const at = rows.findIndex((r) => r.text.startsWith(installedWord[lang]));
       assert.ok(at > 0, `Installed is a row after another: ${JSON.stringify(rows)}`);

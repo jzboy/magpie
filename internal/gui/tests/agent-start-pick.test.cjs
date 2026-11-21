@@ -55,8 +55,8 @@ function server(lang, posts) {
 }
 
 const words = {
-  en: { pick: "Pick a model", def: "default", on: "Connected · pick magpie's models with /model in Codex" },
-  zh: { pick: "选模型", def: "默认", on: "已接入 · 在 Codex 里用 /model 选 magpie 的模型" },
+  en: { pick: "Pick a model", def: "default", on: "Connected · pick 浩哥AI's models with /model in Codex" },
+  zh: { pick: "选模型", def: "默认", on: "已接入 · 在 Codex 里用 /model 选 浩哥AI 的模型" },
 };
 const row = '.row.agent[data-id="codex"]';
 

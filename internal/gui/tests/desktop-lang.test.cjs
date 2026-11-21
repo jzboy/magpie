@@ -1,7 +1,7 @@
 // Run with Node's test runner and Playwright on the module path; see README.md.
-// Claude Desktop on magpie runs in its 3p mode, whose window is Anthropic's
+// Claude Desktop on 浩哥AI runs in its 3p mode, whose window is Anthropic's
 // bundled one for a gateway: 11 languages, no Chinese (up to 4.4212.0), so a
-// Chinese reader saw it turn English and took it for magpie's (GZXYMH on X).
+// Chinese reader saw it turn English and took it for 浩哥AI's (GZXYMH on X).
 // Claude Desktop's opened row says so in Chinese and Traditional Chinese, and
 // to no one else, whose language Desktop has. Every language, wide and
 // narrow. No backend: faked here.

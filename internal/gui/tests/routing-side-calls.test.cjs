@@ -71,8 +71,8 @@ function serve(lang) {
 }
 
 const want = {
-  en: { api: /Codex's deepseek\/deepseek-flash, which can't search the web by itself: Tavily searched/, tags: ["Web search", "Web search", "Web search", "", "Title"], story: /magpie ran this web search for Codex's deepseek\/deepseek-flash, which can't search the web by itself: codex\/gpt-6\.1-sol searched/, bare: /for a model that can't search the web by itself: codex\/gpt-6\.1-sol searched/, title: /Codex made this call itself \(Title\)/ },
-  zh: { api: /magpie 代 Codex 的 deepseek\/deepseek-flash 发起的联网搜索.*由 Tavily 搜索/, tags: ["联网搜索", "联网搜索", "联网搜索", "", "标题"], story: /magpie 代 Codex 的 deepseek\/deepseek-flash 发起的联网搜索.*由 codex\/gpt-6\.1-sol 搜索/, bare: /代一个无法自行搜索的模型发起的联网搜索：由 codex\/gpt-6\.1-sol 搜索/, title: /Codex 自行发起的调用（标题）/ },
+  en: { api: /Codex's deepseek\/deepseek-flash, which can't search the web by itself: Tavily searched/, tags: ["Web search", "Web search", "Web search", "", "Title"], story: /浩哥AI ran this web search for Codex's deepseek\/deepseek-flash, which can't search the web by itself: codex\/gpt-6\.1-sol searched/, bare: /for a model that can't search the web by itself: codex\/gpt-6\.1-sol searched/, title: /Codex made this call itself \(Title\)/ },
+  zh: { api: /浩哥AI 代 Codex 的 deepseek\/deepseek-flash 发起的联网搜索.*由 Tavily 搜索/, tags: ["联网搜索", "联网搜索", "联网搜索", "", "标题"], story: /浩哥AI 代 Codex 的 deepseek\/deepseek-flash 发起的联网搜索.*由 codex\/gpt-6\.1-sol 搜索/, bare: /代一个无法自行搜索的模型发起的联网搜索：由 codex\/gpt-6\.1-sol 搜索/, title: /Codex 自行发起的调用（标题）/ },
 };
 
 for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium", "webkit"])) {

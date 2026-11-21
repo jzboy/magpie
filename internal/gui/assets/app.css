@@ -1210,7 +1210,10 @@ body.panel .row.pref.flash { border-radius: 10px; }
 .credit-days .cd-note { margin-top: 4px; font-size: 10px; color: var(--muted); }
 /* what was left over time (#651): a line a window, an even burn dashed, now
    upright; the range (or Off) is picked once, in the allowances' head */
-#view-usage .row-head.quota-head { gap: 8px; }
+#view-usage .row-head.quota-head { gap: 8px; flex-wrap: wrap; }
+/* a narrow window with long words (German's Verbraucht/Übrig) wraps the
+   two controls onto a second line rather than scrolling the page sideways */
+#view-usage .row-head.quota-head .segs { max-width: 100%; }
 .quota-curve { margin-top: 10px; }
 .quota-curve .qc-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 10.5px; color: var(--muted); }
 .quota-curve .qc-range { font-size: 10px; color: var(--muted); }
@@ -3830,6 +3833,9 @@ body:not(.side-nav) #addSheet > .row-head.stuck::before { opacity: 1; box-shadow
 .editor .extra-body .why { font-size: 12px; line-height: 1.45; color: var(--red); overflow-wrap: anywhere; }
 .editor .extra-body .why:empty { display: none; }
 .segs { position: relative; display: inline-flex; padding: 2px; border-radius: 7px; background: var(--pill); align-self: flex-start; }
+/* the ledger's five metrics (tokens/cost/calls/speed/traffic) and the
+   allowances' used/left wrap rather than push the page sideways on a phone */
+#ledMetric, #quotaMode { max-width: 100%; flex-wrap: wrap; }
 /* an editor's choices wrap where its sheet is narrow, never pushing the
    sheet into a sideways scroll (German Routing at the 560px window) */
 .editor .segs { max-width: 100%; flex-wrap: wrap; }

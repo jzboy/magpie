@@ -53,11 +53,11 @@ function serve(lang, asked) {
 }
 
 const again = {
-  en: "AutoClaw CN says already checked in; its day may not have turned yet, so magpie asks again later",
-  zh: "AutoClaw CN 回复已签到，但它的签到日可能还没翻页，magpie 稍后会再问",
-  "zh-TW": "AutoClaw CN 回覆已簽到，但它的簽到日可能還沒換日，magpie 稍後會再問",
-  ja: "AutoClaw CN はチェックイン済みと答えましたが、まだ日付が切り替わっていない可能性があるため、magpie は後でもう一度確認します",
-  de: "AutoClaw CN meldet bereits eingecheckt; sein Tag hat vielleicht noch nicht gewechselt, daher fragt magpie später erneut",
+  en: "AutoClaw CN says already checked in; its day may not have turned yet, so 浩哥AI asks again later",
+  zh: "AutoClaw CN 回复已签到，但它的签到日可能还没翻页，浩哥AI 稍后会再问",
+  "zh-TW": "AutoClaw CN 回覆已簽到，但它的簽到日可能還沒換日，浩哥AI 稍後會再問",
+  ja: "AutoClaw CN はチェックイン済みと答えましたが、まだ日付が切り替わっていない可能性があるため、浩哥AI は後でもう一度確認します",
+  de: "AutoClaw CN meldet bereits eingecheckt; sein Tag hat vielleicht noch nicht gewechselt, daher fragt 浩哥AI später erneut",
 };
 const said = {
   en: { claimed: "Claimed: 1 (+200 credits)", already2: "Already checked in today: 2", notYet3: "Not available yet: 3", mixed: "Claimed: 2 (+150 credits) · Already checked in today: 1 · Check-in failed for 1 account(s)" },

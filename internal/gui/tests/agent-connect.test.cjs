@@ -54,8 +54,8 @@ function server(lang, posts) {
 }
 
 const words = {
-  en: { off: "Not connected · Codex uses its own settings", on: "Connected · pick magpie's models with /model in Codex", go: "Disconnect", done: /Codex is connected to magpie/ },
-  zh: { off: "未接入 · 用 Codex 自己的设置", on: "已接入 · 在 Codex 里用 /model 选 magpie 的模型", go: "断开", done: /Codex 已接入 magpie/ },
+  en: { off: "Not connected · Codex uses its own settings", on: "Connected · pick 浩哥AI's models with /model in Codex", go: "Disconnect", done: /Codex is connected to 浩哥AI/ },
+  zh: { off: "未接入 · 用 Codex 自己的设置", on: "已接入 · 在 Codex 里用 /model 选 浩哥AI 的模型", go: "断开", done: /Codex 已接入 浩哥AI/ },
 };
 const row = (id) => `.row.agent[data-id="${id}"]`;
 

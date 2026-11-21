@@ -74,11 +74,14 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
           for (const id of Object.keys(WHY)) {
             const want = await said(page, lang, WHY[id]);
             assert(want, `${id}'s reason has no ${lang}`);
-            // it says that magpie is what can't connect it
-            assert(want.includes("magpie"), `${lang} ${id}: ${want}`);
+            // the page brands what it shows (i18n.js brand), so the words it
+            // is compared with go through it too
+            const wantBranded = await page.evaluate((s) => brand(s), want);
+            // it says that 浩哥AI is what can't connect it
+            assert(/magpie|浩哥AI/.test(wantBranded), `${lang} ${id}: ${wantBranded}`);
             const words = page.locator(`${row(id)} .ag-st-t`);
             assert(await words.isVisible(), `${id}'s reason isn't shown`);
-            assert.equal(await words.textContent(), want, id);
+            assert.equal(await words.textContent(), wantBranded, id);
             assert(await words.evaluate((b) => b.scrollWidth <= b.clientWidth + 1 && b.scrollHeight <= b.clientHeight + 1), `${lang} ${width}: ${id}'s reason is cut`);
             // inside its row
             const inside = await page.locator(row(id)).evaluate((r, sel) => {

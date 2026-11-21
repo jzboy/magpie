@@ -32,7 +32,8 @@ function serve(lang, posts) {
     if (url.pathname === "/api/plugins") return json({ plugins: [] });
     if (route.request().method() === "POST") {
       const body = route.request().postDataJSON();
-      posts.push({ path: url.pathname, body });
+      // the page's own beacons (update pill, title bar) are not this test's
+      if (url.pathname !== "/api/update/using" && url.pathname !== "/api/window/titlebar") posts.push({ path: url.pathname, body });
       if (url.pathname === "/api/login/forget") saved.delete(body.user);
       return json(providers());
     }
@@ -47,13 +48,13 @@ const words = {
   en: {
     line: "Claude Code's saved accounts aren't offered.", remove: "Remove", cancel: "Cancel",
     ask: "Remove Claude Code's 2 saved accounts?",
-    says: "magpie forgets its copy of banned@example.com, other@example.com. Claude Code's own files and sign-in, and the account itself, are left as they are.",
+    says: "浩哥AI forgets its copy of banned@example.com, other@example.com. Claude Code's own files and sign-in, and the account itself, are left as they are.",
     done: "banned@example.com, other@example.com removed",
   },
   zh: {
     line: "Claude Code 保存的账号没有提供出来。", remove: "移除", cancel: "取消",
     ask: "移除 Claude Code 保存的 2 个账号？",
-    says: "移除 magpie 保存的 banned@example.com, other@example.com。Claude Code 自己的文件、登录和账号本身均不受影响。",
+    says: "移除 浩哥AI 保存的 banned@example.com, other@example.com。Claude Code 自己的文件、登录和账号本身均不受影响。",
     done: "已移除 banned@example.com, other@example.com",
   },
 };

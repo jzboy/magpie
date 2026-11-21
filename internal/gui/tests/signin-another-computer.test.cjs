@@ -4,7 +4,7 @@
 // subscription's accounts, "Sign in on another computer…" starts the
 // sign-in kept to its link: /api/signin gets linkOnly, and the window shows
 // the link to copy, no page opened here. The ordinary "Add another …" row
-// posts no linkOnly. Codex and Claude both have the row; English, Chinese,
+// posts no linkOnly. Codex has the row (Claude had one too, before 浩哥AI); English, Chinese,
 // Japanese and German, Chromium and WebKit, 1100 and 420 wide. No backend.
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
@@ -56,7 +56,7 @@ function serve(lang, id, name, posts) {
 for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium", "webkit"])) {
   for (const width of [1100, 420]) {
     for (const lang of Object.keys(label)) {
-      for (const [id, name] of [["claude", "Claude"], ["codex", "Codex"]]) {
+      for (const [id, name] of [["codex", "Codex"]]) {
         test(`${engine} ${width} ${lang} ${id}: Sign in on another computer posts linkOnly and shows the link`, async (t) => {
           const browser = await (engine === "webkit" ? webkit.launch() : chromium.launch({ channel: "chromium" }));
           t.after(() => browser.close());

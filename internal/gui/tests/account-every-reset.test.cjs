@@ -21,7 +21,7 @@ const provider = (id, name, icon, user) => ({
   models: [{ id: "m", name: "", on: true }], agents: [], fallback: [], headers: {}, keyList: [],
   account: { agent: id, agentName: name, user, plan: "pro", logins: [{ user, plan: "pro", active: true, on: true }] },
 });
-const providers = [provider("claude", "Claude Code", "claude-color", "me@example.com"), provider("codex", "Codex", "codex-color", "you@example.com")];
+const providers = [provider("workbuddy", "WorkBuddy", "workbuddy-color", "me@example.com"), provider("codex", "Codex", "codex-color", "you@example.com")];
 const windows = () => [{ name: "5 hours", used: 100, resetsAt: soon }, { name: "7 days", used: 23, resetsAt: week }];
 const serve = (lang, web) => async (route) => {
   const url = new URL(route.request().url());

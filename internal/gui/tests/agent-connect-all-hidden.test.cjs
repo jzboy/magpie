@@ -66,8 +66,8 @@ function fixture(lang, guide) {
 }
 
 const W = {
-  en: { pick: "None of magpie's models is left in Grok Build's model list: pick one, then connect Grok Build" },
-  zh: { pick: "magpie 的模型都不在 Grok Build 的模型列表里：先选一个，再接入 Grok Build" },
+  en: { pick: "None of 浩哥AI's models is left in Grok Build's model list: pick one, then connect Grok Build" },
+  zh: { pick: "浩哥AI 的模型都不在 Grok Build 的模型列表里：先选一个，再接入 Grok Build" },
 };
 
 for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium", "webkit"])) {

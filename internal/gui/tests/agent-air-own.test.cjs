@@ -67,6 +67,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         await page.goto("http://magpie.test/");
 
         // the IDE plugin's: Codex connected here, Claude Code not
+        // the page brands what it shows (i18n.js brand): the words are too
+        const branded = (k) => page.evaluate((s) => brand(s), say(lang, k));
         const ide = row("air-ide");
         await page.locator(ide).waitFor();
         await page.locator(`${ide} .ag-link`, { hasText: DETAILS[lang] }).click();
@@ -77,8 +79,11 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
           "In Air's agent menu, pick Magpie: the model here is Magpie's, and magpie's models are in its model menu.",
           "Air's own Codex and Claude Agent don't take the model here: they run the Codex and Claude Code on this computer, with those agents' own settings.",
           "Codex is connected here, so Air's Codex lists magpie's models too: pick one in its model menu, in a new Codex task.",
-        ]) assert.ok(all.includes(say(lang, k)), `${JSON.stringify(say(lang, k))} not in ${JSON.stringify(all)}`);
-        assert.deepEqual(await text(page.locator(`${ide} .ag-exp .ag-air-own`)), [say(lang, "Claude Code isn't connected here, so Air's Claude Agent doesn't go through magpie.")]);
+        ]) {
+          const want = await branded(k);
+          assert.ok(all.includes(want), `${JSON.stringify(want)} not in ${JSON.stringify(all)}`);
+        }
+        assert.deepEqual(await text(page.locator(`${ide} .ag-exp .ag-air-own`)), [await branded("Claude Code isn't connected here, so Air's Claude Agent doesn't go through magpie.")]);
         const fits = async (loc) => {
           const box = await loc.first().boundingBox();
           assert.ok(box.width <= width && box.height > 0, JSON.stringify(box));
@@ -91,7 +96,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         await page.locator(`${app} .ag-link`, { hasText: DETAILS[lang] }).click();
         const own = page.locator(`${app} .ag-exp .ag-air-own`);
         await own.first().waitFor();
-        assert.deepEqual(await text(own), [say(lang, "Air's own agents (Codex, Claude Agent…) run on Air's own sign-in and settings, not through magpie: only Magpie in its agent menu takes magpie's models.")]);
+        assert.deepEqual(await text(own), [await branded("Air's own agents (Codex, Claude Agent…) run on Air's own sign-in and settings, not through magpie: only Magpie in its agent menu takes magpie's models.")]);
         await fits(own);
         assert.deepEqual(errors, []);
       });

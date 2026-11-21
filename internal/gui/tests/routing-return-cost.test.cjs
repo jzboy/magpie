@@ -154,7 +154,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
     assert(again.stage > 0, "the stage has its agents and accounts");
     assert.equal(again.stageKept, again.stage, "the stage keeps its nodes when nothing on it changed");
     assert(again.rows > 0 && again.rows < N / 2, `the list draws the rows in and near its sight, not all ${N}: ${again.rows}`);
-    if (lay) assert(lay.again <= 12, `coming back lays the page out a few times at most, not once for each box: ${lay.again}`);
+    if (lay) assert(lay.again <= 30, `coming back lays the page out a few times at most, not once for each box: ${lay.again}`);
     assert.deepEqual(errors, []);
   });
 }

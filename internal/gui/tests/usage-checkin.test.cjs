@@ -360,11 +360,11 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
           return route.fulfill({ json: { ...settings, qoderCheckin: true } });
         }
         if (url.pathname === "/api/settings") return route.fulfill({ json: settings });
-        if (url.pathname === "/api/providers") return route.fulfill({ json: provPrefsProviders(["qoder", "minimax-code"], { qoder: "Qoder", "minimax-code": "MiniMax Code" }) });
+        if (url.pathname === "/api/providers") return route.fulfill({ json: provPrefsProviders(["qoder-cn"], { "qoder-cn": "Qoder CN" }) });
         return serve(lang, [])(route);
       });
       await watchSettingsReads(page);
-      await openProvPrefs(page, "qoder");
+      await openProvPrefs(page, "qoder-cn");
       await settingsDrawn(page); // rows found are the ones that stay (#1659)
       await page.locator(".editor .prov-prefs #qoderList").waitFor();
       assert.equal(await page.locator("#minimaxList").evaluate((e) => e.hidden), true, "MiniMax's list hidden with no MiniMax account");

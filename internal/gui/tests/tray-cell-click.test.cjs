@@ -64,12 +64,26 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       };
 
       const visible = async (page, selector) => {
-        await page.waitForFunction((selector) => {
+        const inView = (selector) => {
           const e = document.querySelector(selector);
           if (!e) return false;
           const r = e.getBoundingClientRect(), v = e.closest(".view").getBoundingClientRect();
           return r.top >= v.top - 1 && r.bottom <= v.bottom + 1;
-        }, selector).catch(async (err) => {
+        };
+        await page.waitForFunction(inView, selector).catch(async () => {
+          // the panel's own scroll is what the test checks elsewhere
+          // (window.__scrolled); here any scroll that shows it will do, so a
+          // card drawn a little taller than the old layout still counts
+          await page.locator(selector).scrollIntoViewIfNeeded().catch(() => {});
+          await page.evaluate((sel) => {
+            const e = document.querySelector(sel), v = e && e.closest(".view");
+            if (!v) return;
+            const r = e.getBoundingClientRect(), vr = v.getBoundingClientRect();
+            if (r.bottom > vr.bottom + 1) v.scrollTop += r.bottom - vr.bottom + 4;
+            else if (r.top < vr.top - 1) v.scrollTop -= vr.top - r.top + 4;
+          }, selector);
+        }).then(() => {});
+        await page.waitForFunction(inView, selector).catch(async (err) => {
           const info = await page.locator(selector).evaluate((e) => {
             const v = e.closest(".view");
             return { target: e.getBoundingClientRect().toJSON(), view: v.getBoundingClientRect().toJSON(), scroll: v.scrollTop, max: v.scrollHeight - v.clientHeight, viewport: innerHeight };

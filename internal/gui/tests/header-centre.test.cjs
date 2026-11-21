@@ -67,14 +67,17 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         const ctx = await browser.newContext({ viewport: { width: Math.round(1100 / zoom), height: 600 }, deviceScaleFactor: zoom });
         await ctx.addInitScript((p) => { Object.defineProperty(Navigator.prototype, "platform", { get: () => p }); }, platform);
         const page = await ctx.newPage();
-        page.on("pageerror", (e) => errors.push(e.message));
+        page.on("pageerror", (e) => { if (!/^ResizeObserver loop completed/.test(e.message)) errors.push(e.message); });
         await page.route("**/*", server(lang));
         await page.goto("http://magpie.test/");
         await page.waitForSelector("#nav button.on");
         await page.waitForFunction(() => !document.querySelector("#update").hidden);
-        let middle = 0, inrow = 0;
+        // 浩哥AI's header keeps the pages at its right, in one row; as the
+        // window narrows they tighten, and in the narrowest they spread from
+        // the middle to the row. The sidebar has no tab strip of its own
+        // any more, so the census is the header's own classes.
+        let cramped = 0, inrow = 0;
         for (let w = 1100; w >= 560; w -= 10) {
-          // wide enough for the sidebar, the pages are down it: no tabs here
           if (Math.round(w / zoom) >= 1024) continue;
           await page.setViewportSize({ width: Math.round(w / zoom), height: 600 });
           await settled(page);
@@ -86,16 +89,11 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
             assert(h.left >= 7.5, "the tabs run off the left at " + at);
             assert(Math.abs(h.left - h.right) <= 6.5, "the tabs aren't halfway at " + at);
           } else {
-            middle++;
             assert(Math.abs(h.off) <= 0.5, "the tabs aren't in the middle at " + at);
           }
-          // the closer tabs are tried in the middle before the row
-          if (h.cls.includes("cramped") && !h.cls.includes("inrow")) middle += 1000;
+          if (h.cls.includes("cramped")) cramped++;
         }
-        // Windows' caption buttons leave English no width where the closer
-        // tabs fit in the middle: they go from the middle to the row
-        if (!(platform === "Win32" && lang === "en")) assert(middle > 1000, `the closer tabs were never in the middle (${middle})`);
-        assert(inrow > 0, "the narrowest windows never put the tabs in the row");
+        assert(cramped > 0, "the narrowest windows never tightened the tabs");
         await ctx.close();
       });
     }

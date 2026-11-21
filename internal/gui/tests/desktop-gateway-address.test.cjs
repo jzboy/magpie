@@ -1,5 +1,5 @@
 // Run with Node's test runner and Playwright on the module path; see README.md.
-// Claude Desktop's gateway address (#4546): drawn only while magpie offers
+// Claude Desktop's gateway address (#4546): drawn only while 浩哥AI offers
 // an https address of this computer, picked from the app's own menu. All
 // APIs and assets are intercepted; no backend or external network is used.
 const assert = require("node:assert/strict");

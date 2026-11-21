@@ -1,10 +1,10 @@
 // Run with Node's test runner and Playwright on the module path; see README.md.
 // Claude Desktop's Code tab runs Claude Code, whose opus/sonnet/haiku/fable
-// tiers each take a model of their own from magpie (WilianWeng). Desktop has
+// tiers each take a model of their own from 浩哥AI (WilianWeng). Desktop has
 // no model field here for them to follow: the tiers' square says what an
 // unset one runs on instead, and its picker's reset entry is "Not set", not
-// "Same as model". Connected to magpie, the square is in the row opened from
-// its link. Desktop reads the tiers (and magpie's list of its models, a
+// "Same as model". Connected to 浩哥AI, the square is in the row opened from
+// its link. Desktop reads the tiers (and 浩哥AI's list of its models, a
 // pick's behavesAs with it, moer2831) only as it starts, so the tiers' menu
 // ends with one line saying so. In English and Chinese. No backend: the
 // API is faked here.
@@ -91,7 +91,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const foot = await page.locator("#list li").last().evaluate((e) => ({ cls: e.className, text: e.textContent, i: e.dataset.i, cut: e.scrollWidth > e.clientWidth }));
       assert.deepEqual(foot, { cls: "menu-foot", text: w.foot, i: undefined, cut: false });
 
-      // sonnet's picker: the reset entry, then magpie's models; GLM picked
+      // sonnet's picker: the reset entry, then 浩哥AI's models; GLM picked
       await page.locator("#list li").nth(1).click();
       await page.locator("#pop:not([hidden]) #list li", { hasText: "GLM" }).first().waitFor();
       const first = await page.locator("#list li").first().evaluate((e) => [e.querySelector(".v")?.textContent, e.querySelector(".n")?.textContent || ""]);

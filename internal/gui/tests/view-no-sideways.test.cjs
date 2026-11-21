@@ -74,7 +74,7 @@ const sideways = () => {
   };
 };
 
-const VIEWS = ["agents", "providers", "gateway", "routing", "usage", "sessions", "library", "plugins", "settings"];
+const VIEWS = ["agents", "providers", "gateway", "routing", "usage", "plugins", "settings"];
 
 for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium", "webkit"])) {
   test(engine + ": no page scrolls sideways (#1236)", async (t) => {

@@ -82,7 +82,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       const top = await tops();
 
       await page.locator(sw).click();
-      await page.waitForFunction((s) => document.querySelector("#status")?.textContent.includes(s), said[lang]);
+      // the page brands what it shows: the words are branded too
+      const want = await page.evaluate((s) => brand(s), said[lang]);
+      await page.waitForFunction((s) => document.querySelector("#status")?.textContent.includes(s), want);
       assert.deepEqual(posts, ["/api/agents/connect/codex"]);
       assert.equal(await page.locator(sw).getAttribute("aria-checked"), "false", "the switch goes back off");
       assert.ok(!(await page.locator(sw).isDisabled()), "and can be tried again");

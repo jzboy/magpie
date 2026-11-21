@@ -100,7 +100,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         await page.locator(sw).click();
         await page.waitForFunction((sel) => document.querySelector(sel)?.getAttribute("aria-checked") === "true", sw);
         assert.deepEqual(fx.posts, [{ on: true }]);
-        assert.equal(await page.locator("#status").textContent(), w.ok);
+        // the page brands what it shows (i18n.js brand)
+        assert.equal(await page.locator("#status").textContent(), await page.evaluate((x) => brand(x), w.ok));
         // and off again, by its words
         await page.locator(`${cd} .ag-isolated .ag-isolated-say`).click();
         await page.waitForFunction((sel) => document.querySelector(sel)?.getAttribute("aria-checked") === "false", sw);

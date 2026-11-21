@@ -63,11 +63,11 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
     };
 
     for (const [lang, said, tip] of [
-      ["en", "Not on your terminal's PATH", `magpie found Codex 0.162.1 at ${BIN}. That folder is one magpie looks in, but your terminal's PATH doesn't have it`],
-      ["zh", "不在终端的 PATH 里", `magpie 在 ${BIN} 找到了 Codex 0.162.1。`],
-      ["zh-TW", "不在終端機的 PATH 裡", `magpie 在 ${BIN} 找到了 Codex 0.162.1。`],
-      ["ja", "ターミナルの PATH にありません", `magpie は Codex 0.162.1 を ${BIN} で見つけました。`],
-      ["de", "Nicht im PATH des Terminals", `magpie hat Codex 0.162.1 unter ${BIN} gefunden.`],
+      ["en", "Not on your terminal's PATH", `浩哥AI found Codex 0.162.1 at ${BIN}. That folder is one 浩哥AI looks in, but your terminal's PATH doesn't have it`],
+      ["zh", "不在终端的 PATH 里", `浩哥AI 在 ${BIN} 找到了 Codex 0.162.1。`],
+      ["zh-TW", "不在終端機的 PATH 裡", `浩哥AI 在 ${BIN} 找到了 Codex 0.162.1。`],
+      ["ja", "ターミナルの PATH にありません", `浩哥AI は Codex 0.162.1 を ${BIN} で見つけました。`],
+      ["de", "Nicht im PATH des Terminals", `浩哥AI hat Codex 0.162.1 unter ${BIN} gefunden.`],
     ]) {
       await t.test(lang + ": the note and where, beside the version", async () => {
         const page = await open(lang);

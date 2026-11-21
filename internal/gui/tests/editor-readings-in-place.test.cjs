@@ -22,7 +22,7 @@ const N = 12;
 function serve(lang, readings) {
   const settings = { lang, theme: "light", currency: "usd" };
   const users = Array.from({ length: N }, (_, i) => `user${i}@example.com`);
-  const quotas = users.map((user, i) => ({ provider: "claude", name: "Claude", user, windows: [
+  const quotas = users.map((user, i) => ({ provider: "codex", name: "ChatGPT", user, windows: [
     { name: "5 hours", used: (i * 7) % 100, resetsAt: at(36e5 * ((i % 5) + 1)) },
     { name: "7 days", used: (i * 13) % 100, resetsAt: at(864e5 * ((i % 7) + 1)) },
   ] }));
@@ -34,8 +34,8 @@ function serve(lang, readings) {
     if (url.pathname === "/api/state") return json({ agents: [], profiles: [], settings });
     if (url.pathname === "/api/settings") return json(settings);
     if (url.pathname === "/api/providers") return json({ providers: [{
-      id: "claude", name: "Claude", icon: "claudecode-color", models: [], agents: [], fallback: [], headers: {}, keyList: [],
-      account: { agent: "claude", agentName: "Claude Code", user: users[0], plan: "max",
+      id: "codex", name: "ChatGPT", icon: "openai", models: [], agents: [], fallback: [], headers: {}, keyList: [],
+      account: { agent: "codex", agentName: "ChatGPT", user: users[0], plan: "max",
         logins: users.map((user, i) => ({ user, plan: "max", active: i === 0, on: i < 4 })) },
     }], presets: [], excluded: [], gateway: { running: true, window: true } });
     // held until the test lets the readings in
@@ -77,7 +77,7 @@ for (const engine of ["chromium", "webkit"]) {
       const readings = new Promise((r) => (let_in = r));
       await page.route("**/*", serve(lang, readings));
       await page.goto("http://magpie.test/?view=providers");
-      await page.locator(".row.provider", { hasText: "Claude" }).first().click();
+      await page.locator(".row.provider", { hasText: "ChatGPT" }).first().click();
       await page.locator(".editor .accts .acc").nth(N - 1).waitFor();
       assert.equal(await page.locator(".editor .accts .aq-w").count(), 0, "no readings before they are let in");
       // the third account's tick holds the focus

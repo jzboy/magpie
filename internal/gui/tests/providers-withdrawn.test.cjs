@@ -78,7 +78,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         const gb = await go.boundingBox(), lb = await line.boundingBox();
         assert(gb.x >= lb.x - 1 && gb.x + gb.width <= lb.x + lb.width + 1, "inside the line");
         await go.click();
-        await page.waitForFunction(() => [...document.querySelectorAll("#view-plugins input[type=search]")].some((q) => q.value === "agy"));
+        // 浩哥AI removed the Plugins page's search box (no Discover): the
+        // click lands there, which is what is left to check
+        await page.locator("#view-plugins").waitFor({ state: "visible" });
         assert.deepEqual(page.errors, []);
       });
     }

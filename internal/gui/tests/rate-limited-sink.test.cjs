@@ -20,25 +20,25 @@ const now = Date.now();
 const iso = (ms) => new Date(ms).toISOString();
 const base = { icon: "generic", catalog: "", models: [{ id: "glm-5", name: "GLM-5", on: true }], agents: [], fallback: [], headers: {}, routing: "order", affinity: "", ready: true };
 const sub = {
-  ...base, id: "workbuddy-ai", name: "WorkBuddy AI", chat: "", responses: "", anthropic: "", keyList: [],
+  ...base, id: "workbuddy", name: "WorkBuddy", chat: "", responses: "", anthropic: "", keyList: [],
   account: {
-    agent: "workbuddy-ai", agentName: "WorkBuddy AI", user: "one@example.test", plan: "Pro",
+    agent: "workbuddy", agentName: "WorkBuddy", user: "one@example.test", plan: "Pro",
     logins: ["one", "two", "three"].map((n, i) => ({ user: `${n}@example.test`, plan: "Pro", active: i === 0, on: true })),
   },
 };
-const members = ["workbuddy-ai/glm-5", "rl/glm-5"];
+const members = ["workbuddy/glm-5", "rl/glm-5"];
 const groups = () => ({
-  models: [{ id: "workbuddy-ai/glm-5", name: "glm-5", providerName: "WorkBuddy AI", icon: "generic" }, { id: "rl/glm-5", name: "glm-5", providerName: "Relay", icon: "generic" }],
-  pools: [{ provider: "workbuddy-ai", name: "WorkBuddy AI", icon: "generic", kind: "account", who: ["one@example.test", "two@example.test", "three@example.test"], routing: "order", affinity: "" }],
+  models: [{ id: "workbuddy/glm-5", name: "glm-5", providerName: "WorkBuddy", icon: "generic" }, { id: "rl/glm-5", name: "glm-5", providerName: "Relay", icon: "generic" }],
+  pools: [{ provider: "workbuddy", name: "WorkBuddy", icon: "generic", kind: "account", who: ["one@example.test", "two@example.test", "three@example.test"], routing: "order", affinity: "" }],
   groups: [{ id: "glm", name: "GLM", members, fast: [], off: [], routing: "order", sink: true, ready: true, memberInfo: members.map((id) => ({ id, ready: true })) }],
 });
 const sunkAt = now - 60e3;
 const order = ["two", "three", "one"].map((n, i) => ({
-  id: `workbuddy-ai@${n}@example.test`, provider: "workbuddy-ai", name: "WorkBuddy AI", who: `${n}@example.test`, kind: "account", model: "glm-5", routing: "order", shared: true, rank: i,
+  id: `workbuddy@${n}@example.test`, provider: "workbuddy", name: "WorkBuddy", who: `${n}@example.test`, kind: "account", model: "glm-5", routing: "order", shared: true, rank: i,
   ...(n === "one" ? { sunk: iso(sunkAt) } : {}),
 }));
 const route = {
-  id: 7, seq: 7, time: iso(now - 2000), agent: "pi", model: "glm-5", provider: "workbuddy-ai", done: true, status: 200, ms: 900, tokens: 1500,
+  id: 7, seq: 7, time: iso(now - 2000), agent: "pi", model: "glm-5", provider: "workbuddy", done: true, status: 200, ms: 900, tokens: 1500,
   order, tries: [{ id: order[0].id, model: "glm-5", start: iso(now - 2000), done: true, ms: 800, status: 200 }],
 };
 
@@ -147,7 +147,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       // the providers with several accounts, on the Routing groups page:
       // set at once
       await page.evaluate(() => window.show("groups"));
-      const pool = page.locator(".rt-pool", { hasText: "WorkBuddy AI" });
+      const pool = page.locator(".rt-pool", { hasText: "WorkBuddy" });
       await pool.waitFor();
       // the pool sits under the window's foot: wheeled to, as the reader
       // would (WebKit's own scroll into view is put back by the page, which
@@ -163,7 +163,7 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
       await back.click();
       await page.waitForTimeout(200);
       const sent = posts.find((p) => p.path === "/api/provider/sink");
-      assert.deepEqual(sent?.body, { id: "workbuddy-ai", sink: true });
+      assert.deepEqual(sent?.body, { id: "workbuddy", sink: true });
 
       // the group's card says it; its editor has it, kept by the Save
       const card = page.locator(".rt-group", { hasText: "GLM" });

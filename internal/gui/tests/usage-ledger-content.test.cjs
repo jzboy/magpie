@@ -160,7 +160,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
 
         assert.equal((await p.locator(".led-cx .cx-part .cx-t").last().textContent()).replace(/\s+/g, " ").trim(), "the end of a part " + w.cut);
         assert.equal((await p.locator(".led-cx .cx-none").textContent()).trim(), w.whole);
-        assert.equal((await p.locator(".led-cx .cx-src").textContent()).trim(), w.src);
+        // the page brands what it shows (i18n.js brand): its words too
+        const B = (x) => p.evaluate((y) => brand(y), x);
+        assert.equal((await p.locator(".led-cx .cx-src").textContent()).trim(), await B(w.src));
         // the details are inside the page's box
         const box = await p.locator(".led-box").boundingBox(), wrap = await p.locator("#ledReqPane").boundingBox();
         assert(box.x >= wrap.x - 1 && box.x + box.width <= wrap.x + wrap.width + 1, "within the box");
@@ -183,7 +185,8 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         assert.equal((await logged.locator(".cx-t").last().textContent()).trim(), "There are two files.");
 
         // and those the files can't tell, each saying why
-        for (const [i, why] of [[2, w.why[0]], [3, w.why[1]], [4, w.why[2]]]) {
+        for (const [i, rawWhy] of [[2, w.why[0]], [3, w.why[1]], [4, w.why[2]]]) {
+          const why = await B(rawWhy);
           await openRow(i);
           await p.locator(".led-detail").locator(".cx-none", { hasText: why.slice(0, 20) }).waitFor();
           assert.equal((await p.locator(".led-detail").locator(".cx-none").textContent()).trim(), why);

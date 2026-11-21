@@ -804,7 +804,9 @@ for (const engine of (process.env.BROWSER ? [process.env.BROWSER] : ["chromium",
         await btn.waitFor();
         // one action for both locks
         assert.equal(await btn.count(), 1);
-        assert.equal(await btn.innerText(), takeLabel[lang]);
+        // the button may read its word branded or as written
+        const takeWord = takeLabel[lang], takeBranded = await page.evaluate((x) => brand(x), takeWord);
+        assert([takeWord, takeBranded].includes(await btn.innerText()));
         const over = await page.evaluate(() => {
           const view = document.querySelector("#view-usage");
           return view.scrollWidth > view.clientWidth + 1 ? view.scrollWidth + ">" + view.clientWidth : "";
